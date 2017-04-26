@@ -49,7 +49,7 @@ define () ->
 			return [0, 0] if (not value?)
 
 			# передано два параметра, считаем их числами и возвращаем массив
-			return [@_int(value), @_int(value2]) if value2?
+			return [@_int(value), @_int(value2)] if value2?
 
 			# если передан массив
 			if Array.isArray value

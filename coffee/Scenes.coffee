@@ -22,6 +22,10 @@ define ["Scene"], (Scene) ->
 		# создание сцены
 		create: (options) ->
 
+			# имя сцены FPS является зарезервированным
+			# не желательно использовать это имя для своих сцен
+			# во избежание проблем
+
 			# получаем имя сцены
 			sceneName = options.name or "default"
 			# пробуем найти, нет ли уже такой сцены
@@ -30,7 +34,8 @@ define ["Scene"], (Scene) ->
 			unless scene
 				# создаем
 				scene = new Scene options
-				@_stage.appendChild scene.view
+				@_stage.appendChild scene.canvas
+				@_scenes.push scene
 
 			# если нужно, устанавливаем сцену активной
 			setActive = if options.setActive? then options.setActive else true
@@ -42,7 +47,7 @@ define ["Scene"], (Scene) ->
 		active: () -> @_activeSceneName
 
 		# устанавливаем активную сцену по имени
-		active.set: (sceneName) ->
+		@.prototype.active.set = (sceneName) ->
 
 			# ищем сцену
 			scene = @get sceneName
@@ -52,7 +57,7 @@ define ["Scene"], (Scene) ->
 			return scene
 
 		# возвращаем активную сцену
-		active.get: () -> @get @_activeSceneName
+		@.prototype.active.get = () -> @get @_activeSceneName
 
 		# ищем сцену по имени
 		get: (sceneName) ->
@@ -77,7 +82,7 @@ define ["Scene"], (Scene) ->
 			if index > -1
 
 				# удаляем канвас с экрана
-				@_parent.removeChild @_scenes[index].view
+				@_parent.removeChild @_scenes[index].canvas
 				# удаляем сцену из массива сцен
 				@_scenes.splice index, 1
 				return true
@@ -95,13 +100,30 @@ define ["Scene"], (Scene) ->
 
 			return scene
 
+		# поднимаем сцену на верх отображения
+		onTop: (sceneName) ->
+
+			maxZ = 0
+			result = false
+
+			@_scenes.forEach (scene) ->
+
+				maxZ = scene.getZ() if scene.getZ() > maxZ
+				result = scene if sceneName == scene.name
+
+			result.setZ maxZ + 1 if result
+
+			return result
+
+		# нужна ли анимация хоть одной сцены
 		needAnimation: () ->
 
-			@_scenes.some (scene) -> scene.needAnimation
+			@_scenes.some (scene) -> scene.needAnimation()
 
+		# анимация всех сцен, если нужно
 		animate: () ->
 
-			@_scenes.forEach (scene) -> scene.animate() if scene.needAnimation
+			@_scenes.forEach (scene) -> scene.animate() if scene.needAnimation()
 
 		# получить индекс сцены по ее имени
 		_index: (sceneName) ->

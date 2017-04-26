@@ -1,0 +1,219 @@
+"use strict";
+
+define ["DisplayObject"], (DisplayObject) ->
+
+	class Graph extends DisplayObject
+
+		constructor: (options) ->
+
+			super options
+
+			# массив команд для рисования
+			@_commands = []
+
+			@needAnimation = false
+
+		# рисуем линию, соединяющую две точки
+		line: (fromX, fromY, toX, toY) ->
+
+			from = @_point fromX, fromY
+			to = @_point toX, toY
+
+			@_commands.push {
+
+				"command": "line"
+				"from": from
+				"to": to
+
+			}
+
+			@needAnimation = true
+
+		# очистка экрана и команд
+		clear: () -> 
+
+			@_commands = []
+			@needAnimation = true
+
+		# стиль линий
+		strokeStyle: (style) ->
+
+			@_commands.push {
+
+				"command": "strokeStyle"
+				"style": style
+
+			}
+
+		# стиль заливки
+		fillStyle: (style) ->
+
+			@_commands.push {
+
+				"command": "fillStyle"
+				"style": style
+
+			}
+
+		# заливка прямоугольника
+		fillRect: (fromX, fromY, width, height) ->
+
+			point = @_point fromX, fromY
+			sizes = @_point width, height
+
+			@_commands.push {
+
+				"command": "fillRect"
+				"point": point
+				"sizes": sizes
+
+			}
+
+			@needAnimation = true
+
+		moveTo: (toX, toY) ->
+
+			point = @_point toX, toY
+
+			@_commands.push {
+
+				"command": "moveTo"
+				"point": point
+
+			}
+
+		lineTo: (toX, toY) ->
+
+			point = @_point toX, toY
+
+			@_commands.push {
+
+				"command": "lineTo"
+				"point": point
+
+			}
+
+		# линия из множества точек
+		# второй параметр говорит, нужно ли ее рисовать,
+		# он нужен, чтобы рисовать многоугольники без границы
+		polyline: (points, stroke = true) ->
+
+			@_commands.push {
+
+				"command": "beginPath"
+
+			}
+
+			@moveTo points[0][0], points[0][1]
+
+			points.forEach (point) => @lineTo point[0], point[1]
+
+			if stroke
+
+				@_commands.push {
+
+					"command": "stroke"
+
+				}
+
+			@needAnimation = true
+
+		# полигон
+		polygon: (points) ->
+
+			@polyline points, false
+			@lineTo points[0][0], points[0][1]
+
+			@_commands.push {
+
+				"command": "stroke"
+
+			}
+			@_commands.push {
+
+				"command": "fill"
+
+			}
+
+			@needAnimation = true
+
+		# толщина линий
+		lineWidth: (width) ->
+
+			width = @_int width
+
+			@_commands.push {
+
+				"command": "lineWidth"
+				"width": width
+
+			}
+
+		# установка пунктирной линии
+		setLineDash: (dash) ->
+
+			@_commands.push {
+
+				"command": "setDash"
+				"dash": dash
+
+			}
+
+		# смещение пунктирной линии
+		lineDashOffset: (offset) ->
+
+			offset = @_int offset
+
+			@_commands.push {
+
+				"command": "dashOffset"
+				"offset": offset
+
+			}
+
+		animate: (context) ->
+
+			super context
+
+			# установим закругленные окончания линий
+			context.lineCap = "round"
+
+			# перебираем все команды в массиве команд и выполняем соответствующие действия
+			# можно было поменять строковые команды на числа вида 0, 1, 2 .... и т.д.,
+			# но зачем?
+			@_commands.forEach (command) =>
+
+				switch command.command
+
+					when "beginPath" then context.beginPath()
+
+					when "stroke" then context.stroke()
+
+					when "fill" then context.fill()
+
+					when "setDash" then context.setLineDash command.dash
+
+					when "dashOffset" then context.lineDashOffset = command.offset
+
+					when "moveTo" then context.moveTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
+
+					when "lineTo" then context.lineTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
+
+					when "line"
+
+						context.beginPath()
+						context.moveTo command.from[0] + @_deltaX, command.from[1] + @_deltaY
+						context.lineTo command.to[0] + @_deltaX, command.to[1] + @_deltaY
+						context.stroke()
+
+					when "strokeStyle" then context.strokeStyle = command.style
+
+					when "fillStyle" then context.fillStyle = command.style
+
+					when "lineWidth" then context.lineWidth = command.width
+
+					when "fillRect" then context.fillRect command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.sizes[0], command.sizes[1]
+
+			context.restore()
+
+			@needAnimation = false
