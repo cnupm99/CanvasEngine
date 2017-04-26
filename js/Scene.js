@@ -4,7 +4,7 @@
   var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define(["base", "Image", "Text", "Graph"], function(base, Image, Text, Graph) {
+  define(["base", "Image", "Text", "Graph", "TilingImage"], function(base, Image, Text, Graph, TilingImage) {
     var Scene;
     return Scene = (function(superClass) {
       extend(Scene, superClass);
@@ -45,6 +45,12 @@
             break;
           case "graph":
             result = new Graph(options);
+            break;
+          case "tile":
+            if (options.rect == null) {
+              options.rect = [0, 0, this._sizes[0], this._sizes[1]];
+            }
+            result = new TilingImage(options);
         }
         this._objects.push(result);
         return result;

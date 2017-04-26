@@ -21,7 +21,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			@setSrc options.src
 
 		# загрузка картинки
-		setSrc: (src, local = true) ->
+		setSrc: (src) ->
 
 			# не загружена
 			@_loaded = false

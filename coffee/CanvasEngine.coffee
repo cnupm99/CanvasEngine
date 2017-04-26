@@ -49,6 +49,7 @@ define ["base", "Scenes", "FPS"], (base, Scenes, FPS) ->
 					position: [5, 5]
 					# чтобы сцена была выше всех
 					zIndex: 9999
+					setActive: false
 
 				}
 				# счетчик

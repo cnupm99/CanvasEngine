@@ -17,10 +17,7 @@
         this.setSrc(options.src);
       }
 
-      Image.prototype.setSrc = function(src, local) {
-        if (local == null) {
-          local = true;
-        }
+      Image.prototype.setSrc = function(src) {
         this._loaded = false;
         this._image.onload = (function(_this) {
           return function() {

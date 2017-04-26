@@ -1,6 +1,6 @@
 "use strict";
 
-define ["base", "Image", "Text", "Graph"], (base, Image, Text, Graph) ->
+define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Graph, TilingImage) ->
 
 	class Scene extends base
 
@@ -52,9 +52,14 @@ define ["base", "Image", "Text", "Graph"], (base, Image, Text, Graph) ->
 
 			switch options.type
 
-				when "image" then result = new Image(options)
-				when "text" then result = new Text(options)
-				when "graph" then result = new Graph(options)
+				when "image" then result = new Image options
+				when "text" then result = new Text options
+				when "graph" then result = new Graph options
+				when "tile" 
+
+					# область замостивания по умолчанию равна размеру контекста
+					options.rect = [0, 0, @_sizes[0], @_sizes[1]] unless options.rect?
+					result = new TilingImage options
 
 			@_objects.push result
 

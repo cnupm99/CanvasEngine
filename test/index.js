@@ -3,6 +3,7 @@
 requirejs.config({
 	
 	baseUrl: "../bin"
+	// baseUrl: "../js"
 
 });
 
@@ -12,6 +13,15 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	var ce = new CanvasEngine({
 
 		sizes: [1000, 800]
+
+	});
+
+	// замостим фон кирпичами,
+	// сцена по умолчанию - default
+	ce.add({
+
+		type: "tile",
+		src: "wall.png"
 
 	});
 

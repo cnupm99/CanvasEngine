@@ -26,7 +26,8 @@
             name: "FPS",
             sizes: [90, 40],
             position: [5, 5],
-            zIndex: 9999
+            zIndex: 9999,
+            setActive: false
           });
           this._FPS = new FPS({
             scene: scene
