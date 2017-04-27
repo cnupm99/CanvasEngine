@@ -15,7 +15,7 @@ define () ->
 		setPath: (path) -> @_path = path
 
 		# загрузка массива с путями до изображений 
-		loadList: (list) ->
+		loadList: (list, callBack) ->
 
 			total = list.length
 			loaded = 0
@@ -31,6 +31,8 @@ define () ->
 					BO.generate "imageLoaded", total, loaded
 					# загрузили все
 					BO.generate "imagesAllLoaded", total, loaded if loaded == total
+					# вызываем каллбак
+					callBack total, loaded if callBack?
 				
 				, (e) ->
 
