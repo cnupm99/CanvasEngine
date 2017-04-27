@@ -39,7 +39,16 @@ define ["DisplayObject"], (DisplayObject) ->
 
 				@_loaded = true
 
+				# если у картинки есть свойство onload, то вызываем его и
+				# сообщаем реальные размеры картинки
+				@onload @_realSizes if @onload?
+
 			@_image.src = src
+
+		# возвращаем размер
+		getSizes: () -> @_sizes
+		# реальный размер картинки
+		getRealSizes: () -> @_realSizes
 
 		animate: (context) ->
 

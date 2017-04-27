@@ -182,10 +182,21 @@
               _this._sizes = _this._realSizes;
             }
             _this.needAnimation = true;
-            return _this._loaded = true;
+            _this._loaded = true;
+            if (_this.onload != null) {
+              return _this.onload(_this._realSizes);
+            }
           };
         })(this);
         return this._image.src = src;
+      };
+
+      Image.prototype.getSizes = function() {
+        return this._sizes;
+      };
+
+      Image.prototype.getRealSizes = function() {
+        return this._realSizes;
       };
 
       Image.prototype.animate = function(context) {
