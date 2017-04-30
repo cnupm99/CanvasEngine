@@ -11,6 +11,9 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			super options
 
+			# событие, выполняемое при загрузке картинки
+			@onload = options.onload
+
 			# реальные размеры по умолчанию
 			@_realSizes = [100, 100]
 			@needAnimation = false
