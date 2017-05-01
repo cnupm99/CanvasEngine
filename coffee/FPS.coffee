@@ -71,7 +71,8 @@ define () ->
 			# начинаем рисовать
 			@_graph.clear()
 			@_graph.fillStyle "#000"
-			@_graph.fillRect 0, 0, 90, 40
+			@_graph.rect 0, 0, 90, 40
+			@_graph.fill()
 
 			for i in [0 ... @_values.length]
 

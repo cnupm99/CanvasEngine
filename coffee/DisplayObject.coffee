@@ -107,7 +107,7 @@ define ["base"], (base) ->
 				context.shadowBlur = @_shadow.blur
 				context.shadowOffsetX = Math.max @_shadow.offsetX, @_shadow.offset
 				context.shadowOffsetY = Math.max @_shadow.offsetY, @_shadow.offset
-				
+
 			# смещение и поворот холста
 			if @_rotation != 0
 

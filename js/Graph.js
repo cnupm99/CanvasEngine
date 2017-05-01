@@ -46,14 +46,18 @@
         });
       };
 
-      Graph.prototype.fillRect = function(fromX, fromY, width, height) {
+      Graph.prototype.rect = function(fromX, fromY, width, height, radius) {
         var point, sizes;
+        if (radius == null) {
+          radius = 0;
+        }
         point = this._point(fromX, fromY);
         sizes = this._point(width, height);
         this._commands.push({
-          "command": "fillRect",
+          "command": "rect",
           "point": point,
-          "sizes": sizes
+          "sizes": sizes,
+          "radius": radius
         });
         return this.needAnimation = true;
       };
@@ -70,10 +74,25 @@
       Graph.prototype.lineTo = function(toX, toY) {
         var point;
         point = this._point(toX, toY);
-        return this._commands.push({
+        this._commands.push({
           "command": "lineTo",
           "point": point
         });
+        return this.needAnimation = true;
+      };
+
+      Graph.prototype.fill = function() {
+        this._commands.push({
+          "command": "fill"
+        });
+        return this.needAnimation = true;
+      };
+
+      Graph.prototype.stroke = function() {
+        this._commands.push({
+          "command": "stroke"
+        });
+        return this.needAnimation = true;
       };
 
       Graph.prototype.polyline = function(points, stroke) {
@@ -132,6 +151,25 @@
         });
       };
 
+      Graph.prototype._drawRoundedRect = function(context, x, y, width, height, radius) {
+        var halfpi, pi, x1, x2, y1, y2;
+        pi = Math.PI;
+        halfpi = pi / 2;
+        x1 = x + radius;
+        x2 = x + width - radius;
+        y1 = y + radius;
+        y2 = y + height - radius;
+        context.moveTo(x1, y);
+        context.lineTo(x2, y);
+        context.arc(x2, y1, radius, -halfpi, 0);
+        context.lineTo(x + width, y2);
+        context.arc(x2, y2, radius, 0, halfpi);
+        context.lineTo(x1, y + height);
+        context.arc(x1, y2, radius, halfpi, pi);
+        context.lineTo(x, y1);
+        return context.arc(x1, y1, radius, pi, 3 * halfpi);
+      };
+
       Graph.prototype.animate = function(context) {
         Graph.__super__.animate.call(this, context);
         context.lineCap = "round";
@@ -163,8 +201,13 @@
                 return context.fillStyle = command.style;
               case "lineWidth":
                 return context.lineWidth = command.width;
-              case "fillRect":
-                return context.fillRect(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.sizes[0], command.sizes[1]);
+              case "rect":
+                context.beginPath();
+                if (command.radius === 0) {
+                  return context.rect(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.sizes[0], command.sizes[1]);
+                } else {
+                  return _this._drawRoundedRect(context, command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.sizes[0], command.sizes[1], command.radius);
+                }
             }
           };
         })(this));

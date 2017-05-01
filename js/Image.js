@@ -11,6 +11,7 @@
 
       function Image(options) {
         Image.__super__.constructor.call(this, options);
+        this.onload = options.onload;
         this._realSizes = [100, 100];
         this.needAnimation = false;
         this._image = document.createElement("img");

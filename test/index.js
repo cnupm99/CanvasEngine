@@ -7,7 +7,7 @@ requirejs.config({
 
 });
 
-requirejs(["CanvasEngine"], function(CanvasEngine){
+requirejs(["CanvasEngine"], function(o){
 
 	// создаем движок
 	var ce = new CanvasEngine({
@@ -52,7 +52,11 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	// Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
 
 	// добавим картинке тень
-	image.setShadow({});
+	image.setShadow({
+
+		blur: 20
+
+	});
 
 	// добавим на сцену маску
 	scene1.setMask(250, 250, 200, 200);
@@ -115,20 +119,21 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	});
 
-	// рисуем прямоугольник с тенью
+	// рисуем прямоугольник с тенью и скругленными углами
 	graph2.fillStyle("#888800");
 	graph2.setShadow({
 		color: "#888800",
 		blur: 30
-	})
-	graph2.fillRect(0, 0, 100, 100);
+	});
+	graph2.rect(0, 0, 100, 100, 10);
+	graph2.fill()
 
 	var counter = 0;
 
 	// добавляем функцию в цикл анимации
 	ce.addEvent(function(){
 
-		// а тут мы рисуем прямоугольник
+		// а тут мы рисуем многоугольник
 		// с пунктирными анимированными границами
 		counter++;
 		if (counter % 2 == 0) {

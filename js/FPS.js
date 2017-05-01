@@ -51,7 +51,8 @@
         }
         this._graph.clear();
         this._graph.fillStyle("#000");
-        this._graph.fillRect(0, 0, 90, 40);
+        this._graph.rect(0, 0, 90, 40);
+        this._graph.fill();
         for (i = j = 0, ref = this._values.length; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
           x = 87 - this._values.length + i;
           fps = this._values[i][0];

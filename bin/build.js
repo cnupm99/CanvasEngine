@@ -3,8 +3,8 @@
 	{
 		
 		baseUrl: "../js",
-		name: "index",
-		out: "CanvasEngine.min.js"
+		name: "CanvasEngine",
+		out: "CanvasEngine.js"
 
 	}
 	

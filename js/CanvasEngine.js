@@ -7,7 +7,7 @@
 
   define(["base", "Scenes", "FPS"], function(base, Scenes, FPS) {
     var CanvasEngine;
-    return CanvasEngine = (function(superClass) {
+    CanvasEngine = (function(superClass) {
       extend(CanvasEngine, superClass);
 
       function CanvasEngine(options) {
@@ -100,6 +100,7 @@
       return CanvasEngine;
 
     })(base);
+    return window["CanvasEngine"] = CanvasEngine;
   });
 
 }).call(this);

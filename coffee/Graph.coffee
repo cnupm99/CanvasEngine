@@ -55,17 +55,18 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
-		# заливка прямоугольника
-		fillRect: (fromX, fromY, width, height) ->
+		# рисуем прямоугольник, если указан radius, то скругляем углы
+		rect: (fromX, fromY, width, height, radius = 0) ->
 
 			point = @_point fromX, fromY
 			sizes = @_point width, height
 
 			@_commands.push {
 
-				"command": "fillRect"
+				"command": "rect"
 				"point": point
 				"sizes": sizes
+				"radius": radius
 
 			}
 
@@ -92,6 +93,28 @@ define ["DisplayObject"], (DisplayObject) ->
 				"point": point
 
 			}
+
+			@needAnimation = true
+
+		fill: () ->
+
+			@_commands.push {
+
+				"command": "fill"
+
+			}
+
+			@needAnimation = true
+
+		stroke: () ->
+
+			@_commands.push {
+
+				"command": "stroke"
+
+			}
+
+			@needAnimation = true
 
 		# линия из множества точек
 		# второй параметр говорит, нужно ли ее рисовать,
@@ -171,6 +194,27 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
+		# рисуем пряоугольник со скругленными углами
+		_drawRoundedRect: (context, x, y, width, height, radius) ->
+
+			# предварительные вычисления
+			pi = Math.PI
+			halfpi = pi / 2
+			x1 = x + radius
+			x2 = x + width - radius
+			y1 = y + radius
+			y2 = y + height - radius
+			# рисуем
+			context.moveTo x1, y
+			context.lineTo x2, y
+			context.arc x2, y1, radius, -halfpi, 0
+			context.lineTo x + width, y2
+			context.arc x2, y2, radius, 0, halfpi
+			context.lineTo x1, y + height
+			context.arc x1, y2, radius, halfpi, pi
+			context.lineTo x, y1
+			context.arc x1, y1, radius, pi, 3 * halfpi
+
 		animate: (context) ->
 
 			super context
@@ -212,7 +256,17 @@ define ["DisplayObject"], (DisplayObject) ->
 
 					when "lineWidth" then context.lineWidth = command.width
 
-					when "fillRect" then context.fillRect command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.sizes[0], command.sizes[1]
+					when "rect"
+
+						context.beginPath()
+						
+						# обычный прямоугольник
+						if command.radius == 0
+						
+							context.rect command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.sizes[0], command.sizes[1]
+
+						# прямоугольник со скругленными углами
+						else @_drawRoundedRect context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.sizes[0], command.sizes[1], command.radius
 
 			context.restore()
 

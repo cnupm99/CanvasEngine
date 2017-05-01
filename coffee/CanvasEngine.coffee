@@ -132,3 +132,5 @@ define ["base", "Scenes", "FPS"], (base, Scenes, FPS) ->
 
 			# продолжаем анимацию
 			@_render = requestAnimationFrame @_animate
+
+	window["CanvasEngine"] = CanvasEngine
