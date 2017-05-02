@@ -120,7 +120,8 @@ requirejs(["CanvasEngine"], function(o){
 	});
 
 	// рисуем прямоугольник с тенью и скругленными углами
-	graph2.fillStyle("#888800");
+	// и градиентом
+	graph2.linearGradient(0, 0, 100, 100, [[0, "#CCC"], [1, "#555"]]);
 	graph2.setShadow({
 		color: "#888800",
 		blur: 30

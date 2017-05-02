@@ -55,6 +55,19 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
+		# устновка градиента
+		# colors = Array [ [size, color], .... ], где color:String, size:Number [0..1]
+		linearGradient: (x1, y1, x2, y2, colors) ->
+
+			@_commands.push {
+
+				"command": "gradient"
+				"point1": @_point x1, y1
+				"point2": @_point x2, y2
+				"colors": colors
+
+			}
+
 		# рисуем прямоугольник, если указан radius, то скругляем углы
 		rect: (fromX, fromY, width, height, radius = 0) ->
 
@@ -267,6 +280,17 @@ define ["DisplayObject"], (DisplayObject) ->
 
 						# прямоугольник со скругленными углами
 						else @_drawRoundedRect context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.sizes[0], command.sizes[1], command.radius
+
+					when "gradient"
+
+						# создаем градиент по нужным точкам
+						gradient = context.createLinearGradient command.point1[0] + @_deltaX, command.point1[1] + @_deltaY, command.point2[0] + @_deltaX, command.point2[1] + @_deltaY
+						# добавляем цвета
+						command.colors.forEach (color) ->
+							# сначала размер, потом цвет
+							gradient.addColorStop color[0], color[1]
+						# заливка градиентом
+						context.fillStyle = gradient
 
 			context.restore()
 

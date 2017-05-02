@@ -46,6 +46,15 @@
         });
       };
 
+      Graph.prototype.linearGradient = function(x1, y1, x2, y2, colors) {
+        return this._commands.push({
+          "command": "gradient",
+          "point1": this._point(x1, y1),
+          "point2": this._point(x2, y2),
+          "colors": colors
+        });
+      };
+
       Graph.prototype.rect = function(fromX, fromY, width, height, radius) {
         var point, sizes;
         if (radius == null) {
@@ -175,6 +184,7 @@
         context.lineCap = "round";
         this._commands.forEach((function(_this) {
           return function(command) {
+            var gradient;
             switch (command.command) {
               case "beginPath":
                 return context.beginPath();
@@ -208,6 +218,13 @@
                 } else {
                   return _this._drawRoundedRect(context, command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.sizes[0], command.sizes[1], command.radius);
                 }
+                break;
+              case "gradient":
+                gradient = context.createLinearGradient(command.point1[0] + _this._deltaX, command.point1[1] + _this._deltaY, command.point2[0] + _this._deltaX, command.point2[1] + _this._deltaY);
+                command.colors.forEach(function(color) {
+                  return gradient.addColorStop(color[0], color[1]);
+                });
+                return context.fillStyle = gradient;
             }
           };
         })(this));
