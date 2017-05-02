@@ -28,7 +28,7 @@ define () ->
 				type: "text"
 				fillStyle: "#00FF00"
 				font: "10px Arial"
-				position: [3, 10]
+				position: [3, 1]
 
 			}
 
@@ -38,7 +38,7 @@ define () ->
 				type: "text"
 				fillStyle: "#FF0000"
 				font: "10px Arial"
-				position: [48, 10]
+				position: [48, 1]
 
 			}
 

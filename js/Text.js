@@ -11,16 +11,20 @@
 
       function Text(options) {
         Text.__super__.constructor.call(this, options);
-        this._text = options.text || "";
+        this._context = options.context;
         this.setFont(options.font);
+        this.setText(options.text || "");
         this._fillStyle = options.fillStyle || false;
         this._strokeStyle = options.strokeStyle || false;
-        this.width = 0;
         this.needAnimation = true;
       }
 
       Text.prototype.setText = function(text) {
         this._text = text;
+        this._context.save();
+        this._context.font = this._font;
+        this.width = this._context.measureText(this._text).width;
+        this._context.restore();
         return this.needAnimation = true;
       };
 
@@ -58,7 +62,6 @@
           context.strokeStyle = this._strokeStyle;
           context.strokeText(this._text, this._deltaX, this._deltaY);
         }
-        this.width = context.measureText(this._text).width;
         context.restore();
         return this.needAnimation = false;
       };

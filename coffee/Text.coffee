@@ -8,24 +8,30 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			super options
 
-			# текст
-			@_text = options.text or ""
+			# контекст, нужен для определения ширины текста
+			@_context = options.context
 			# шрифт
 			@setFont options.font
+			# текст
+			@setText(options.text or "")
 			# заливка
 			@_fillStyle = options.fillStyle or false
 			# обводка
 			@_strokeStyle = options.strokeStyle or false
-			# в это свойство мы складываем ширину текста при его отображении
-			# это свойство обновляется только при отображении,
-			# так как для этого нужно знать context
-			@width = 0
 
 			@needAnimation = true
 
 		setText: (text) ->
 
 			@_text = text
+
+			# определяем ширину текста
+			# используя для этого ссылку на контекст
+			@_context.save()
+			@_context.font = @_font
+			@width = @_context.measureText(@_text).width
+			@_context.restore()
+
 			@needAnimation = true
 
 		fillStyle: (style) ->
@@ -69,9 +75,6 @@ define ["DisplayObject"], (DisplayObject) ->
 
 				context.strokeStyle = @_strokeStyle
 				context.strokeText @_text, @_deltaX, @_deltaY
-
-			# обновляем ширину текста
-			@width = context.measureText(@_text).width
 
 			context.restore()
 

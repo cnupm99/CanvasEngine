@@ -45,15 +45,13 @@ define () ->
 			@_showCaption = if options.showCaption? then options.showCaption else false
 			@_showProgress = if options.showProgress? then options.showProgress else true
 			@_caption = options.caption or "Progress: "
-			font = options.font or "24px Arial"
-			@_fontHeight = @_getFontHeight font
 			strokeCaption = if options.strokeCaption? then options.strokeCaption else true
 			if @_showCaption or @_showProgress
 
 				@_text = scene.add {
 
 					type: "text"
-					font: font
+					font: options.font or "24px Arial"
 					fillStyle: @_colors.caption
 					strokeStyle: if strokeCaption then @_colors.captionStroke else false
 					position: @_position
@@ -93,16 +91,6 @@ define () ->
 		getProgress: () -> @_progress
 
 		getValue: () -> @_value
-
-		_getFontHeight: (font) ->
-
-			span = document.createElement "span"
-			span.appendChild document.createTextNode("height")
-			span.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;"
-			document.body.appendChild span
-			height = span.offsetHeight
-			document.body.removeChild span
-			return height
 
 		_animate: () ->
 
@@ -163,4 +151,4 @@ define () ->
 					text += if @_drawProgress then @_progress + "%" else @_value
 
 				@_text.setText text
-				@_text.setPosition [@_position[0] + (@_sizes[0] - @_text.width()) / 2, @_position[1] + (@_sizes[1] - @_fontHeight) / 2]
+				@_text.setPosition [@_position[0] + (@_sizes[0] - @_text.width) / 2, @_position[1] + (@_sizes[1] - @_text.fontHeight) / 2]

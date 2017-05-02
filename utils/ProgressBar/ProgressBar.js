@@ -5,7 +5,7 @@
     var ProgressBar;
     return ProgressBar = (function() {
       function ProgressBar(options) {
-        var colors, font, scene, strokeCaption;
+        var colors, scene, strokeCaption;
         scene = options.scene;
         if (!scene) {
           return false;
@@ -35,13 +35,11 @@
         this._showCaption = options.showCaption != null ? options.showCaption : false;
         this._showProgress = options.showProgress != null ? options.showProgress : true;
         this._caption = options.caption || "Progress: ";
-        font = options.font || "24px Arial";
-        this._fontHeight = this._getFontHeight(font);
         strokeCaption = options.strokeCaption != null ? options.strokeCaption : true;
         if (this._showCaption || this._showProgress) {
           this._text = scene.add({
             type: "text",
-            font: font,
+            font: options.font || "24px Arial",
             fillStyle: this._colors.caption,
             strokeStyle: strokeCaption ? this._colors.captionStroke : false,
             position: this._position
@@ -89,17 +87,6 @@
         return this._value;
       };
 
-      ProgressBar.prototype._getFontHeight = function(font) {
-        var height, span;
-        span = document.createElement("span");
-        span.appendChild(document.createTextNode("height"));
-        span.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;";
-        document.body.appendChild(span);
-        height = span.offsetHeight;
-        document.body.removeChild(span);
-        return height;
-      };
-
       ProgressBar.prototype._animate = function() {
         var color, size, text;
         this._graph.clear();
@@ -141,7 +128,7 @@
             text += this._drawProgress ? this._progress + "%" : this._value;
           }
           this._text.setText(text);
-          return this._text.setPosition([this._position[0] + (this._sizes[0] - this._text.width()) / 2, this._position[1] + (this._sizes[1] - this._fontHeight) / 2]);
+          return this._text.setPosition([this._position[0] + (this._sizes[0] - this._text.width) / 2, this._position[1] + (this._sizes[1] - this._text.fontHeight) / 2]);
         }
       };
 

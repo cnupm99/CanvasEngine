@@ -17,13 +17,13 @@
           type: "text",
           fillStyle: "#00FF00",
           font: "10px Arial",
-          position: [3, 10]
+          position: [3, 1]
         });
         this._caption2 = this._scene.add({
           type: "text",
           fillStyle: "#FF0000",
           font: "10px Arial",
-          position: [48, 10]
+          position: [48, 1]
         });
         this.start();
         this._onTimer();

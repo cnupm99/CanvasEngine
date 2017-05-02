@@ -41,6 +41,7 @@
             result = new Image(options);
             break;
           case "text":
+            options.context = this.context;
             result = new Text(options);
             break;
           case "graph":
