@@ -6,49 +6,62 @@ define () ->
 
 		constructor: (options) ->
 
+			# сцена для рисования,
+			# если ее нет, рисовать негде
 			scene = options.scene
 			return false unless scene
 
-			@_position = options.position or [0, 0]
-			@_sizes = options.sizes or [300, 50]
-			@_padding = options.padding or 3
+			# опции размера, позиции и рисования
+			@_sizeOptions options
+			# установка цветовых опций
+			@_colorOptions options
+			# установка опций текста
+			@_textOptions options
+			
+			# установка значений
+			@_minValue = options.minValue or 0
+			@_maxValue = options.maxValue or 100
+			@_progress = options.progress or 0
+			@_value = options.value or 0
 
-			@_graph = scene.add {
+			# установка
+			if @_progress > 0 then @progress @_progress
+			else if @_value > 0 then @value @_value
+
+		_sizeOptions: (options) ->
+
+			# позиция
+			@_position = options.position or [0, 0]
+			# размеры
+			@_sizes = options.sizes or [300, 50]
+			# расстояние между внешней рамкой и линией прогресса
+			@_padding = options.padding or 3
+			# радиус скругления углов, если 0 или null,
+			# то скругления не будет
+			@_radius = options.radius or 5
+
+			# создаем класс для рисования
+			@_graph = options.scene.add {
 
 				type: "graph"
 				position: @_position
 
 			}
 
-			colors = options.colors or {}
-			@_colors = {
+		_textOptions: (options) ->
 
-				backgroundColor: colors.backgroundColor or ["#C3BD73", "#DCD9A2"]
-				backgroundShadowColor: colors.backgroundShadowColor or "#FFF"
-				strokeColor: colors.strokeColor or "#000"
-
-				progress25: colors.progress25 or ["#f27011", "#E36102"]
-				progress50: colors.progress50 or ["#f2b01e", "#E3A10F"]
-				progress75: colors.progress75 or ["#f2d31b", "#E3C40C"]
-				progress100: colors.progress100 or ["#86e01e", "#67C000"]
-
-				progressShadowColor: colors.progressShadowColor or "#000"
-
-				caption: colors.caption or "#B22222"
-				captionStroke: colors.captionStroke or "#A11111"
-
-			}
-
-			@_rounded = if options.rounded? then options.rounded else true
-			@_radius = options.radius or 5
-
+			# нужно ли выводить подпись
 			@_showCaption = if options.showCaption? then options.showCaption else false
+			# нужно ли выводить значение прогресса
 			@_showProgress = if options.showProgress? then options.showProgress else true
+			# подпись
 			@_caption = options.caption or "Progress: "
+			# нужна ли обводка текста
 			strokeCaption = if options.strokeCaption? then options.strokeCaption else true
+			# если выводить текст нужно, создаем класс для этого
 			if @_showCaption or @_showProgress
 
-				@_text = scene.add {
+				@_text = options.scene.add {
 
 					type: "text"
 					font: options.font or "24px Arial"
@@ -58,14 +71,35 @@ define () ->
 
 				}
 
-			@_minValue = options.minValue or 0
-			@_maxValue = options.maxValue or 100
-			@_progress = options.progress or 0
-			@_value = options.value or 0
+		_colorOptions: (options) ->
 
-			if @_progress > 0 then @progress @_progress
-			else if @_value > 0 then @value @_value
+			colors = options.colors or {}
+			
+			@_colors = {
 
+				# цвет фона
+				backgroundColor: colors.backgroundColor or ["#C3BD73", "#DCD9A2"]
+				# цвет тени фона
+				backgroundShadowColor: colors.backgroundShadowColor or "#FFF"
+				# цвет обводки фона
+				strokeColor: colors.strokeColor or "#000"
+
+				# цвета линии прогресса для разных значений прогресса
+				progress25: colors.progress25 or ["#f27011", "#E36102"]
+				progress50: colors.progress50 or ["#f2b01e", "#E3A10F"]
+				progress75: colors.progress75 or ["#f2d31b", "#E3C40C"]
+				progress100: colors.progress100 or ["#86e01e", "#67C000"]
+				# цвет тени линии прогресса
+				progressShadowColor: colors.progressShadowColor or "#000"
+
+				# цвет надписи
+				caption: colors.caption or "#B22222"
+				# цвет обводки надписи
+				captionStroke: colors.captionStroke or "#A11111"
+
+			}
+
+		# устанавливаем новые значения
 		setValues: (min, max) ->
 
 			return false if min >= max
@@ -74,6 +108,7 @@ define () ->
 			@_maxValue = max
 			@_animate()
 
+		# установка прогресса
 		progress: (progress) ->
 
 			@_progress = progress
@@ -81,6 +116,7 @@ define () ->
 			@_drawProgress = true
 			@_animate()
 
+		# установка значения
 		value: (value) ->
 
 			@_value = value
@@ -88,13 +124,26 @@ define () ->
 			@_drawProgress = false
 			@_animate()
 
+		# текущий прогресс
 		getProgress: () -> @_progress
-
+		# текущее значение
 		getValue: () -> @_value
 
+		# прорисовка
 		_animate: () ->
 
+			# очистка графики
 			@_graph.clear()
+			# рисуем фон
+			@_animateBackground()
+			# рисуем линию прогесса
+			@_animateProgress()
+			# обновляем текст
+			@_animateText()
+
+		_animateBackground: () ->
+
+			# тень
 			@_graph.setShadow {
 
 				color: @_colors.backgroundShadowColor
@@ -102,6 +151,7 @@ define () ->
 				offset: 0
 
 			}
+			# градиент
 			@_graph.linearGradient 0, 0, 0, @_sizes[1], [
 
 				[0, @_colors.backgroundColor[0]]
@@ -109,20 +159,27 @@ define () ->
 				[1, @_colors.backgroundColor[0]]
 
 			]
+			# линии
 			@_graph.strokeStyle @_colors.strokeColor
 			@_graph.lineWidth 1
 
+			# рисуем
 			@_graph.rect 0, 0, @_sizes[0], @_sizes[1], @_radius
 			@_graph.fill()
 			@_graph.stroke()
 
+		_animateProgress: () ->
+
+			# выбор цвета
 			if @_progress <= 25 then color = @_colors.progress25
 			else if @_progress <= 50 then color = @_colors.progress50
 			else if @_progress <= 75 then color = @_colors.progress75
 			else color = @_colors.progress100
 
+			# размер линии
 			size = Math.floor((@_sizes[0] - @_padding * 2) * @_value / @_maxValue)
 
+			# тень
 			@_graph.setShadow {
 
 				color: @_colors.progressShadowColor
@@ -130,6 +187,7 @@ define () ->
 				offset: 0
 
 			}
+			# градиент
 			@_graph.linearGradient @_padding, @_padding, @_padding, @_sizes[1] - @_padding, [
 
 				[0, color[0]]
@@ -138,11 +196,16 @@ define () ->
 
 			]
 
+			# рисуем
 			@_graph.rect @_padding, @_padding, size, @_sizes[1] - @_padding * 2, @_radius
 			@_graph.fill()
 
+		_animateText: () ->
+
+			# нужен ли текст
 			if @_text?
 
+				# формируем текст
 				text = ""
 				text += @_caption if @_showCaption
 
@@ -150,5 +213,7 @@ define () ->
 
 					text += if @_drawProgress then @_progress + "%" else @_value
 
+				# установка текста
 				@_text.setText text
+				# установка позиции
 				@_text.setPosition [@_position[0] + (@_sizes[0] - @_text.width) / 2, @_position[1] + (@_sizes[1] - @_text.fontHeight) / 2]

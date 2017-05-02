@@ -34,18 +34,39 @@ requirejs(["CanvasEngine", "../utils/ProgressBar/ProgressBar"], function(CanvasE
 
 	});
 
+	var pb2 = new ProgressBar({
+
+		scene: scene,
+		position: [100, 200],
+		sizes: [250, 20],
+		progress: 0,
+		showCaption: false,
+		showProgress: false
+
+	});
+
 	var counter = 0;
 
 	ce.addEvent(function(){
 
 		counter++;
 
-		if (counter % 10 != 0) return;
+		if (counter % 10 == 0) {
 
-		var progress = pb.getProgress();
-		progress++;
-		if(progress > 100) progress = 0;
-		pb.progress(progress);
+			var progress = pb.getProgress();
+			progress++;
+			if(progress > 100) progress = 0;
+			pb.progress(progress);
+
+		}
+		if (counter % 2 == 0) {
+
+			var progress = pb2.getProgress();
+			progress++;
+			if(progress > 100) progress = 0;
+			pb2.progress(progress);
+
+		}
 
 	});
 
