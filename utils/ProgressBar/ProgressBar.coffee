@@ -6,24 +6,26 @@ define () ->
 
 		constructor: (options) ->
 
-			@_scene = options.scene
-			return false unless @_scene
+			scene = options.scene
+			return false unless scene
 
-			@_scene.addChild @
+			@_position = options.position or [0, 0]
+			@_sizes = options.sizes or [300, 50]
+			@_padding = options.padding or 3
 
-			@_minValue = options.minValue or 0
-			@_maxValue = options.maxValue or 100
-			@_progress = options.progress or 0
-			@_value = options.value or 0
+			@_graph = scene.add {
 
-			if @_progress > 0 then @progress @_progress
-			else if @_value > 0 then @value @_value
+				type: "graph"
+				position: @_position
+
+			}
 
 			colors = options.colors or {}
 			@_colors = {
 
 				backgroundColor: colors.backgroundColor or ["#C3BD73", "#DCD9A2"]
 				backgroundShadowColor: colors.backgroundShadowColor or "#FFF"
+				strokeColor: colors.strokeColor or "#000"
 
 				progress25: colors.progress25 or ["#f27011", "#E36102"]
 				progress50: colors.progress50 or ["#f2b01e", "#E3A10F"]
@@ -37,22 +39,34 @@ define () ->
 
 			}
 
-			@_position = options.position or [0, 0]
-			@_sizes = options.sizes or [300, 50]
-			@_padding = options.padding or 3
-
 			@_rounded = if options.rounded? then options.rounded else true
 			@_radius = options.radius or 5
 
 			@_showCaption = if options.showCaption? then options.showCaption else false
-			@_caption = options.caption or "Progress: "
-			@_font = options.font or "24px Arial"
-			@_fontHeight = @_getFontHeight()
-			@_strokeCaption = if options.strokeCaption? then options.strokeCaption else true
-
 			@_showProgress = if options.showProgress? then options.showProgress else true
+			@_caption = options.caption or "Progress: "
+			font = options.font or "24px Arial"
+			@_fontHeight = @_getFontHeight font
+			strokeCaption = if options.strokeCaption? then options.strokeCaption else true
+			if @_showCaption or @_showProgress
 
-			@needAnimation = true
+				@_text = scene.add {
+
+					type: "text"
+					font: font
+					fillStyle: @_colors.caption
+					strokeStyle: if strokeCaption then @_colors.captionStroke else false
+					position: @_position
+
+				}
+
+			@_minValue = options.minValue or 0
+			@_maxValue = options.maxValue or 100
+			@_progress = options.progress or 0
+			@_value = options.value or 0
+
+			if @_progress > 0 then @progress @_progress
+			else if @_value > 0 then @value @_value
 
 		setValues: (min, max) ->
 
@@ -60,82 +74,59 @@ define () ->
 
 			@_minValue = min
 			@_maxValue = max
-			@needAnimation = true
+			@_animate()
 
 		progress: (progress) ->
 
 			@_progress = progress
 			@_value = progress * @_maxValue / 100
 			@_drawProgress = true
-			@needAnimation = true
+			@_animate()
 
 		value: (value) ->
 
 			@_value = value
 			@_progress = Math.floor(value * 100 / @_maxValue)
 			@_drawProgress = false
-			@needAnimation = true
+			@_animate()
 
 		getProgress: () -> @_progress
 
 		getValue: () -> @_value
 
-		_getFontHeight: () ->
+		_getFontHeight: (font) ->
 
 			span = document.createElement "span"
 			span.appendChild document.createTextNode("height")
-			span.style.cssText = "font: " + @_font + "; white-space: nowrap; display: inline;"
+			span.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;"
 			document.body.appendChild span
 			height = span.offsetHeight
 			document.body.removeChild span
 			return height
 
-		# рисуем пряоугольник со скругленными углами
-		_drawRoundedRect: (context, x, y, width, height, radius) ->
+		_animate: () ->
 
-			# предварительные вычисления
-			pi = Math.PI
-			halfpi = pi / 2
-			x1 = x + radius
-			x2 = x + width - radius
-			y1 = y + radius
-			y2 = y + height - radius
-			# рисуем
-			context.moveTo x1, y
-			context.lineTo x2, y
-			context.arc x2, y1, radius, -halfpi, 0
-			context.lineTo x + width, y2
-			context.arc x2, y2, radius, 0, halfpi
-			context.lineTo x1, y + height
-			context.arc x1, y2, radius, halfpi, pi
-			context.lineTo x, y1
-			context.arc x1, y1, radius, pi, 3 * halfpi
+			@_graph.clear()
+			@_graph.setShadow {
 
-		_setGradient: (context, color1, color2) ->
+				color: @_colors.backgroundShadowColor
+				blur: 3
+				offset: 0
 
-			gradient = context.createLinearGradient @_padding, @_padding, @_padding, @_sizes[1] - @_padding * 2
-			gradient.addColorStop 0, color2
-			gradient.addColorStop 0.5, color1
-			gradient.addColorStop 1, color2
-			context.fillStyle = gradient
+			}
+			@_graph.linearGradient 0, 0, 0, @_sizes[1], [
 
-		animate: (context) ->
+				[0, @_colors.backgroundColor[0]]
+				[0.5, @_colors.backgroundColor[1]]
+				[1, @_colors.backgroundColor[0]]
 
-			context.save()
+			]
+			@_graph.strokeStyle @_colors.strokeColor
+			@_graph.lineWidth 1
 
-			context.translate @_position[0], @_position[1]
-
-			context.shadowColor = @_colors.backgroundShadowColor
-			context.shadowBlur = 3
-			context.shadowOffsetX = 0
-			context.shadowOffsetY = 0
-			@_setGradient context, @_colors.backgroundColor[0], @_colors.backgroundColor[1]
-
-			context.beginPath()
-			if @_rounded then @_drawRoundedRect context, 0, 0, @_sizes[0], @_sizes[1], @_radius else context.rect 0, 0, @_sizes[0], @_sizes[1]
-			context.strokeStyle = "#000"
-			context.stroke()
-			context.fill()
+			@_graph.rect 0, 0, @_sizes[0], @_sizes[1], @_radius
+			@_graph.fill()
+			@_graph.stroke()
 
 			if @_progress <= 25 then color = @_colors.progress25
 			else if @_progress <= 50 then color = @_colors.progress50
@@ -144,38 +135,32 @@ define () ->
 
 			size = Math.floor((@_sizes[0] - @_padding * 2) * @_value / @_maxValue)
 
-			@_setGradient context, color[0], color[1]
+			@_graph.setShadow {
 
-			context.shadowColor = @_colors.progressShadowColor
+				color: @_colors.progressShadowColor
+				blur: 3
+				offset: 0
 
-			context.beginPath()
-			if @_rounded then @_drawRoundedRect context, @_padding, @_padding, size, @_sizes[1] - @_padding * 2, @_radius else context.rect @_padding, @_padding, size, @_sizes[1] - @_padding * 2
-			context.fill()
+			}
+			@_graph.linearGradient @_padding, @_padding, @_padding, @_sizes[1] - @_padding, [
 
-			context.shadowColor = "rgba(0, 0, 0, 0)"
+				[0, color[0]]
+				[0.5, color[1]]
+				[1, color[0]]
 
-			text = ""
-			text += @_caption if @_showCaption
+			]
 
-			if @_showProgress
+			@_graph.rect @_padding, @_padding, size, @_sizes[1] - @_padding * 2, @_radius
+			@_graph.fill()
 
-				text += if @_drawProgress then @_progress + "%" else @_value
+			if @_text?
 
-			if text.length > 0
+				text = ""
+				text += @_caption if @_showCaption
 
-				context.fillStyle = @_colors.caption
-				context.font = @_font
-				width = context.measureText(text).width
-				context.textBaseline = "top"
-				context.fillText text, (@_sizes[0] - width) / 2, (@_sizes[1] - @_fontHeight) / 2
-				
-				if @_strokeCaption
+				if @_showProgress
 
-					context.lineWidth = 1
-					context.strokeStyle = @_colors.captionStroke
-					context.strokeText text, (@_sizes[0] - width) / 2, (@_sizes[1] - @_fontHeight) / 2
+					text += if @_drawProgress then @_progress + "%" else @_value
 
-
-			@needAnimation = false
-
-			context.restore()
+				@_text.setText text
+				@_text.setPosition [@_position[0] + (@_sizes[0] - @_text.width()) / 2, @_position[1] + (@_sizes[1] - @_fontHeight) / 2]

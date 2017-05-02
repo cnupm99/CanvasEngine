@@ -11,11 +11,15 @@ define ["DisplayObject"], (DisplayObject) ->
 			# текст
 			@_text = options.text or ""
 			# шрифт
-			@_font = options.font or "12px Arial"
+			@setFont options.font
 			# заливка
 			@_fillStyle = options.fillStyle or false
 			# обводка
 			@_strokeStyle = options.strokeStyle or false
+			# в это свойство мы складываем ширину текста при его отображении
+			# это свойство обновляется только при отображении,
+			# так как для этого нужно знать context
+			@width = 0
 
 			@needAnimation = true
 
@@ -37,6 +41,15 @@ define ["DisplayObject"], (DisplayObject) ->
 		setFont: (font) ->
 
 			@_font = font or "12px Arial"
+
+			# устанавливаем реальную высоту шрифта в пикселях
+			span = document.createElement "span"
+			span.appendChild document.createTextNode("height")
+			span.style.cssText = "font: " + @_font + "; white-space: nowrap; display: inline;"
+			document.body.appendChild span
+			@fontHeight = span.offsetHeight
+			document.body.removeChild span
+
 			@needAnimation = true
 
 		animate: (context) ->
@@ -44,6 +57,8 @@ define ["DisplayObject"], (DisplayObject) ->
 			super context
 
 			context.font = @_font
+			# по умолчанию позиционируем текст по верхнему краю
+			context.textBaseline = "top"
 			
 			if @_fillStyle
 
@@ -54,6 +69,9 @@ define ["DisplayObject"], (DisplayObject) ->
 
 				context.strokeStyle = @_strokeStyle
 				context.strokeText @_text, @_deltaX, @_deltaY
+
+			# обновляем ширину текста
+			@width = context.measureText(@_text).width
 
 			context.restore()
 

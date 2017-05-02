@@ -12,9 +12,10 @@
       function Text(options) {
         Text.__super__.constructor.call(this, options);
         this._text = options.text || "";
-        this._font = options.font || "12px Arial";
+        this.setFont(options.font);
         this._fillStyle = options.fillStyle || false;
         this._strokeStyle = options.strokeStyle || false;
+        this.width = 0;
         this.needAnimation = true;
       }
 
@@ -34,13 +35,21 @@
       };
 
       Text.prototype.setFont = function(font) {
+        var span;
         this._font = font || "12px Arial";
+        span = document.createElement("span");
+        span.appendChild(document.createTextNode("height"));
+        span.style.cssText = "font: " + this._font + "; white-space: nowrap; display: inline;";
+        document.body.appendChild(span);
+        this.fontHeight = span.offsetHeight;
+        document.body.removeChild(span);
         return this.needAnimation = true;
       };
 
       Text.prototype.animate = function(context) {
         Text.__super__.animate.call(this, context);
         context.font = this._font;
+        context.textBaseline = "top";
         if (this._fillStyle) {
           context.fillStyle = this._fillStyle;
           context.fillText(this._text, this._deltaX, this._deltaY);
@@ -49,6 +58,7 @@
           context.strokeStyle = this._strokeStyle;
           context.strokeText(this._text, this._deltaX, this._deltaY);
         }
+        this.width = context.measureText(this._text).width;
         context.restore();
         return this.needAnimation = false;
       };
