@@ -34,6 +34,7 @@ requirejs(["CanvasEngine", "../utils/ProgressBar/ProgressBar"], function(CanvasE
 
 	});
 
+	// одноцветный невысокий бар без надписи
 	var pb2 = new ProgressBar({
 
 		scene: scene,
@@ -41,7 +42,31 @@ requirejs(["CanvasEngine", "../utils/ProgressBar/ProgressBar"], function(CanvasE
 		sizes: [250, 20],
 		progress: 0,
 		showCaption: false,
-		showProgress: false
+		showProgress: false,
+		singleColor: true
+
+	});
+
+	// кастомный бар с картинкой для фона
+	// и отображением общего числа
+	var pb3 = new ProgressBar({
+
+		scene: scene,
+		position: [100, 300],
+		sizes: [189, 36],
+		padding: 7,
+		radius: 0,
+		value: 0,
+		showCaption: false,
+		maxValue: 10000,
+		backgroundImage: "back.png",
+		font: "14px Arial",
+		singleColor: true,
+		colors: {
+			progress: ["#05E0F3", "#023064"],
+			caption: "#FFF",
+			captionStroke: "#000"
+		}
 
 	});
 
@@ -67,6 +92,11 @@ requirejs(["CanvasEngine", "../utils/ProgressBar/ProgressBar"], function(CanvasE
 			pb2.progress(progress);
 
 		}
+
+		var value = pb3.getValue();
+		value++;
+		if (value > 10000) value = 0;
+		pb3.value(value);
 
 	});
 

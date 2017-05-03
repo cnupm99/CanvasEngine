@@ -28,7 +28,14 @@
         this._position = options.position || [0, 0];
         this._sizes = options.sizes || [300, 50];
         this._padding = options.padding || 3;
-        this._radius = options.radius || 5;
+        this._radius = options.radius != null ? options.radius : 5;
+        if (options.backgroundImage) {
+          this._image = options.scene.add({
+            type: "image",
+            src: options.backgroundImage,
+            position: this._position
+          });
+        }
         return this._graph = options.scene.add({
           type: "graph",
           position: this._position
@@ -39,6 +46,7 @@
         var strokeCaption;
         this._showCaption = options.showCaption != null ? options.showCaption : false;
         this._showProgress = options.showProgress != null ? options.showProgress : true;
+        this._showTotal = options.showTotal != null ? options.showTotal : true;
         this._caption = options.caption || "Progress: ";
         strokeCaption = options.strokeCaption != null ? options.strokeCaption : true;
         if (this._showCaption || this._showProgress) {
@@ -55,10 +63,12 @@
       ProgressBar.prototype._colorOptions = function(options) {
         var colors;
         colors = options.colors || {};
+        this._singleColor = options.singleColor != null ? options.singleColor : false;
         return this._colors = {
           backgroundColor: colors.backgroundColor || ["#C3BD73", "#DCD9A2"],
           backgroundShadowColor: colors.backgroundShadowColor || "#FFF",
           strokeColor: colors.strokeColor || "#000",
+          progress: colors.progress || ["#f27011", "#E36102"],
           progress25: colors.progress25 || ["#f27011", "#E36102"],
           progress50: colors.progress50 || ["#f2b01e", "#E3A10F"],
           progress75: colors.progress75 || ["#f2d31b", "#E3C40C"],
@@ -108,6 +118,9 @@
       };
 
       ProgressBar.prototype._animateBackground = function() {
+        if (this._image != null) {
+          return;
+        }
         this._graph.setShadow({
           color: this._colors.backgroundShadowColor,
           blur: 3,
@@ -123,7 +136,9 @@
 
       ProgressBar.prototype._animateProgress = function() {
         var color, size;
-        if (this._progress <= 25) {
+        if (this._singleColor) {
+          color = this._colors.progress;
+        } else if (this._progress <= 25) {
           color = this._colors.progress25;
         } else if (this._progress <= 50) {
           color = this._colors.progress50;
@@ -138,7 +153,7 @@
           blur: 3,
           offset: 0
         });
-        this._graph.linearGradient(this._padding, this._padding, this._padding, this._sizes[1] - this._padding, [[0, color[0]], [0.5, color[1]], [1, color[0]]]);
+        this._graph.linearGradient(this._padding, this._padding, this._padding, this._sizes[1] - this._padding, [[0, color[0]], [1, color[1]]]);
         this._graph.rect(this._padding, this._padding, size, this._sizes[1] - this._padding * 2, this._radius);
         return this._graph.fill();
       };
@@ -151,7 +166,14 @@
             text += this._caption;
           }
           if (this._showProgress) {
-            text += this._drawProgress ? this._progress + "%" : this._value;
+            if (this._drawProgress) {
+              text += this._progress + "%";
+            } else {
+              text += this._value;
+              if (this._showTotal) {
+                text += " / " + this._maxValue;
+              }
+            }
           }
           this._text.setText(text);
           return this._text.setPosition([this._position[0] + (this._sizes[0] - this._text.width) / 2, this._position[1] + (this._sizes[1] - this._text.fontHeight) / 2]);

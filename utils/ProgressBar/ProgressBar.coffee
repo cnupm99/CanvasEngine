@@ -38,7 +38,18 @@ define () ->
 			@_padding = options.padding or 3
 			# радиус скругления углов, если 0 или null,
 			# то скругления не будет
-			@_radius = options.radius or 5
+			@_radius = if options.radius? then options.radius else 5
+
+			# если требуется картинка под фон, то создадим ее
+			if options.backgroundImage
+
+				@_image = options.scene.add {
+
+					type: "image"
+					src: options.backgroundImage
+					position: @_position
+
+				}
 
 			# создаем класс для рисования
 			@_graph = options.scene.add {
@@ -54,6 +65,10 @@ define () ->
 			@_showCaption = if options.showCaption? then options.showCaption else false
 			# нужно ли выводить значение прогресса
 			@_showProgress = if options.showProgress? then options.showProgress else true
+			# нужно ли показывать максимальное значение после текущего,
+			# например так: 123 / 500
+			# используется только при установке value
+			@_showTotal = if options.showTotal? then options.showTotal else true
 			# подпись
 			@_caption = options.caption or "Progress: "
 			# нужна ли обводка текста
@@ -74,6 +89,8 @@ define () ->
 		_colorOptions: (options) ->
 
 			colors = options.colors or {}
+
+			@_singleColor = if options.singleColor? then options.singleColor else false
 			
 			@_colors = {
 
@@ -84,6 +101,8 @@ define () ->
 				# цвет обводки фона
 				strokeColor: colors.strokeColor or "#000"
 
+				# этот цвет используется в случае singleColor = true
+				progress: colors.progress or ["#f27011", "#E36102"]
 				# цвета линии прогресса для разных значений прогресса
 				progress25: colors.progress25 or ["#f27011", "#E36102"]
 				progress50: colors.progress50 or ["#f2b01e", "#E3A10F"]
@@ -143,6 +162,10 @@ define () ->
 
 		_animateBackground: () ->
 
+			# если в качестве фона используется картинка, то
+			# прорисовка фона не нужна
+			return if @_image?
+
 			# тень
 			@_graph.setShadow {
 
@@ -171,7 +194,8 @@ define () ->
 		_animateProgress: () ->
 
 			# выбор цвета
-			if @_progress <= 25 then color = @_colors.progress25
+			if @_singleColor then color = @_colors.progress
+			else if @_progress <= 25 then color = @_colors.progress25
 			else if @_progress <= 50 then color = @_colors.progress50
 			else if @_progress <= 75 then color = @_colors.progress75
 			else color = @_colors.progress100
@@ -191,8 +215,10 @@ define () ->
 			@_graph.linearGradient @_padding, @_padding, @_padding, @_sizes[1] - @_padding, [
 
 				[0, color[0]]
-				[0.5, color[1]]
-				[1, color[0]]
+				[1, color[1]]
+				# вариант градиента со средним затемнением
+				# [0.5, color[1]]
+				# [1, color[0]]
 
 			]
 
@@ -211,7 +237,15 @@ define () ->
 
 				if @_showProgress
 
-					text += if @_drawProgress then @_progress + "%" else @_value
+					if @_drawProgress
+
+						text += @_progress + "%"
+
+					else
+
+						text += @_value
+						# если нужно, выводим максимальное значение
+						text += " / " + @_maxValue if @_showTotal
 
 				# установка текста
 				@_text.setText text
