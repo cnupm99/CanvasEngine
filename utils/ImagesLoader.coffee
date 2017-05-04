@@ -29,10 +29,13 @@ define () ->
 					loaded++
 					# генерируем событие
 					BO.generate "imageLoaded", total, loaded
+					
 					# загрузили все
-					BO.generate "imagesAllLoaded", total, loaded if loaded == total
-					# вызываем каллбак
-					callBack total, loaded if callBack?
+					if loaded == total
+
+						BO.generate "imagesAllLoaded", total, loaded
+						# вызываем каллбак
+						callBack total, loaded if callBack?
 				
 				, (e) ->
 
