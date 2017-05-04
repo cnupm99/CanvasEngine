@@ -21,12 +21,17 @@ define () ->
 			# установка значений
 			@_minValue = options.minValue or 0
 			@_maxValue = options.maxValue or 100
-			@_progress = options.progress or 0
-			@_value = options.value or 0
+			@_progress = if options.progress? then options.progress else false
+			
+			# начальное отображение
+			if @_progress
 
-			# установка
-			if @_progress > 0 then @progress @_progress
-			else if @_value > 0 then @value @_value
+				@progress @_progress
+
+			else
+
+				@_value = options.value or 0
+				@value @_value
 
 		_sizeOptions: (options) ->
 

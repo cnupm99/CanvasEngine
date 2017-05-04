@@ -7,7 +7,7 @@
 
   define(["base", "Scenes", "FPS"], function(base, Scenes, FPS) {
     var CanvasEngine;
-    CanvasEngine = (function(superClass) {
+    return CanvasEngine = (function(superClass) {
       extend(CanvasEngine, superClass);
 
       function CanvasEngine(options) {
@@ -18,11 +18,12 @@
           return false;
         }
         CanvasEngine.__super__.constructor.call(this, options);
-        this._scenes = new Scenes(this._parent);
+        this._parent = options.parent || document.body;
+        this.scenes = new Scenes(this._parent);
         this._beforeAnimate = [];
         this._showFPS = options.showFPS != null ? options.showFPS : true;
         if (this._showFPS) {
-          scene = this._scenes.create({
+          scene = this.scenes.create({
             name: "FPS",
             sizes: [90, 40],
             position: [5, 5],
@@ -65,10 +66,10 @@
           if (options.sizes == null) {
             options.sizes = this._sizes;
           }
-          return this._scenes.create(options);
+          return this.scenes.create(options);
         } else {
-          sceneName = options.scene || this._scenes.active() || "default";
-          scene = this._scenes.create({
+          sceneName = options.scene || this.scenes.active() || "default";
+          scene = this.scenes.create({
             name: sceneName,
             sizes: options.sizes || this._sizes
           });
@@ -87,9 +88,9 @@
             return handler();
           }
         });
-        needAnimation = this._scenes.needAnimation();
+        needAnimation = this.scenes.needAnimation();
         if (needAnimation) {
-          this._scenes.animate();
+          this.scenes.animate();
         }
         if (this._showFPS) {
           this._FPS.update(needAnimation);
@@ -100,7 +101,6 @@
       return CanvasEngine;
 
     })(base);
-    return window["CanvasEngine"] = CanvasEngine;
   });
 
 }).call(this);

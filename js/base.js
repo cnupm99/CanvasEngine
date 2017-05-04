@@ -5,7 +5,6 @@
     var base;
     return base = (function() {
       function base(options) {
-        this._parent = options.parent || document.body;
         this._rotation = options.rotation || 0;
         this._alpha = options.alpha || 1;
         this._sizes = this._point(options.sizes);

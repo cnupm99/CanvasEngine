@@ -15,11 +15,11 @@
         this._textOptions(options);
         this._minValue = options.minValue || 0;
         this._maxValue = options.maxValue || 100;
-        this._progress = options.progress || 0;
-        this._value = options.value || 0;
-        if (this._progress > 0) {
+        this._progress = options.progress != null ? options.progress : false;
+        if (this._progress) {
           this.progress(this._progress);
-        } else if (this._value > 0) {
+        } else {
+          this._value = options.value || 0;
           this.value(this._value);
         }
       }

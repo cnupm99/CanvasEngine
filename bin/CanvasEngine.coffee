@@ -35,8 +35,6 @@ define () ->
 
 		constructor: (options) ->
 
-			# родитель
-			@_parent = options.parent or document.body
 			# поворот
 			@_rotation = options.rotation or 0
 			# прозрачность
@@ -1246,8 +1244,10 @@ define () ->
 
 			# базовые свойства и методы
 			super options
+			# родитель
+			@_parent = options.parent or document.body
 			# менеджер сцен
-			@_scenes = new Scenes(@_parent)
+			@scenes = new Scenes(@_parent)
 			# массив функций для выполнения в цикле перед анимацией
 			@_beforeAnimate = []
 
@@ -1257,7 +1257,7 @@ define () ->
 			if @_showFPS
 
 				# сцена для фпс
-				scene = @_scenes.create {
+				scene = @scenes.create {
 
 					name: "FPS"
 					sizes: [90, 40]
@@ -1308,14 +1308,14 @@ define () ->
 				# размеры сцены по умолчанию равны размерам движка
 				options.sizes = @_sizes unless options.sizes?
 
-				@_scenes.create options
+				@scenes.create options
 
 			else
 
 				# на какую сцену добавить объект?
-				sceneName = options.scene or @_scenes.active() or "default"
+				sceneName = options.scene or @scenes.active() or "default"
 				# если такой сцены нет, то создадим ее
-				scene = @_scenes.create {
+				scene = @scenes.create {
 
 					name: sceneName
 					sizes: options.sizes or @_sizes
@@ -1337,10 +1337,10 @@ define () ->
 				handler() if typeof(handler) == "function"
 
 			# проверка, нужна ли анимация
-			needAnimation = @_scenes.needAnimation()
+			needAnimation = @scenes.needAnimation()
 
 			# если анимация нужна, делаем ее
-			@_scenes.animate() if needAnimation
+			@scenes.animate() if needAnimation
 
 			# обновляем фпс
 			@_FPS.update needAnimation if @_showFPS

@@ -23,8 +23,6 @@ define () ->
 
 		constructor: (options) ->
 
-			# родитель
-			@_parent = options.parent or document.body
 			# поворот
 			@_rotation = options.rotation or 0
 			# прозрачность
