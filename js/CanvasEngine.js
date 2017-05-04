@@ -42,7 +42,7 @@
       };
 
       CanvasEngine.prototype.stop = function() {
-        return closeRequestAnimation(this._render);
+        return cancelAnimationFrame(this._render);
       };
 
       CanvasEngine.prototype.addEvent = function(handler) {

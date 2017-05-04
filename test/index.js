@@ -26,6 +26,19 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 	});
 
+	// текст с толстой обводкой и заливкой градиентом
+	ce.add({
+
+		type: "text",
+		text: "Hello, World!",
+		font: "50px Arial",
+		fillStyle: [[0, "#F00"], [1, "#000"]],
+		strokeStyle: "#0000FF",
+		strokeWidth: 2,
+		position: [500, 200]
+
+	});
+
 	// создаем сцену
 	var scene1 = ce.add({
 

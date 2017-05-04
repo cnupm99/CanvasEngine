@@ -64,7 +64,7 @@ define ["base", "Scenes", "FPS"], (base, Scenes, FPS) ->
 		start: () -> @_render = requestAnimationFrame @_animate
 
 		# остановка анимации
-		stop: () -> closeRequestAnimation @_render
+		stop: () -> cancelAnimationFrame @_render
 
 		# добавить функцию для выполнения в цикле
 		# функции выполняются в порядке добавления

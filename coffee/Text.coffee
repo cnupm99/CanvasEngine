@@ -15,9 +15,11 @@ define ["DisplayObject"], (DisplayObject) ->
 			# текст
 			@setText(options.text or "")
 			# заливка
-			@_fillStyle = options.fillStyle or false
+			@fillStyle options.fillStyle
 			# обводка
 			@_strokeStyle = options.strokeStyle or false
+			# толщина обводки
+			@_strokeWidth = options.strokeWidth or 1
 
 			@needAnimation = true
 
@@ -34,6 +36,8 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			@needAnimation = true
 
+		# если указать массив, то можно забацать градиент
+		# [[size, color], ... ]
 		fillStyle: (style) ->
 
 			@_fillStyle = style or false
@@ -68,12 +72,26 @@ define ["DisplayObject"], (DisplayObject) ->
 			
 			if @_fillStyle
 
-				context.fillStyle = @_fillStyle
+				# а может зальем текст градиентом?
+				if Array.isArray @_fillStyle
+
+					# создаем градиент по нужным точкам
+					gradient = context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight
+					# добавляем цвета
+					@_fillStyle.forEach (color) ->
+						# сначала размер, потом цвет
+						gradient.addColorStop color[0], color[1]
+					# заливка градиентом
+					context.fillStyle = gradient
+
+				else context.fillStyle = @_fillStyle
+
 				context.fillText @_text, @_deltaX, @_deltaY
 
 			if @_strokeStyle
 
 				context.strokeStyle = @_strokeStyle
+				context.lineWidth = @_strokeWidth
 				context.strokeText @_text, @_deltaX, @_deltaY
 
 			context.restore()

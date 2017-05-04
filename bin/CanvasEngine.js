@@ -378,8 +378,9 @@
         this._context = options.context;
         this.setFont(options.font);
         this.setText(options.text || "");
-        this._fillStyle = options.fillStyle || false;
+        this.fillStyle(options.fillStyle);
         this._strokeStyle = options.strokeStyle || false;
+        this._strokeWidth = options.strokeWidth || 1;
         this.needAnimation = true;
       }
 
@@ -415,15 +416,25 @@
       };
 
       Text.prototype.animate = function(context) {
+        var gradient;
         Text.__super__.animate.call(this, context);
         context.font = this._font;
         context.textBaseline = "top";
         if (this._fillStyle) {
-          context.fillStyle = this._fillStyle;
+          if (Array.isArray(this._fillStyle)) {
+            gradient = context.createLinearGradient(this._deltaX, this._deltaY, this._deltaX, this._deltaY + this.fontHeight);
+            this._fillStyle.forEach(function(color) {
+              return gradient.addColorStop(color[0], color[1]);
+            });
+            context.fillStyle = gradient;
+          } else {
+            context.fillStyle = this._fillStyle;
+          }
           context.fillText(this._text, this._deltaX, this._deltaY);
         }
         if (this._strokeStyle) {
           context.strokeStyle = this._strokeStyle;
+          context.lineWidth = this._strokeWidth;
           context.strokeText(this._text, this._deltaX, this._deltaY);
         }
         context.restore();
@@ -951,7 +962,7 @@
       };
 
       CanvasEngine.prototype.stop = function() {
-        return closeRequestAnimation(this._render);
+        return cancelAnimationFrame(this._render);
       };
 
       CanvasEngine.prototype.addEvent = function(handler) {
