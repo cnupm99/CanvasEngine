@@ -7,7 +7,7 @@ requirejs.config({
 
 });
 
-requirejs(["CanvasEngine"], function(o){
+requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 	// создаем движок
 	var ce = new CanvasEngine({
