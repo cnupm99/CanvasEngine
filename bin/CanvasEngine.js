@@ -450,10 +450,18 @@
       function Image(options) {
         Image.__super__.constructor.call(this, options);
         this.onload = options.onload;
-        this._realSizes = [100, 100];
-        this.needAnimation = false;
-        this._image = document.createElement("img");
-        this.setSrc(options.src);
+        if (options.src != null) {
+          this._image = document.createElement("img");
+          this.needAnimation = false;
+          this._loaded = false;
+          this.setSrc(options.src);
+        } else {
+          this._image = options.from.image;
+          this._src = options.from.src;
+          this._realSizes = options.from.sizes;
+          this._loaded = true;
+          this.needAnimation = true;
+        }
       }
 
       Image.prototype.setSrc = function(src) {

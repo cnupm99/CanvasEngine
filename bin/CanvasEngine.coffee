@@ -626,14 +626,38 @@ define () ->
 			# событие, выполняемое при загрузке картинки
 			@onload = options.onload
 
-			# реальные размеры по умолчанию
-			@_realSizes = [100, 100]
-			@needAnimation = false
+			# загрузка или создание картинки
+			if options.src?
 
-			# создаем элемент
-			@_image = document.createElement "img"
+				# создаем элемент
+				@_image = document.createElement "img"
+				# картинка не загружена
+				@needAnimation = false
+				@_loaded = false
+				# загружаем картинку
+				@setSrc options.src
 
-			@setSrc options.src
+			else
+
+				# 
+				# options.from = {
+				# 
+				# 	image: Image
+				# 	src: String
+				# 	sizes: [Number, Number]
+				# 	
+				# }
+				# 
+
+				# картинка уже есть
+				@_image = options.from.image
+				# получаем ее путь
+				@_src = options.from.src
+				# размеры
+				@_realSizes = options.from.sizes
+				# можно рисовать
+				@_loaded = true
+				@needAnimation = true
 
 		# загрузка картинки
 		setSrc: (src) ->
