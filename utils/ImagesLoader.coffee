@@ -19,25 +19,27 @@ define () ->
 		# и получение их данных
 		# для формирования нового списка
 		# 
-		# list = {
+		# list = [
 		# 
-		# 	"imageName": {
+		# 	{
 		# 	
+		# 		name: String
 		# 		src: String
 		# 	
 		# 	},
 		# 	
 		# 	...
 		# 
-		# }
+		# ]
 		# 
 		loadList: (list, callBack) ->
 
-			total = Object.keys(list).length
+			total = list.length
 			loaded = 0
+			newList = {}
 
 			# перебор свойств объекта
-			for image in list
+			list.forEach (image) =>
 
 				# загружаем каждую по отдельности
 				@loadImage image.src, (result) ->
@@ -48,15 +50,17 @@ define () ->
 					BO.generate "imageLoaded", total, loaded, result
 
 					# запоминаем загруженные данные
-					image.image = result.image
-					image.sizes = result.sizes
+					newList[image.name] = {}
+					newList[image.name].image = result.image
+					newList[image.name].sizes = result.sizes
+					newList[image.name].src = image.src
 										
 					# загрузили все
 					if loaded == total
 
-						BO.generate "imagesAllLoaded", total, loaded, list
+						BO.generate "imagesAllLoaded", total, loaded, newList
 						# вызываем каллбак
-						callBack total, loaded, list if callBack?
+						callBack total, loaded, newList if callBack?
 				
 				, (e) ->
 
