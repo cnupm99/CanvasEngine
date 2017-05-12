@@ -655,6 +655,9 @@ define () ->
 				@_src = options.from.src
 				# размеры
 				@_realSizes = options.from.sizes
+				# если нужно меняем размеры
+				# иначе потом будем масштабировать
+				@_sizes = @_realSizes if (@_sizes[0] <= 0) or (@_sizes[1] <= 0)
 				# можно рисовать
 				@_loaded = true
 				@needAnimation = true

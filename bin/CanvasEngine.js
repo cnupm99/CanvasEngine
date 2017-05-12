@@ -459,6 +459,9 @@
           this._image = options.from.image;
           this._src = options.from.src;
           this._realSizes = options.from.sizes;
+          if ((this._sizes[0] <= 0) || (this._sizes[1] <= 0)) {
+            this._sizes = this._realSizes;
+          }
           this._loaded = true;
           this.needAnimation = true;
         }

@@ -37,9 +37,7 @@ define () ->
 			loaded = 0
 
 			# перебор свойств объекта
-			for name in list
-
-				image = list[name]
+			for image in list
 
 				# загружаем каждую по отдельности
 				@loadImage image.src, (result) ->
@@ -50,8 +48,8 @@ define () ->
 					BO.generate "imageLoaded", total, loaded, result
 
 					# запоминаем загруженные данные
-					list[name].image = result.image
-					list[name].sizes = result.sizes
+					image.image = result.image
+					image.sizes = result.sizes
 										
 					# загрузили все
 					if loaded == total
@@ -63,21 +61,21 @@ define () ->
 				, (e) ->
 
 					# ошибка при загрузке
-					log "Loading Error: " + e.toString(), "error"
+					log e, "error"
 
 		# загрузка одного изображения
 		loadImage: (src, onload, onerror) ->
 
 			image = document.createElement "img"
 
-			image.onload = () ->
+			image.onload = () =>
 
 				if typeof(onload) == "function"
 
 					onload {
 
 						image: image
-						src: src
+						src: @_path + src
 						sizes: [image.width, image.height]
 
 					}
