@@ -58,8 +58,14 @@
         DisplayObject.__super__.constructor.call(this, options);
         this.name = options.name;
         this._shadow = false;
-        this.needAnimation = true;
+        this._visible = options.visible != null ? options.visible : true;
+        this.needAnimation = this._visible;
       }
+
+      DisplayObject.prototype.setVisible = function(value) {
+        this._visible = value != null ? value : true;
+        return this.needAnimation = this._visible;
+      };
 
       DisplayObject.prototype.setTransform = function(options) {
         this.setSizes(options.sizes);
@@ -120,6 +126,10 @@
       };
 
       DisplayObject.prototype.animate = function(context) {
+        if (!this._visible) {
+          this.needAnimation = false;
+          return;
+        }
         context.save();
         this._deltaX = this._position[0];
         this._deltaY = this._position[1];
@@ -456,14 +466,7 @@
           this._loaded = false;
           this.setSrc(options.src);
         } else {
-          this._image = options.from.image;
-          this._src = options.from.src;
-          this._realSizes = options.from.sizes;
-          if ((this._sizes[0] <= 0) || (this._sizes[1] <= 0)) {
-            this._sizes = this._realSizes;
-          }
-          this._loaded = true;
-          this.needAnimation = true;
+          this.from(options.from);
         }
       }
 
@@ -483,6 +486,25 @@
           };
         })(this);
         return this._image.src = src;
+      };
+
+      Image.prototype.from = function(from) {
+        this._image = from.image;
+        this._src = from.src;
+        this._realSizes = from.sizes;
+        if ((this._sizes[0] <= 0) || (this._sizes[1] <= 0)) {
+          this._sizes = this._realSizes;
+        }
+        this._loaded = true;
+        return this.needAnimation = true;
+      };
+
+      Image.prototype.addEvent = function(eventName, func) {
+        return this._image.addEventListener(eventName, func);
+      };
+
+      Image.prototype.removeEvent = function(eventName, func) {
+        return this._image.removeEventListener(eventName, func);
       };
 
       Image.prototype.getSizes = function() {

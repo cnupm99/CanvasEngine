@@ -102,9 +102,17 @@ define () ->
 			@name = options.name
 			# тень
 			@_shadow = false
+			# видимость объекта
+			@_visible = if options.visible? then options.visible else true
 
 			# нужна ли анимация
-			@needAnimation = true
+			@needAnimation = @_visible
+
+		# установка видимости
+		setVisible: (value) ->
+
+			@_visible = if value? then value else true
+			@needAnimation = @_visible
 
 		# установка опций
 		setTransform: (options) ->
@@ -179,6 +187,13 @@ define () ->
 
 		# анимация
 		animate: (context) ->
+
+			# если объект не видимый
+			# то рисовать его не нужно
+			unless @_visible
+
+				@needAnimation = false
+				return
 
 			# сохранить контекст
 			context.save()
@@ -637,30 +652,8 @@ define () ->
 				# загружаем картинку
 				@setSrc options.src
 
-			else
-
-				# 
-				# options.from = {
-				# 
-				# 	image: Image
-				# 	src: String
-				# 	sizes: [Number, Number]
-				# 	
-				# }
-				# 
-
-				# картинка уже есть
-				@_image = options.from.image
-				# получаем ее путь
-				@_src = options.from.src
-				# размеры
-				@_realSizes = options.from.sizes
-				# если нужно меняем размеры
-				# иначе потом будем масштабировать
-				@_sizes = @_realSizes if (@_sizes[0] <= 0) or (@_sizes[1] <= 0)
-				# можно рисовать
-				@_loaded = true
-				@needAnimation = true
+			# картинка уже есть
+			else @from options.from
 
 		# загрузка картинки
 		setSrc: (src) ->
@@ -686,6 +679,34 @@ define () ->
 				@onload @_realSizes if @onload?
 
 			@_image.src = src
+
+		# 
+		# options.from = {
+		# 
+		# 	image: Image
+		# 	src: String
+		# 	sizes: [Number, Number]
+		# 	
+		# }
+		# 
+		from: (from) ->
+
+			@_image = from.image
+			# получаем ее путь
+			@_src = from.src
+			# размеры
+			@_realSizes = from.sizes
+			# если нужно меняем размеры
+			# иначе потом будем масштабировать
+			@_sizes = @_realSizes if (@_sizes[0] <= 0) or (@_sizes[1] <= 0)
+			# можно рисовать
+			@_loaded = true
+			@needAnimation = true
+
+		# вешаем событие на изображение
+		addEvent: (eventName, func) -> @_image.addEventListener eventName, func
+		# убираем событие с изображения
+		removeEvent: (eventName, func) -> @_image.removeEventListener eventName, func
 
 		# возвращаем размер
 		getSizes: () -> @_sizes

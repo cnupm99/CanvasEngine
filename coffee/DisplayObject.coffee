@@ -15,9 +15,17 @@ define ["base"], (base) ->
 			@name = options.name
 			# тень
 			@_shadow = false
+			# видимость объекта
+			@_visible = if options.visible? then options.visible else true
 
 			# нужна ли анимация
-			@needAnimation = true
+			@needAnimation = @_visible
+
+		# установка видимости
+		setVisible: (value) ->
+
+			@_visible = if value? then value else true
+			@needAnimation = @_visible
 
 		# установка опций
 		setTransform: (options) ->
@@ -92,6 +100,13 @@ define ["base"], (base) ->
 
 		# анимация
 		animate: (context) ->
+
+			# если объект не видимый
+			# то рисовать его не нужно
+			unless @_visible
+
+				@needAnimation = false
+				return
 
 			# сохранить контекст
 			context.save()
