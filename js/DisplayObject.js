@@ -14,8 +14,36 @@
         this.name = options.name;
         this._shadow = false;
         this._visible = options.visible != null ? options.visible : true;
+        this._context = options.parent.context;
+        this._parentPosition = options.parent.position;
         this.needAnimation = this._visible;
       }
+
+      DisplayObject.prototype.testPoint = function(pointX, pointY) {
+        var imageData, pixelData;
+        if (!this.testRect(pointX, pointY)) {
+          return false;
+        }
+        imageData = this.context.getImageData(pointX, pointY, 1, 1);
+        pixelData = imageData.data;
+        if (pixelData.every == null) {
+          pixelData.every = Array.prototype.every;
+        }
+        return !pixelData.every(function(value) {
+          return value === 0;
+        });
+      };
+
+      DisplayObject.prototype.testRect = function(pointX, pointY) {
+        var rect;
+        rect = {
+          left: this._position[0],
+          top: this._position[1],
+          right: this._position[0] + this._sizes[0],
+          bottom: this._position[1] + this._sizes[1]
+        };
+        return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
+      };
 
       DisplayObject.prototype.setVisible = function(value) {
         this._visible = value != null ? value : true;

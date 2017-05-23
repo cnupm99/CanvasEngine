@@ -11,7 +11,7 @@
 
       function TilingImage(options) {
         TilingImage.__super__.constructor.call(this, options);
-        this._rect = options.rect;
+        this._rect = options.rect || [0, 0, options.parent.sizes[0], options.parent.sizes[1]];
       }
 
       TilingImage.prototype.setRect = function(rect) {
@@ -20,6 +20,9 @@
       };
 
       TilingImage.prototype.animate = function(context) {
+        if (context == null) {
+          context = this._context;
+        }
         if (!this._loaded) {
           return;
         }

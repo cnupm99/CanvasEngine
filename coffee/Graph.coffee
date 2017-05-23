@@ -228,7 +228,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			context.lineTo x, y1
 			context.arc x1, y1, radius, pi, 3 * halfpi
 
-		animate: (context) ->
+		animate: (context = @_context) ->
 
 			super context
 

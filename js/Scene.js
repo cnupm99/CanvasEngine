@@ -36,21 +36,19 @@
         if (options.type == null) {
           return;
         }
+        options.parent = {};
+        options.parent.context = this.context;
         switch (options.type) {
           case "image":
             result = new Image(options);
             break;
           case "text":
-            options.context = this.context;
             result = new Text(options);
             break;
           case "graph":
             result = new Graph(options);
             break;
           case "tile":
-            if (options.rect == null) {
-              options.rect = [0, 0, this._sizes[0], this._sizes[1]];
-            }
             result = new TilingImage(options);
         }
         this._objects.push(result);
@@ -165,8 +163,8 @@
         if (position != null) {
           this._position = this._point(position);
         }
-        this.canvas.style.left = this._position[0];
-        this.canvas.style.top = this._position[1];
+        this.canvas.style.left = this._position[0] + "px";
+        this.canvas.style.top = this._position[1] + "px";
         return this._needAnimation = true;
       };
 
@@ -203,7 +201,7 @@
         }
         this._objects.forEach((function(_this) {
           return function(_object) {
-            return _object.animate(_this.context);
+            return _object.animate();
           };
         })(this));
         return this._needAnimation = false;

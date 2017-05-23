@@ -59,8 +59,36 @@
         this.name = options.name;
         this._shadow = false;
         this._visible = options.visible != null ? options.visible : true;
+        this._context = options.parent.context;
+        this._parentPosition = options.parent.position;
         this.needAnimation = this._visible;
       }
+
+      DisplayObject.prototype.testPoint = function(pointX, pointY) {
+        var imageData, pixelData;
+        if (!this.testRect(pointX, pointY)) {
+          return false;
+        }
+        imageData = this.context.getImageData(pointX, pointY, 1, 1);
+        pixelData = imageData.data;
+        if (pixelData.every == null) {
+          pixelData.every = Array.prototype.every;
+        }
+        return !pixelData.every(function(value) {
+          return value === 0;
+        });
+      };
+
+      DisplayObject.prototype.testRect = function(pointX, pointY) {
+        var rect;
+        rect = {
+          left: this._position[0],
+          top: this._position[1],
+          right: this._position[0] + this._sizes[0],
+          bottom: this._position[1] + this._sizes[1]
+        };
+        return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
+      };
 
       DisplayObject.prototype.setVisible = function(value) {
         this._visible = value != null ? value : true;
@@ -325,6 +353,9 @@
       };
 
       Graph.prototype.animate = function(context) {
+        if (context == null) {
+          context = this._context;
+        }
         Graph.__super__.animate.call(this, context);
         context.lineCap = "round";
         this._commands.forEach((function(_this) {
@@ -385,7 +416,6 @@
 
       function Text(options) {
         Text.__super__.constructor.call(this, options);
-        this._context = options.context;
         this.setFont(options.font);
         this.setText(options.text || "");
         this.fillStyle(options.fillStyle);
@@ -427,6 +457,9 @@
 
       Text.prototype.animate = function(context) {
         var gradient;
+        if (context == null) {
+          context = this._context;
+        }
         Text.__super__.animate.call(this, context);
         context.font = this._font;
         context.textBaseline = "top";
@@ -499,14 +532,6 @@
         return this.needAnimation = true;
       };
 
-      Image.prototype.addEvent = function(eventName, func) {
-        return this._image.addEventListener(eventName, func);
-      };
-
-      Image.prototype.removeEvent = function(eventName, func) {
-        return this._image.removeEventListener(eventName, func);
-      };
-
       Image.prototype.getSizes = function() {
         return this._sizes;
       };
@@ -516,6 +541,9 @@
       };
 
       Image.prototype.animate = function(context) {
+        if (context == null) {
+          context = this._context;
+        }
         if (!this._loaded) {
           return;
         }
@@ -537,7 +565,7 @@
 
       function TilingImage(options) {
         TilingImage.__super__.constructor.call(this, options);
-        this._rect = options.rect;
+        this._rect = options.rect || [0, 0, options.parent.sizes[0], options.parent.sizes[1]];
       }
 
       TilingImage.prototype.setRect = function(rect) {
@@ -546,6 +574,9 @@
       };
 
       TilingImage.prototype.animate = function(context) {
+        if (context == null) {
+          context = this._context;
+        }
         if (!this._loaded) {
           return;
         }
@@ -590,21 +621,19 @@
         if (options.type == null) {
           return;
         }
+        options.parent = {};
+        options.parent.context = this.context;
         switch (options.type) {
           case "image":
             result = new Image(options);
             break;
           case "text":
-            options.context = this.context;
             result = new Text(options);
             break;
           case "graph":
             result = new Graph(options);
             break;
           case "tile":
-            if (options.rect == null) {
-              options.rect = [0, 0, this._sizes[0], this._sizes[1]];
-            }
             result = new TilingImage(options);
         }
         this._objects.push(result);
@@ -719,8 +748,8 @@
         if (position != null) {
           this._position = this._point(position);
         }
-        this.canvas.style.left = this._position[0];
-        this.canvas.style.top = this._position[1];
+        this.canvas.style.left = this._position[0] + "px";
+        this.canvas.style.top = this._position[1] + "px";
         return this._needAnimation = true;
       };
 
@@ -757,7 +786,7 @@
         }
         this._objects.forEach((function(_this) {
           return function(_object) {
-            return _object.animate(_this.context);
+            return _object.animate();
           };
         })(this));
         return this._needAnimation = false;
@@ -1019,12 +1048,16 @@
           if (options.sizes == null) {
             options.sizes = this._sizes;
           }
+          if (options.position == null) {
+            options.position = this._position;
+          }
           return this.scenes.create(options);
         } else {
           sceneName = options.scene || this.scenes.active() || "default";
           scene = this.scenes.create({
             name: sceneName,
-            sizes: options.sizes || this._sizes
+            sizes: options.sizes || this._sizes,
+            position: options.position || this._position
           });
           return scene.add(options);
         }

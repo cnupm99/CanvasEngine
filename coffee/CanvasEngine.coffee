@@ -94,6 +94,7 @@ define ["base", "Scenes", "FPS"], (base, Scenes, FPS) ->
 
 				# размеры сцены по умолчанию равны размерам движка
 				options.sizes = @_sizes unless options.sizes?
+				options.position = @_position unless options.position?
 
 				@scenes.create options
 
@@ -106,6 +107,7 @@ define ["base", "Scenes", "FPS"], (base, Scenes, FPS) ->
 
 					name: sceneName
 					sizes: options.sizes or @_sizes
+					position: options.position or @_position
 
 				}
 

@@ -180,6 +180,9 @@
       };
 
       Graph.prototype.animate = function(context) {
+        if (context == null) {
+          context = this._context;
+        }
         Graph.__super__.animate.call(this, context);
         context.lineCap = "round";
         this._commands.forEach((function(_this) {

@@ -66,12 +66,16 @@
           if (options.sizes == null) {
             options.sizes = this._sizes;
           }
+          if (options.position == null) {
+            options.position = this._position;
+          }
           return this.scenes.create(options);
         } else {
           sceneName = options.scene || this.scenes.active() || "default";
           scene = this.scenes.create({
             name: sceneName,
-            sizes: options.sizes || this._sizes
+            sizes: options.sizes || this._sizes,
+            position: options.position || this._position
           });
           return scene.add(options);
         }

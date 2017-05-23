@@ -76,17 +76,12 @@ define ["DisplayObject"], (DisplayObject) ->
 			@_loaded = true
 			@needAnimation = true
 
-		# вешаем событие на изображение
-		addEvent: (eventName, func) -> @_image.addEventListener eventName, func
-		# убираем событие с изображения
-		removeEvent: (eventName, func) -> @_image.removeEventListener eventName, func
-
 		# возвращаем размер
 		getSizes: () -> @_sizes
 		# реальный размер картинки
 		getRealSizes: () -> @_realSizes
 
-		animate: (context) ->
+		animate: (context = @_context) ->
 
 			return unless @_loaded
 

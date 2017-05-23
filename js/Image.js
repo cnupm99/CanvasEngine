@@ -51,14 +51,6 @@
         return this.needAnimation = true;
       };
 
-      Image.prototype.addEvent = function(eventName, func) {
-        return this._image.addEventListener(eventName, func);
-      };
-
-      Image.prototype.removeEvent = function(eventName, func) {
-        return this._image.removeEventListener(eventName, func);
-      };
-
       Image.prototype.getSizes = function() {
         return this._sizes;
       };
@@ -68,6 +60,9 @@
       };
 
       Image.prototype.animate = function(context) {
+        if (context == null) {
+          context = this._context;
+        }
         if (!this._loaded) {
           return;
         }

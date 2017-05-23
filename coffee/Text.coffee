@@ -8,8 +8,6 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			super options
 
-			# контекст, нужен для определения ширины текста
-			@_context = options.context
 			# шрифт
 			@setFont options.font
 			# текст
@@ -62,7 +60,7 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			@needAnimation = true
 
-		animate: (context) ->
+		animate: (context = @_context) ->
 
 			super context
 

@@ -11,7 +11,8 @@ define ["Image"], (Image) ->
 
 			super options
 
-			@_rect = options.rect
+			# область замостивания по умолчанию равна размеру контекста
+			@_rect = options.rect or [0, 0, options.parent.sizes[0], options.parent.sizes[1]]
 
 		# установка области
 		setRect: (rect) ->
@@ -19,7 +20,7 @@ define ["Image"], (Image) ->
 			@_rect = rect
 			@needAnimation = true
 
-		animate: (context) ->
+		animate: (context = @_context) ->
 
 			return unless @_loaded
 

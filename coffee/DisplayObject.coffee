@@ -17,9 +17,50 @@ define ["base"], (base) ->
 			@_shadow = false
 			# видимость объекта
 			@_visible = if options.visible? then options.visible else true
+			# контекст для рисования
+			@_context = options.parent.context
+			# позиция родителя для вычисления координат
+			@_parentPosition = options.parent.position
 
 			# нужна ли анимация
 			@needAnimation = @_visible
+
+		# проверяем, пуста ли точка с данными координатами
+		# а для начала находится ли точка внутри объекта
+		# ВНИМАНИЕ!
+		# использовать этот метод ЛОКАЛЬНО нужно осторожно, так как
+		# в браузерах на основе chrome будет возникать ошибка безопасности
+		# (как будто пытаешься загрузить изображение с другого хоста).
+		# В firefox работает и локально без проблем.
+		# При загрузке кода на сервер работает во всех браузерах.
+		testPoint: (pointX, pointY) ->
+
+			return false unless @testRect pointX, pointY
+
+			# данные пикселя
+			imageData = @context.getImageData pointX, pointY, 1, 1
+			# цвет пикселя
+			pixelData = imageData.data
+
+			# проверяем нужный метод?
+			pixelData.every = Array.prototype.every if not pixelData.every?
+
+			# проверяем все цвета, если 0, значит мимо
+			return not pixelData.every (value) -> value == 0
+
+		# находится ли точка внутри объекта по его позиции / размерам
+		testRect: (pointX, pointY) ->
+
+			rect = {
+
+				left: @_position[0]
+				top: @_position[1]
+				right: @_position[0] + @_sizes[0]
+				bottom: @_position[1] + @_sizes[1]
+
+			}
+
+			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
 
 		# установка видимости
 		setVisible: (value) ->

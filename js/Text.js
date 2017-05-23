@@ -11,7 +11,6 @@
 
       function Text(options) {
         Text.__super__.constructor.call(this, options);
-        this._context = options.context;
         this.setFont(options.font);
         this.setText(options.text || "");
         this.fillStyle(options.fillStyle);
@@ -53,6 +52,9 @@
 
       Text.prototype.animate = function(context) {
         var gradient;
+        if (context == null) {
+          context = this._context;
+        }
         Text.__super__.animate.call(this, context);
         context.font = this._font;
         context.textBaseline = "top";

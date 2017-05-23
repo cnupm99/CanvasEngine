@@ -104,9 +104,50 @@ define () ->
 			@_shadow = false
 			# видимость объекта
 			@_visible = if options.visible? then options.visible else true
+			# контекст для рисования
+			@_context = options.parent.context
+			# позиция родителя для вычисления координат
+			@_parentPosition = options.parent.position
 
 			# нужна ли анимация
 			@needAnimation = @_visible
+
+		# проверяем, пуста ли точка с данными координатами
+		# а для начала находится ли точка внутри объекта
+		# ВНИМАНИЕ!
+		# использовать этот метод ЛОКАЛЬНО нужно осторожно, так как
+		# в браузерах на основе chrome будет возникать ошибка безопасности
+		# (как будто пытаешься загрузить изображение с другого хоста).
+		# В firefox работает и локально без проблем.
+		# При загрузке кода на сервер работает во всех браузерах.
+		testPoint: (pointX, pointY) ->
+
+			return false unless @testRect pointX, pointY
+
+			# данные пикселя
+			imageData = @context.getImageData pointX, pointY, 1, 1
+			# цвет пикселя
+			pixelData = imageData.data
+
+			# проверяем нужный метод?
+			pixelData.every = Array.prototype.every if not pixelData.every?
+
+			# проверяем все цвета, если 0, значит мимо
+			return not pixelData.every (value) -> value == 0
+
+		# находится ли точка внутри объекта по его позиции / размерам
+		testRect: (pointX, pointY) ->
+
+			rect = {
+
+				left: @_position[0]
+				top: @_position[1]
+				right: @_position[0] + @_sizes[0]
+				bottom: @_position[1] + @_sizes[1]
+
+			}
+
+			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
 
 		# установка видимости
 		setVisible: (value) ->
@@ -453,7 +494,7 @@ define () ->
 			context.lineTo x, y1
 			context.arc x1, y1, radius, pi, 3 * halfpi
 
-		animate: (context) ->
+		animate: (context = @_context) ->
 
 			super context
 
@@ -533,8 +574,6 @@ define () ->
 
 			super options
 
-			# контекст, нужен для определения ширины текста
-			@_context = options.context
 			# шрифт
 			@setFont options.font
 			# текст
@@ -587,7 +626,7 @@ define () ->
 
 			@needAnimation = true
 
-		animate: (context) ->
+		animate: (context = @_context) ->
 
 			super context
 
@@ -703,17 +742,12 @@ define () ->
 			@_loaded = true
 			@needAnimation = true
 
-		# вешаем событие на изображение
-		addEvent: (eventName, func) -> @_image.addEventListener eventName, func
-		# убираем событие с изображения
-		removeEvent: (eventName, func) -> @_image.removeEventListener eventName, func
-
 		# возвращаем размер
 		getSizes: () -> @_sizes
 		# реальный размер картинки
 		getRealSizes: () -> @_realSizes
 
-		animate: (context) ->
+		animate: (context = @_context) ->
 
 			return unless @_loaded
 
@@ -748,7 +782,8 @@ define () ->
 
 			super options
 
-			@_rect = options.rect
+			# область замостивания по умолчанию равна размеру контекста
+			@_rect = options.rect or [0, 0, options.parent.sizes[0], options.parent.sizes[1]]
 
 		# установка области
 		setRect: (rect) ->
@@ -756,7 +791,7 @@ define () ->
 			@_rect = rect
 			@needAnimation = true
 
-		animate: (context) ->
+		animate: (context = @_context) ->
 
 			return unless @_loaded
 
@@ -827,22 +862,20 @@ define () ->
 
 			return unless options.type?
 
+			# передаем некоторые свойства родителя
+			options.parent = {}
+			# контекст нужен для рисования
+			options.parent.context = @context
+			# а вот позицию и размеры можно передать на всякий случай
+			# options.parent.position = @_position
+			# options.parent.sizes = @_sizes
+
 			switch options.type
 
 				when "image" then result = new Image options
-				when "text"
-
-					# передаем контекст внуть класса,
-					# нужно для определения ширины текста
-					options.context = @context
-					result = new Text options
-
+				when "text" then result = new Text options
 				when "graph" then result = new Graph options
-				when "tile" 
-
-					# область замостивания по умолчанию равна размеру контекста
-					options.rect = [0, 0, @_sizes[0], @_sizes[1]] unless options.rect?
-					result = new TilingImage options
+				when "tile" then result = new TilingImage options
 
 			@_objects.push result
 
@@ -983,8 +1016,8 @@ define () ->
 
 			@_position = @_point position if position?
 
-			@canvas.style.left = @_position[0]
-			@canvas.style.top = @_position[1]
+			@canvas.style.left = @_position[0] + "px"
+			@canvas.style.top = @_position[1] + "px"
 
 			@_needAnimation = true
 
@@ -1028,7 +1061,7 @@ define () ->
 				@context.clip()
 
 			# анимация
-			@_objects.forEach (_object) => _object.animate @context
+			@_objects.forEach (_object) => _object.animate()
 
 			# анимация больше не нужна
 			@_needAnimation = false
@@ -1373,6 +1406,7 @@ define () ->
 
 				# размеры сцены по умолчанию равны размерам движка
 				options.sizes = @_sizes unless options.sizes?
+				options.position = @_position unless options.position?
 
 				@scenes.create options
 
@@ -1385,6 +1419,7 @@ define () ->
 
 					name: sceneName
 					sizes: options.sizes or @_sizes
+					position: options.position or @_position
 
 				}
 

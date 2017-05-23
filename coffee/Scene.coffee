@@ -50,22 +50,20 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 
 			return unless options.type?
 
+			# передаем некоторые свойства родителя
+			options.parent = {}
+			# контекст нужен для рисования
+			options.parent.context = @context
+			# а вот позицию и размеры можно передать на всякий случай
+			# options.parent.position = @_position
+			# options.parent.sizes = @_sizes
+
 			switch options.type
 
 				when "image" then result = new Image options
-				when "text"
-
-					# передаем контекст внуть класса,
-					# нужно для определения ширины текста
-					options.context = @context
-					result = new Text options
-
+				when "text" then result = new Text options
 				when "graph" then result = new Graph options
-				when "tile" 
-
-					# область замостивания по умолчанию равна размеру контекста
-					options.rect = [0, 0, @_sizes[0], @_sizes[1]] unless options.rect?
-					result = new TilingImage options
+				when "tile" then result = new TilingImage options
 
 			@_objects.push result
 
@@ -206,8 +204,8 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 
 			@_position = @_point position if position?
 
-			@canvas.style.left = @_position[0]
-			@canvas.style.top = @_position[1]
+			@canvas.style.left = @_position[0] + "px"
+			@canvas.style.top = @_position[1] + "px"
 
 			@_needAnimation = true
 
@@ -251,7 +249,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 				@context.clip()
 
 			# анимация
-			@_objects.forEach (_object) => _object.animate @context
+			@_objects.forEach (_object) => _object.animate()
 
 			# анимация больше не нужна
 			@_needAnimation = false
