@@ -623,6 +623,8 @@
         }
         options.parent = {};
         options.parent.context = this.context;
+        options.parent.position = this._position;
+        options.parent.sizes = this._sizes;
         switch (options.type) {
           case "image":
             result = new Image(options);

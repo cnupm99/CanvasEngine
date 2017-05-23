@@ -55,8 +55,8 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			# контекст нужен для рисования
 			options.parent.context = @context
 			# а вот позицию и размеры можно передать на всякий случай
-			# options.parent.position = @_position
-			# options.parent.sizes = @_sizes
+			options.parent.position = @_position
+			options.parent.sizes = @_sizes
 
 			switch options.type
 
