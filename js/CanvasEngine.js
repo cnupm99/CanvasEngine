@@ -74,8 +74,8 @@
           sceneName = options.scene || this.scenes.active() || "default";
           scene = this.scenes.create({
             name: sceneName,
-            sizes: options.sizes || this._sizes,
-            position: options.position || this._position
+            sizes: this._sizes,
+            position: this._position
           });
           return scene.add(options);
         }

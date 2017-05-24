@@ -1418,8 +1418,8 @@ define () ->
 				scene = @scenes.create {
 
 					name: sceneName
-					sizes: options.sizes or @_sizes
-					position: options.position or @_position
+					sizes: @_sizes
+					position: @_position
 
 				}
 
