@@ -19,7 +19,7 @@
         this.setTransform(options);
         this._mask = false;
         this._needAnimation = false;
-        this._objects = [];
+        this.objects = [];
       }
 
       Scene.prototype.setZ = function(value) {
@@ -53,14 +53,14 @@
           case "tile":
             result = new TilingImage(options);
         }
-        this._objects.push(result);
+        this.objects.push(result);
         return result;
       };
 
       Scene.prototype.get = function(objectName) {
         var answer;
         answer = false;
-        this._objects.some(function(_object) {
+        this.objects.some(function(_object) {
           var flag;
           flag = _object.name === objectName;
           if (flag) {
@@ -74,7 +74,7 @@
       Scene.prototype.remove = function(objectName) {
         var index;
         index = -1;
-        this._objects.some(function(_object, i) {
+        this.objects.some(function(_object, i) {
           var flag;
           flag = _object.name === objectName;
           if (flag) {
@@ -83,21 +83,21 @@
           return flag;
         });
         if (index > -1) {
-          this._objects.splice(index, 1);
+          this.objects.splice(index, 1);
           return true;
         }
         return false;
       };
 
       Scene.prototype.addChild = function(_object) {
-        this._objects.push(_object);
+        this.objects.push(_object);
         return this._needAnimation = true;
       };
 
       Scene.prototype.removeChild = function(_object) {
         var index;
         index = -1;
-        this._objects.some(function(_object2, i) {
+        this.objects.some(function(_object2, i) {
           var flag;
           flag = _object2 === _object;
           if (flag) {
@@ -106,14 +106,14 @@
           return flag;
         });
         if (index > -1) {
-          this._objects.splice(index, 1);
+          this.objects.splice(index, 1);
           return true;
         }
         return false;
       };
 
       Scene.prototype.needAnimation = function() {
-        return this._needAnimation || this._objects.some(function(_object) {
+        return this._needAnimation || this.objects.some(function(_object) {
           return _object.needAnimation;
         });
       };
@@ -201,7 +201,7 @@
           this.context.rect(this._mask.x, this._mask.y, this._mask.width, this._mask.height);
           this.context.clip();
         }
-        this._objects.forEach((function(_this) {
+        this.objects.forEach((function(_this) {
           return function(_object) {
             return _object.animate();
           };

@@ -846,7 +846,7 @@ define () ->
 			# анимация пока не нужна
 			@_needAnimation = false
 			# список объектов для анимации
-			@_objects = []
+			@objects = []
 
 		# установка z-индекса
 		setZ: (value) ->
@@ -877,7 +877,7 @@ define () ->
 				when "graph" then result = new Graph options
 				when "tile" then result = new TilingImage options
 
-			@_objects.push result
+			@objects.push result
 
 			return result
 
@@ -887,7 +887,7 @@ define () ->
 			answer = false
 
 			# перебор всех объектов, пока не встретим нужный
-			@_objects.some (_object) -> 
+			@objects.some (_object) -> 
 
 				flag = _object.name == objectName
 				answer = _object if flag
@@ -901,7 +901,7 @@ define () ->
 			index = -1
 
 			# перебор всех объектов, пока не встретим нужный
-			@_objects.some (_object, i) -> 
+			@objects.some (_object, i) -> 
 
 				flag = _object.name == objectName
 				index = i if flag
@@ -909,7 +909,7 @@ define () ->
 
 			if index > -1
 
-				@_objects.splice index, 1
+				@objects.splice index, 1
 				return true
 
 			return false
@@ -917,7 +917,7 @@ define () ->
 		# добавляем внешний объект в список отображения
 		addChild: (_object) ->
 
-			@_objects.push _object
+			@objects.push _object
 			@_needAnimation = true
 
 		# удалить внешний объект из списка отображения
@@ -926,7 +926,7 @@ define () ->
 			index = -1
 
 			# перебор всех объектов, пока не встретим нужный
-			@_objects.some (_object2, i) -> 
+			@objects.some (_object2, i) -> 
 
 				flag = _object2 == _object
 				index = i if flag
@@ -934,7 +934,7 @@ define () ->
 
 			if index > -1
 
-				@_objects.splice index, 1
+				@objects.splice index, 1
 				return true
 
 			return false
@@ -942,7 +942,7 @@ define () ->
 		# нужна ли анимация
 		needAnimation: () ->
 
-			@_needAnimation or @_objects.some (_object) -> _object.needAnimation
+			@_needAnimation or @objects.some (_object) -> _object.needAnimation
 
 		# проверяем, пуста ли точка с данными координатами
 		# ВНИМАНИЕ!
@@ -1061,7 +1061,7 @@ define () ->
 				@context.clip()
 
 			# анимация
-			@_objects.forEach (_object) => _object.animate()
+			@objects.forEach (_object) => _object.animate()
 
 			# анимация больше не нужна
 			@_needAnimation = false
@@ -1360,9 +1360,9 @@ define () ->
 
 					name: "FPS"
 					sizes: [90, 40]
-					position: [5, 5]
+					position: [@_sizes[0] - 95, 5]
 					# чтобы сцена была выше всех
-					zIndex: 9999
+					zIndex: 99999
 					setActive: false
 
 				}

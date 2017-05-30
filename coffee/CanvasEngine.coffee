@@ -48,9 +48,9 @@ define ["base", "Scenes", "FPS"], (base, Scenes, FPS) ->
 
 					name: "FPS"
 					sizes: [90, 40]
-					position: [5, 5]
+					position: [@_sizes[0] - 95, 5]
 					# чтобы сцена была выше всех
-					zIndex: 9999
+					zIndex: 99999
 					setActive: false
 
 				}

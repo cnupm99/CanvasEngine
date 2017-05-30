@@ -34,7 +34,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			# анимация пока не нужна
 			@_needAnimation = false
 			# список объектов для анимации
-			@_objects = []
+			@objects = []
 
 		# установка z-индекса
 		setZ: (value) ->
@@ -65,7 +65,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 				when "graph" then result = new Graph options
 				when "tile" then result = new TilingImage options
 
-			@_objects.push result
+			@objects.push result
 
 			return result
 
@@ -75,7 +75,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			answer = false
 
 			# перебор всех объектов, пока не встретим нужный
-			@_objects.some (_object) -> 
+			@objects.some (_object) -> 
 
 				flag = _object.name == objectName
 				answer = _object if flag
@@ -89,7 +89,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			index = -1
 
 			# перебор всех объектов, пока не встретим нужный
-			@_objects.some (_object, i) -> 
+			@objects.some (_object, i) -> 
 
 				flag = _object.name == objectName
 				index = i if flag
@@ -97,7 +97,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 
 			if index > -1
 
-				@_objects.splice index, 1
+				@objects.splice index, 1
 				return true
 
 			return false
@@ -105,7 +105,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 		# добавляем внешний объект в список отображения
 		addChild: (_object) ->
 
-			@_objects.push _object
+			@objects.push _object
 			@_needAnimation = true
 
 		# удалить внешний объект из списка отображения
@@ -114,7 +114,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			index = -1
 
 			# перебор всех объектов, пока не встретим нужный
-			@_objects.some (_object2, i) -> 
+			@objects.some (_object2, i) -> 
 
 				flag = _object2 == _object
 				index = i if flag
@@ -122,7 +122,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 
 			if index > -1
 
-				@_objects.splice index, 1
+				@objects.splice index, 1
 				return true
 
 			return false
@@ -130,7 +130,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 		# нужна ли анимация
 		needAnimation: () ->
 
-			@_needAnimation or @_objects.some (_object) -> _object.needAnimation
+			@_needAnimation or @objects.some (_object) -> _object.needAnimation
 
 		# проверяем, пуста ли точка с данными координатами
 		# ВНИМАНИЕ!
@@ -249,7 +249,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 				@context.clip()
 
 			# анимация
-			@_objects.forEach (_object) => _object.animate()
+			@objects.forEach (_object) => _object.animate()
 
 			# анимация больше не нужна
 			@_needAnimation = false
