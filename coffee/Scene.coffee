@@ -67,6 +67,11 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 
 			@objects.push result
 
+			# передаем в объект метод
+			# для получения ссылки
+			# на эту самую сцену
+			result.getScene = () => @
+
 			return result
 
 		# поиск объекта по его имени
@@ -151,6 +156,24 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 
 			# проверяем все цвета, если 0, значит мимо
 			return not pixelData.every (value) -> value == 0
+
+
+		# находится ли точка внутри объекта по его позиции / размерам
+		testRect: (pointX, pointY) ->
+
+			rect = {
+
+				left: @_position[0]
+				top: @_position[1]
+				right: @_position[0] + @_sizes[0]
+				bottom: @_position[1] + @_sizes[1]
+
+			}
+
+			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
+
+		# получить размеры сцены
+		getSizes: () -> @_sizes
 
 		# установка прямоугольной маски
 		# ВНИМАНИЕ!

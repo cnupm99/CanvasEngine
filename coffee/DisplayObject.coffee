@@ -62,6 +62,14 @@ define ["base"], (base) ->
 
 			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
 
+		# возвращаем позицию
+		getPosition: () -> @_position
+
+		# сдвигаем объект на нужную величину по осям
+		shift: (_deltaX = 0, _deltaY = 0) ->
+
+			@setPosition [_deltaX + @_position[0], _deltaY + @_position[1]]
+
 		# установка видимости
 		setVisible: (value) ->
 

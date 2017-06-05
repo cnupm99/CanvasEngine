@@ -45,6 +45,20 @@
         return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
       };
 
+      DisplayObject.prototype.getPosition = function() {
+        return this._position;
+      };
+
+      DisplayObject.prototype.shift = function(_deltaX, _deltaY) {
+        if (_deltaX == null) {
+          _deltaX = 0;
+        }
+        if (_deltaY == null) {
+          _deltaY = 0;
+        }
+        return this.setPosition([_deltaX + this._position[0], _deltaY + this._position[1]]);
+      };
+
       DisplayObject.prototype.setVisible = function(value) {
         this._visible = value != null ? value : true;
         return this.needAnimation = this._visible;

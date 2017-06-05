@@ -2,13 +2,13 @@
 
 requirejs.config({
 	
-	// baseUrl: "../bin"
-	baseUrl: "../js"
+	baseUrl: "../bin"
+	// baseUrl: "../js"
 
 });
 
-// requirejs(["CanvasEngine.min"], function(CanvasEngine){
-requirejs(["CanvasEngine"], function(CanvasEngine){
+requirejs(["CanvasEngine.min"], function(CanvasEngine){
+// requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	// создаем движок
 	var ce = new CanvasEngine({

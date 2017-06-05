@@ -54,6 +54,11 @@
             result = new TilingImage(options);
         }
         this.objects.push(result);
+        result.getScene = (function(_this) {
+          return function() {
+            return _this;
+          };
+        })(this);
         return result;
       };
 
@@ -128,6 +133,21 @@
         return !pixelData.every(function(value) {
           return value === 0;
         });
+      };
+
+      Scene.prototype.testRect = function(pointX, pointY) {
+        var rect;
+        rect = {
+          left: this._position[0],
+          top: this._position[1],
+          right: this._position[0] + this._sizes[0],
+          bottom: this._position[1] + this._sizes[1]
+        };
+        return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
+      };
+
+      Scene.prototype.getSizes = function() {
+        return this._sizes;
       };
 
       Scene.prototype.setMask = function(x, y, width, height) {
