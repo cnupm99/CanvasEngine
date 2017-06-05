@@ -125,7 +125,7 @@ define () ->
 			return false unless @testRect pointX, pointY
 
 			# данные пикселя
-			imageData = @context.getImageData pointX, pointY, 1, 1
+			imageData = @_context.getImageData pointX, pointY, 1, 1
 			# цвет пикселя
 			pixelData = imageData.data
 

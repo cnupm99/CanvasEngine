@@ -69,7 +69,7 @@
         if (!this.testRect(pointX, pointY)) {
           return false;
         }
-        imageData = this.context.getImageData(pointX, pointY, 1, 1);
+        imageData = this._context.getImageData(pointX, pointY, 1, 1);
         pixelData = imageData.data;
         if (pixelData.every == null) {
           pixelData.every = Array.prototype.every;
