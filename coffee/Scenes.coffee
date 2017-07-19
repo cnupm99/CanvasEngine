@@ -32,6 +32,11 @@ define ["Scene"], (Scene) ->
 			scene = @get sceneName
 			# если нет
 			unless scene
+				
+				# вычисляем позицию родителя и передаем ее в сцену
+				stagePosition = [@_stage.offsetLeft, @_stage.offsetTop]
+				options.parentPosition = stagePosition
+
 				# создаем
 				scene = new Scene options
 				@_stage.appendChild scene.canvas

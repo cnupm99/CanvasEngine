@@ -115,7 +115,8 @@ define () ->
 
 			@_events.forEach (_event) ->
 
-				mouseOn = if _event.realTest then _event.object.testPoint e.offsetX, e.offsetY else _event.object.testRect e.offsetX, e.offsetY
+				# здесь мы проверяем, над объектом ли мышь, используя нужный метод объекта
+				mouseOn = if _event.realTest then _event.object.testPoint e.pageX, e.pageY else _event.object.testRect e.pageX, e.pageY
 
 				_event.func e, _event.object if mouseOn and _event.event == "mousemove"
 				

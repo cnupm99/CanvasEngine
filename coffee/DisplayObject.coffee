@@ -53,12 +53,13 @@ define ["base"], (base) ->
 
 			rect = {
 
-				left: @_position[0]
-				top: @_position[1]
-				right: @_position[0] + @_sizes[0]
-				bottom: @_position[1] + @_sizes[1]
+				left: @_position[0] + @_parentPosition[0]
+				top: @_position[1] + @_parentPosition[1]
 
 			}
+
+			rect.right = rect.left + @_sizes[0]
+			rect.bottom = rect.top + @_sizes[1]
 
 			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
 

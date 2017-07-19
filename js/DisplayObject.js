@@ -37,11 +37,11 @@
       DisplayObject.prototype.testRect = function(pointX, pointY) {
         var rect;
         rect = {
-          left: this._position[0],
-          top: this._position[1],
-          right: this._position[0] + this._sizes[0],
-          bottom: this._position[1] + this._sizes[1]
+          left: this._position[0] + this._parentPosition[0],
+          top: this._position[1] + this._parentPosition[1]
         };
+        rect.right = rect.left + this._sizes[0];
+        rect.bottom = rect.top + this._sizes[1];
         return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
       };
 

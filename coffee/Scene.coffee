@@ -14,6 +14,9 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			# имя
 			@name = options.name
 
+			# позиция родителя для расчетов
+			@_parentPosition = options.parentPosition
+
 			# имя сцены FPS является зарезервированным
 			# не желательно использовать это имя для своих сцен
 			# во избежание проблем
@@ -55,7 +58,7 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			# контекст нужен для рисования
 			options.parent.context = @context
 			# а вот позицию и размеры можно передать на всякий случай
-			options.parent.position = @_position
+			options.parent.position = [@_position[0] + @_parentPosition[0], @_position[1] + @_parentPosition[1]]
 			options.parent.sizes = @_sizes
 
 			switch options.type
@@ -146,6 +149,8 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 		# При загрузке кода на сервер работает во всех браузерах.
 		testPoint: (pointX, pointY) ->
 
+			return false unless @testRect pointX, pointY
+
 			# данные пикселя
 			imageData = @context.getImageData pointX, pointY, 1, 1
 			# цвет пикселя
@@ -157,18 +162,18 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			# проверяем все цвета, если 0, значит мимо
 			return not pixelData.every (value) -> value == 0
 
-
 		# находится ли точка внутри объекта по его позиции / размерам
 		testRect: (pointX, pointY) ->
 
 			rect = {
 
-				left: @_position[0]
-				top: @_position[1]
-				right: @_position[0] + @_sizes[0]
-				bottom: @_position[1] + @_sizes[1]
+				left: @_position[0] + @_parentPosition[0]
+				top: @_position[1] + @_parentPosition[1]
 
 			}
+
+			rect.right = rect.left + @_sizes[0]
+			rect.bottom = rect.top + @_sizes[1]
 
 			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
 

@@ -106,7 +106,7 @@
       Mouse.prototype._mouseMove = function(e) {
         return this._events.forEach(function(_event) {
           var mouseOn;
-          mouseOn = _event.realTest ? _event.object.testPoint(e.offsetX, e.offsetY) : _event.object.testRect(e.offsetX, e.offsetY);
+          mouseOn = _event.realTest ? _event.object.testPoint(e.pageX, e.pageY) : _event.object.testRect(e.pageX, e.pageY);
           if (mouseOn && _event.event === "mousemove") {
             _event.func(e, _event.object);
           }

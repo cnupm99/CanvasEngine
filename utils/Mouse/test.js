@@ -25,6 +25,7 @@ requirejs(["CanvasEngine", "../utils/Mouse/Mouse"], function(CanvasEngine, Mouse
 
 	});
 
+	// графический элемент
 	var graph = scene.add({
 
 		type: "graph",
@@ -33,10 +34,15 @@ requirejs(["CanvasEngine", "../utils/Mouse/Mouse"], function(CanvasEngine, Mouse
 
 	});
 
+	// рисуем прямоугольник
 	graph.rect(0, 0, 200, 50);
 	graph.fill();
 
+	// создаем объект мыши, main - родитель, на него вешаются события мыши
 	var mouse = new Mouse(document.getElementById("main"));
+	
+	// добавляем событие,
+	// элемент, событие, обработчик
 	mouse.add(graph, "mouseover", function(){
 
 		graph.clear();
@@ -57,7 +63,7 @@ requirejs(["CanvasEngine", "../utils/Mouse/Mouse"], function(CanvasEngine, Mouse
 		mouse.setCursor("default");
 
 	});
-	mouse.add(graph, "mousedown", function(){
+	mouse.add(graph, "mousedown", function(e){
 
 		console.log("down");
 

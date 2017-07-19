@@ -11,10 +11,12 @@
       }
 
       Scenes.prototype.create = function(options) {
-        var scene, sceneName, setActive;
+        var scene, sceneName, setActive, stagePosition;
         sceneName = options.name || "default";
         scene = this.get(sceneName);
         if (!scene) {
+          stagePosition = [this._stage.offsetLeft, this._stage.offsetTop];
+          options.parentPosition = stagePosition;
           scene = new Scene(options);
           this._stage.appendChild(scene.canvas);
           this._scenes.push(scene);
