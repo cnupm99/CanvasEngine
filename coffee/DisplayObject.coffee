@@ -37,8 +37,14 @@ define ["base"], (base) ->
 
 			return false unless @testRect pointX, pointY
 
+			# получаем координаты точки на канвасе, относительно самого канваса
+			# т.е. без учета родителей,
+			# считая началом координат левый верхний угол канваса
+			offsetX = pointX - @_parentPosition[0]
+			offsetY = pointY - @_parentPosition[1]
+
 			# данные пикселя
-			imageData = @_context.getImageData pointX, pointY, 1, 1
+			imageData = @_context.getImageData offsetX, offsetY, 1, 1
 			# цвет пикселя
 			pixelData = imageData.data
 

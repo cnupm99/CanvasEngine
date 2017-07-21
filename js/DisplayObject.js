@@ -20,11 +20,13 @@
       }
 
       DisplayObject.prototype.testPoint = function(pointX, pointY) {
-        var imageData, pixelData;
+        var imageData, offsetX, offsetY, pixelData;
         if (!this.testRect(pointX, pointY)) {
           return false;
         }
-        imageData = this._context.getImageData(pointX, pointY, 1, 1);
+        offsetX = pointX - this._parentPosition[0];
+        offsetY = pointY - this._parentPosition[1];
+        imageData = this._context.getImageData(offsetX, offsetY, 1, 1);
         pixelData = imageData.data;
         if (pixelData.every == null) {
           pixelData.every = Array.prototype.every;

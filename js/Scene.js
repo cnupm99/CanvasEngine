@@ -125,11 +125,13 @@
       };
 
       Scene.prototype.testPoint = function(pointX, pointY) {
-        var imageData, pixelData;
+        var imageData, offsetX, offsetY, pixelData;
         if (!this.testRect(pointX, pointY)) {
           return false;
         }
-        imageData = this.context.getImageData(pointX, pointY, 1, 1);
+        offsetX = pointX - this._position[0] - this._parentPosition[0];
+        offsetY = pointY - this._position[1] - this._parentPosition[1];
+        imageData = this.context.getImageData(offsetX, offsetY, 1, 1);
         pixelData = imageData.data;
         if (pixelData.every == null) {
           pixelData.every = Array.prototype.every;

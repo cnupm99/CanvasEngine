@@ -151,8 +151,14 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 
 			return false unless @testRect pointX, pointY
 
+			# получаем координаты точки на канвасе, относительно самого канваса
+			# т.е. без учета родителей,
+			# считая началом координат левый верхний угол канваса
+			offsetX = pointX - @_position[0] - @_parentPosition[0]
+			offsetY = pointY - @_position[1] - @_parentPosition[1]
+
 			# данные пикселя
-			imageData = @context.getImageData pointX, pointY, 1, 1
+			imageData = @context.getImageData offsetX, offsetY, 1, 1
 			# цвет пикселя
 			pixelData = imageData.data
 
