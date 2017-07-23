@@ -87,7 +87,7 @@ define ["Scene"], (Scene) ->
 			if index > -1
 
 				# удаляем канвас с экрана
-				@_parent.removeChild @_scenes[index].canvas
+				@_stage.removeChild @_scenes[index].canvas
 				# удаляем сцену из массива сцен
 				@_scenes.splice index, 1
 				return true

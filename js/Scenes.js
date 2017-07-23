@@ -63,7 +63,7 @@
         var index;
         index = this._index(sceneName);
         if (index > -1) {
-          this._parent.removeChild(this._scenes[index].canvas);
+          this._stage.removeChild(this._scenes[index].canvas);
           this._scenes.splice(index, 1);
           return true;
         }
