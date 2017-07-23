@@ -1261,10 +1261,10 @@ define () ->
 			index = -1
 
 			# перебор всех сцен, пока не встретим нужную
-			@_scenes.some (scene) -> 
+			@_scenes.some (scene, i) -> 
 
 				flag = scene.name == sceneName
-				index = scene if flag
+				index = i if flag
 				return flag
 
 			return index

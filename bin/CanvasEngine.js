@@ -962,11 +962,11 @@
       Scenes.prototype._index = function(sceneName) {
         var index;
         index = -1;
-        this._scenes.some(function(scene) {
+        this._scenes.some(function(scene, i) {
           var flag;
           flag = scene.name === sceneName;
           if (flag) {
-            index = scene;
+            index = i;
           }
           return flag;
         });
