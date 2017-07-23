@@ -39,6 +39,11 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			# список объектов для анимации
 			@objects = []
 
+		# сдвигаем все объекты на сцене на нужную величину по осям
+		shift: (deltaX = 0, deltaY = 0) ->
+
+			@objects.forEach (_object) -> _object.shift deltaX, deltaY
+
 		# установка z-индекса
 		setZ: (value) ->
 

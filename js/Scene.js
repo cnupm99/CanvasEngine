@@ -23,6 +23,18 @@
         this.objects = [];
       }
 
+      Scene.prototype.shift = function(deltaX, deltaY) {
+        if (deltaX == null) {
+          deltaX = 0;
+        }
+        if (deltaY == null) {
+          deltaY = 0;
+        }
+        return this.objects.forEach(function(_object) {
+          return _object.shift(deltaX, deltaY);
+        });
+      };
+
       Scene.prototype.setZ = function(value) {
         this._zIndex = this._int(value);
         return this.canvas.style.zIndex = this._zIndex;
