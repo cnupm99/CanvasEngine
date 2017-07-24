@@ -21,9 +21,6 @@
 
       DisplayObject.prototype.testPoint = function(pointX, pointY) {
         var imageData, offsetX, offsetY, pixelData;
-        if (!this.testRect(pointX, pointY)) {
-          return false;
-        }
         offsetX = pointX - this._parentPosition[0];
         offsetY = pointY - this._parentPosition[1];
         imageData = this._context.getImageData(offsetX, offsetY, 1, 1);
@@ -49,6 +46,10 @@
 
       DisplayObject.prototype.getPosition = function() {
         return this._position;
+      };
+
+      DisplayObject.prototype.getCenter = function() {
+        return this._center;
       };
 
       DisplayObject.prototype.shift = function(_deltaX, _deltaY) {

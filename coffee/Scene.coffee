@@ -154,8 +154,6 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 		# При загрузке кода на сервер работает во всех браузерах.
 		testPoint: (pointX, pointY) ->
 
-			return false unless @testRect pointX, pointY
-
 			# получаем координаты точки на канвасе, относительно самого канваса
 			# т.е. без учета родителей,
 			# считая началом координат левый верхний угол канваса
