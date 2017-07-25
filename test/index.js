@@ -17,6 +17,26 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	});
 
+	// добавим переход / выход из поноэкранного режима
+	// по нажатию колеса мыши
+	document.addEventListener("mouseup", function(e){
+
+		if(e.which == 2) {
+
+			if(ce.isFullscreen()) {
+
+				ce.fullscreen(false);
+
+			} else {
+
+				ce.fullscreen(true);
+
+			}
+
+		}
+
+	});
+
 	// замостим фон кирпичами,
 	// сцена по умолчанию - default
 	ce.add({

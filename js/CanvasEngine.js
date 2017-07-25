@@ -81,6 +81,42 @@
         }
       };
 
+      CanvasEngine.prototype.fullscreen = function(value) {
+        if (value == null) {
+          value = true;
+        }
+        if (value) {
+          if (this._parent.requestFullScreen != null) {
+            this._parent.requestFullScreen();
+          } else if (this._parent.webkitRequestFullScreen != null) {
+            this._parent.webkitRequestFullScreen();
+          } else if (this._parent.mozRequestFullScreen != null) {
+            this._parent.mozRequestFullScreen();
+          } else {
+            return false;
+          }
+        } else {
+          if (document.cancelFullScreen != null) {
+            document.cancelFullScreen();
+          } else if (document.webkitCancelFullScreen != null) {
+            document.webkitCancelFullScreen();
+          } else if (document.mozCancelFullScreen != null) {
+            document.mozCancelFullScreen();
+          } else if (document.exitFullScreen != null) {
+            document.exitFullScreen();
+          } else {
+            return false;
+          }
+        }
+        return true;
+      };
+
+      CanvasEngine.prototype.isFullscreen = function() {
+        var element;
+        element = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullscreenElement;
+        return element != null;
+      };
+
       CanvasEngine.prototype._canvasSupport = function() {
         return document.createElement("canvas").getContext != null;
       };

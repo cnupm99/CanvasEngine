@@ -114,6 +114,33 @@ define ["base", "Scenes", "FPS"], (base, Scenes, FPS) ->
 				# добавляем объект на нужную сцену
 				scene.add options
 
+		# установить / снять полноэкранный режим
+		# для элемента parent
+		fullscreen: (value = true) ->
+
+			if value
+
+				if @_parent.requestFullScreen? then @_parent.requestFullScreen()
+				else if @_parent.webkitRequestFullScreen? then @_parent.webkitRequestFullScreen()
+				else if @_parent.mozRequestFullScreen? then @_parent.mozRequestFullScreen()
+				else return false
+
+			else
+
+				if document.cancelFullScreen? then document.cancelFullScreen()
+				else if document.webkitCancelFullScreen? then document.webkitCancelFullScreen()
+				else if document.mozCancelFullScreen? then document.mozCancelFullScreen()
+				else if document.exitFullScreen? then document.exitFullScreen()
+				else return false
+
+			return true
+
+		# проверка, находится ли документ в полноэкранном режиме
+		isFullscreen: () -> 
+
+			element = document.fullscreenElement or document.webkitFullscreenElement or document.mozFullscreenElement
+			element?
+
 		# проверка, поддерживает ли браузер canvas и context
 		_canvasSupport: () -> document.createElement("canvas").getContext?
 
