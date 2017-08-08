@@ -5,80 +5,116 @@
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define(["base", "Scenes", "FPS"], function(base, Scenes, FPS) {
+  define(["AbstractObject", "Scene"], function(AbstractObject, Scene) {
     var CanvasEngine;
     return CanvasEngine = (function(superClass) {
       extend(CanvasEngine, superClass);
 
       function CanvasEngine(options) {
-        this._animate = bind(this._animate, this);
-        var scene;
-        if (!this._canvasSupport()) {
+        this.animate = bind(this.animate, this);
+        if (!this.canvasSupport()) {
           console.log("your browser not support canvas and/or context");
           return false;
         }
         CanvasEngine.__super__.constructor.call(this, options);
-        this._parent = options.parent || document.body;
-        this.scenes = new Scenes(this._parent);
-        this._beforeAnimate = [];
-        this._showFPS = options.showFPS != null ? options.showFPS : true;
-        if (this._showFPS) {
-          scene = this.scenes.create({
-            name: "FPS",
-            sizes: [90, 40],
-            position: [this._sizes[0] - 95, 5],
-            zIndex: 99999,
-            setActive: false
-          });
-          this._FPS = new FPS({
-            scene: scene
-          });
-        }
+        this.add({
+          type: "scene",
+          name: "default"
+        });
+        this.beforeAnimate = [];
         this.start();
       }
 
+      CanvasEngine.prototype.add = function(options) {
+        var scene, type;
+        if (options == null) {
+          options = {};
+        }
+        type = options.type || "scene";
+        if (type === "scene") {
+          return this._createScene(options);
+        } else {
+          scene = this.get(options.scene);
+          if (!scene) {
+            scene = this.scene;
+          }
+          return scene.add(options);
+        }
+      };
+
+      CanvasEngine.prototype.createScene = function(options) {
+        var scene;
+        if (options.visible == null) {
+          options.visible = this.visible;
+        }
+        if (options.position == null) {
+          options.position = this.position;
+        }
+        if (options.size == null) {
+          options.size = this.sizes;
+        }
+        if (options.center == null) {
+          options.center = this.center;
+        }
+        if (options.rotation == null) {
+          options.rotation = this.rotation;
+        }
+        if (options.alpha == null) {
+          options.alpha = this.alpha;
+        }
+        if (options.mask == null) {
+          options.mask = this.mask;
+        }
+        if (options.shadow == null) {
+          options.shadow = this.shadow;
+        }
+        options.parent = this;
+        options.stage = this.parent;
+        scene = new Scene(options);
+        this.childrens.push(scene);
+        return this.scene = scene;
+      };
+
       CanvasEngine.prototype.start = function() {
-        return this._render = requestAnimationFrame(this._animate);
+        return this._render = requestAnimationFrame(this.animate);
       };
 
       CanvasEngine.prototype.stop = function() {
         return cancelAnimationFrame(this._render);
       };
 
+      CanvasEngine.prototype.animate = function() {
+        this.beforeAnimate.forEach(function(handler) {
+          if (typeof handler === "function") {
+            return handler();
+          }
+        });
+        this.needAnimation = false;
+        this.childrens.forEach(function(child) {
+          var needAnimation;
+          needAnimation = child.needAnimation || child.childrens.some(function(childOfChild) {
+            return childOfChild.needAnimation;
+          });
+          if (needAnimation) {
+            child.animate();
+          }
+          return this.needAnimation = this.needAnimation || needAnimation;
+        });
+        return this._render = requestAnimationFrame(this.animate);
+      };
+
       CanvasEngine.prototype.addEvent = function(handler) {
-        return this._beforeAnimate.push(handler);
+        return this.beforeAnimate.push(handler);
       };
 
       CanvasEngine.prototype.removeEvent = function(handler) {
-        return this._beforeAnimate.forEach((function(_this) {
+        return this.beforeAnimate.forEach((function(_this) {
           return function(item, i) {
             if (item === handler) {
-              return _this._beforeAnimate.splice(i, 1);
+              return _this.beforeAnimate.splice(i, 1);
             }
           };
         })(this));
-      };
-
-      CanvasEngine.prototype.add = function(options) {
-        var scene, sceneName, type;
-        type = options.type || "scene";
-        if (type === "scene") {
-          if (options.sizes == null) {
-            options.sizes = this._sizes;
-          }
-          if (options.position == null) {
-            options.position = this._position;
-          }
-          return this.scenes.create(options);
-        } else {
-          sceneName = options.scene || this.scenes.active() || "default";
-          scene = this.scenes.create({
-            name: sceneName,
-            sizes: this._sizes,
-            position: this._position
-          });
-          return scene.add(options);
-        }
       };
 
       CanvasEngine.prototype.fullscreen = function(value) {
@@ -86,12 +122,12 @@
           value = true;
         }
         if (value) {
-          if (this._parent.requestFullScreen != null) {
-            this._parent.requestFullScreen();
-          } else if (this._parent.webkitRequestFullScreen != null) {
-            this._parent.webkitRequestFullScreen();
-          } else if (this._parent.mozRequestFullScreen != null) {
-            this._parent.mozRequestFullScreen();
+          if (this.parent.requestFullScreen != null) {
+            this.parent.requestFullScreen();
+          } else if (this.parent.webkitRequestFullScreen != null) {
+            this.parent.webkitRequestFullScreen();
+          } else if (this.parent.mozRequestFullScreen != null) {
+            this.parent.mozRequestFullScreen();
           } else {
             return false;
           }
@@ -117,30 +153,13 @@
         return element != null;
       };
 
-      CanvasEngine.prototype._canvasSupport = function() {
+      CanvasEngine.prototype.canvasSupport = function() {
         return document.createElement("canvas").getContext != null;
-      };
-
-      CanvasEngine.prototype._animate = function() {
-        var needAnimation;
-        this._beforeAnimate.forEach(function(handler) {
-          if (typeof handler === "function") {
-            return handler();
-          }
-        });
-        needAnimation = this.scenes.needAnimation();
-        if (needAnimation) {
-          this.scenes.animate();
-        }
-        if (this._showFPS) {
-          this._FPS.update(needAnimation);
-        }
-        return this._render = requestAnimationFrame(this._animate);
       };
 
       return CanvasEngine;
 
-    })(base);
+    })(AbstractObject);
   });
 
 }).call(this);

@@ -1,48 +1,76 @@
 "use strict";
 
-define ["base"], (base) ->
+define ["AbstractObject"], (AbstractObject) ->
 
-	class DisplayObject extends base
+	# 
+	# Абстрактный объект, отображаемый на экране
+	# 
+	class DisplayObject extends AbstractObject
 
 		# 
-		# Базовые методы и свойства экранных объектов
+		# свойсва:
+		# 
+		#  name: String - название объекта
+		#  type: String - тип объекта
+		#  context: Context2d - контекст для рисования
+		#  
+		# методы:
+		# 
+		#  testPoint(pointX, pointY) - проверка, пуста ли данная точка
+		#  testRect(pointX, pointY) - проверка, входит ли точка в прямоугольник объекта
+		#  animate() - попытка нарисовать объект
 		# 
 		constructor: (options) ->
 
+			# 
+			# конструктор базового класса
+			# 
 			super options
 
-			# имя
-			@name = options.name
-			# тень
-			@_shadow = false
-			# видимость объекта
-			@_visible = if options.visible? then options.visible else true
+			# 
+			# имя, задается пользователем, либо пустая строка
+			# используется для поиска по имени
+			# 
+			@name = options.name or ""
+
+			# 
+			# тип объекта, каждый класс пусть присваивает самостоятельно
+			# 
+			@type = "DisplayObject"
+
+			# 
 			# контекст для рисования
-			@_context = options.parent.context
-			# позиция родителя для вычисления координат
-			@_parentPosition = options.parent.position
+			# 
+			@context = @parent.context
 
-			# нужна ли анимация
-			@needAnimation = @_visible
-
+		# 
 		# проверяем, пуста ли точка с данными координатами
-		# а для начала находится ли точка внутри объекта
+		# 
 		# ВНИМАНИЕ!
 		# использовать этот метод ЛОКАЛЬНО нужно осторожно, так как
 		# в браузерах на основе chrome будет возникать ошибка безопасности
 		# (как будто пытаешься загрузить изображение с другого хоста).
 		# В firefox работает и локально без проблем.
-		# При загрузке кода на сервер работает во всех браузерах.
+		# При загрузке кода на сервер работает во всех браузерах
+		# 
 		testPoint: (pointX, pointY) ->
 
 			# получаем координаты точки на канвасе, относительно самого канваса
 			# т.е. без учета родителей,
 			# считая началом координат левый верхний угол канваса
-			offsetX = pointX - @_parentPosition[0]
-			offsetY = pointY - @_parentPosition[1]
+			offsetX = pointX - @parent.position[0]
+			offsetY = pointY - @parent.position[1]
+
+			# 
+			# для сцены есть дополнительное смещение координат канваса
+			# 
+			if @type == "scene"
+
+				offsetX -= @position[0]
+				offsetY -= @position[1]
 
 			# данные пикселя
-			imageData = @_context.getImageData offsetX, offsetY, 1, 1
+			imageData = @context.getImageData offsetX, offsetY, 1, 1
 			# цвет пикселя
 			pixelData = imageData.data
 
@@ -52,141 +80,58 @@ define ["base"], (base) ->
 			# проверяем все цвета, если 0, значит мимо
 			return not pixelData.every (value) -> value == 0
 
+		# 
 		# находится ли точка внутри объекта по его позиции / размерам
+		# 
 		testRect: (pointX, pointY) ->
 
 			rect = {
 
-				left: @_position[0] + @_parentPosition[0]
-				top: @_position[1] + @_parentPosition[1]
+				left: @position[0] + @parent.position[0]
+				top: @position[1] + @parent.position[1]
 
 			}
 
-			rect.right = rect.left + @_sizes[0]
-			rect.bottom = rect.top + @_sizes[1]
+			rect.right = rect.left + @size[0]
+			rect.bottom = rect.top + @size[1]
 
 			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
 
-		# возвращаем позицию
-		getPosition: () -> @_position
-
-		# возвращаем центр
-		getCenter: () -> @_center
-
-		# сдвигаем объект на нужную величину по осям
-		shift: (_deltaX = 0, _deltaY = 0) ->
-
-			@setPosition [_deltaX + @_position[0], _deltaY + @_position[1]]
-
-		# установка видимости
-		setVisible: (value) ->
-
-			@_visible = if value? then value else true
-			@needAnimation = @_visible
-
-		# установка опций
-		setTransform: (options) ->
-
-			@setSizes options.sizes
-			@setPosition options.position
-			@setCenter options.center
-			@setRotation options.rotation
-			@setAlpha options.alpha
-
-		# размер
-		setSizes: (sizes) ->
-
-			@_sizes = @_point sizes if sizes?
-
-			@needAnimation = true
-
-		# позиция
-		setPosition: (position) ->
-
-			@_position = @_point position if position?
-
-			@needAnimation = true
-
-		# центр, вокруг которого происходит вращение
-		setCenter: (center) ->
-
-			@_center = @_point center if center?
-
-			@needAnimation = true
-
-		# поворот
-		setRotation: (rotation) ->
-
-			@_rotation = @_value rotation if rotation?
-
-			@needAnimation = true
-
-		# прозрачность
-		setAlpha: (alpha) ->
-
-			@_alpha = @_value alpha if alpha?
-
-			@needAnimation = true
-
-		# тень
-		# # ВНИМАНИЕ!
-		# В браузере firefox есть баг (на 25.04.17), а именно:
-		# при попытке нарисовать на канве изображение, используя одновременно
-		# маску и тень (setMask and setShadow в данном случае), получается
-		# странная хрень, а точнее маска НЕ работает в данном случае.
-		# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
-		setShadow: (options) ->
-
-			if options?
-
-				@_shadow = {
-
-					color: options.color or "#000"
-					blur: options.blur or 3
-					offsetX: options.offsetX or 0
-					offsetY: options.offsetY or 0
-					offset: options.offset or 0
-
-				}
-
-			else
-
-				@_shadow = false
-
-			@needAnimation = true
-
-		# анимация
-		animate: (context) ->
+		# 
+		# анимация объекта, запускается автоматически,
+		# делать вручную это не нужно
+		# 
+		animate: () ->
 
 			# если объект не видимый
 			# то рисовать его не нужно
-			unless @_visible
+			unless @visible
 
 				@needAnimation = false
 				return
 
 			# сохранить контекст
-			context.save()
+			@context.save()
 
 			# смещение
-			@_deltaX = @_position[0]
-			@_deltaY = @_position[1]
+			@_deltaX = @position[0]
+			@_deltaY = @position[1]
 
 			# установка тени
-			if @_shadow
+			if @shadow
 
-				context.shadowColor = @_shadow.color
-				context.shadowBlur = @_shadow.blur
-				context.shadowOffsetX = Math.max @_shadow.offsetX, @_shadow.offset
-				context.shadowOffsetY = Math.max @_shadow.offsetY, @_shadow.offset
+				@context.shadowColor = @shadow.color
+				@context.shadowBlur = @shadow.blur
+				@context.shadowOffsetX = Math.max @shadow.offsetX, @shadow.offset
+				@context.shadowOffsetY = Math.max @shadow.offsetY, @shadow.offset
 
 			# смещение и поворот холста
-			if @_rotation != 0
+			if @rotation != 0
 
-				context.translate @_center[0] + @_position[0], @_center[1] + @_position[1]
-				context.rotate @_rotation * Math.PI / 180
-				@_deltaX = -@_center[0]
-				@_deltaY = -@_center[1]
+				@context.translate @center[0] + @position[0], @center[1] + @position[1]
+				@context.rotate deg2rad(@rotation)
+				@_deltaX = -@center[0]
+				@_deltaY = -@center[1]
 
 			# анимация больше не нужна
 			@needAnimation = false
