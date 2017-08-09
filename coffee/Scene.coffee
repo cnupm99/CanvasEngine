@@ -1,71 +1,93 @@
 "use strict";
 
-define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Graph, TilingImage) ->
+define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObject, Image, Text, Graph, TilingImage) ->
 
-	class Scene extends base
+	class Scene extends DisplayObject
 
 		# 
 		# Сцена
 		# 
 		constructor: (options) ->
 
+			# 
+			# создаем DisplayObject
+			# 
 			super options
 
-			# имя
-			@name = options.name
+			# 
+			# тип объекта
+			# 
+			@type = "scene"
 
-			# позиция родителя для расчетов
-			@_parentPosition = options.parentPosition
-
-			# имя сцены FPS является зарезервированным
-			# не желательно использовать это имя для своих сцен
-			# во избежание проблем
-
-			# канвас
+			# 
+			# элемент для добавления канваса
+			# всегда должен быть
+			# 
+			@stage = options.stage
+			
+			# 
+			# создаем канвас
+			# 
 			@canvas = document.createElement "canvas"
 			@canvas.style.position = "absolute"
-			# z индекс
-			@setZ options.zIndex
+			@stage.addChild @canvas
 
+			# 
 			# контекст
+			# 
 			@context = @canvas.getContext "2d"
-			
-			# установка опций
-			@setTransform options
-			# маска отключена
-			@_mask = false
-			# анимация пока не нужна
-			@_needAnimation = false
-			# список объектов для анимации
-			@objects = []
 
-		# сдвигаем все объекты на сцене на нужную величину по осям
-		shift: (deltaX = 0, deltaY = 0) ->
+			# 
+			# индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
+			# целое число >= 0
+			# 
+			_zIndex = @point options.zIndex
+			Object.defineProperty @, "zIndex", {
 
-			@objects.forEach (_object) -> _object.shift deltaX, deltaY
+				get: () -> _zIndex
+				set: (value) -> 
 
-		# установка z-индекса
-		setZ: (value) ->
+					_zIndex = @int value
+					@canvas.style.zIndex = _zIndex
+					_zIndex
 
-			@_zIndex = @_int value
-			@canvas.style.zIndex = @_zIndex
+			}
 
-		# получить z-индекс
-		getZ: () -> @_zIndex
+			# 
+			# анимация пока не нужна (сцена пуста)
+			# 
+			@needAnimation = false
 
-		# добавление объектов в список анимации
+		# 
+		# создание и добавление дочерних объектов в список анимации
+		# 
 		add: (options) ->
 
+			# 
+			# нет типа - нечего создавать
+			# 
 			return unless options.type?
 
-			# передаем некоторые свойства родителя
-			options.parent = {}
-			# контекст нужен для рисования
-			options.parent.context = @context
-			# а вот позицию и размеры можно передать на всякий случай
-			options.parent.position = [@_position[0] + @_parentPosition[0], @_position[1] + @_parentPosition[1]]
-			options.parent.sizes = @_sizes
+			# 
+			# если нужно, задаем значения по умолчанию
+			# 
+			options.visible = @visible unless options.visible?
+			options.position = @position unless options.position?
+			options.size = @sizes unless options.size?
+			options.center = @center unless options.center?
+			options.rotation = @rotation unless options.rotation?
+			options.alpha = @alpha unless options.alpha?
+			options.mask = @mask unless options.mask?
+			options.shadow = @shadow unless options.shadow?
 
+			# 
+			# передаем себя, как родителя
+			# 
+			options.parent = @
+
+			# 
+			# создание объекта
+			# 
 			switch options.type
 
 				when "image" then result = new Image options
@@ -73,149 +95,15 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 				when "graph" then result = new Graph options
 				when "tile" then result = new TilingImage options
 
-			@objects.push result
+			# 
+			# добавляем в список дочерних объектов
+			# 
+			@childrens.push result
 
-			# передаем в объект метод
-			# для получения ссылки
-			# на эту самую сцену
-			result.getScene = () => @
-
+			# 
+			# возвращаем результат
+			# 
 			return result
-
-		# поиск объекта по его имени
-		get: (objectName) ->
-
-			answer = false
-
-			# перебор всех объектов, пока не встретим нужный
-			@objects.some (_object) -> 
-
-				flag = _object.name == objectName
-				answer = _object if flag
-				return flag
-
-			return answer
-
-		# удаляем объект по его имени
-		remove: (objectName) ->
-
-			index = -1
-
-			# перебор всех объектов, пока не встретим нужный
-			@objects.some (_object, i) -> 
-
-				flag = _object.name == objectName
-				index = i if flag
-				return flag
-
-			if index > -1
-
-				@objects.splice index, 1
-				return true
-
-			return false
-
-		# добавляем внешний объект в список отображения
-		addChild: (_object) ->
-
-			@objects.push _object
-			@_needAnimation = true
-
-		# удалить внешний объект из списка отображения
-		removeChild: (_object) ->
-
-			index = -1
-
-			# перебор всех объектов, пока не встретим нужный
-			@objects.some (_object2, i) -> 
-
-				flag = _object2 == _object
-				index = i if flag
-				return flag
-
-			if index > -1
-
-				@objects.splice index, 1
-				return true
-
-			return false
-
-		# нужна ли анимация
-		needAnimation: () ->
-
-			@_needAnimation or @objects.some (_object) -> _object.needAnimation
-
-		# проверяем, пуста ли точка с данными координатами
-		# ВНИМАНИЕ!
-		# использовать этот метод ЛОКАЛЬНО нужно осторожно, так как
-		# в браузерах на основе chrome будет возникать ошибка безопасности
-		# (как будто пытаешься загрузить изображение с другого хоста).
-		# В firefox работает и локально без проблем.
-		# При загрузке кода на сервер работает во всех браузерах.
-		testPoint: (pointX, pointY) ->
-
-			# получаем координаты точки на канвасе, относительно самого канваса
-			# т.е. без учета родителей,
-			# считая началом координат левый верхний угол канваса
-			offsetX = pointX - @_position[0] - @_parentPosition[0]
-			offsetY = pointY - @_position[1] - @_parentPosition[1]
-
-			# данные пикселя
-			imageData = @context.getImageData offsetX, offsetY, 1, 1
-			# цвет пикселя
-			pixelData = imageData.data
-
-			# проверяем нужный метод?
-			pixelData.every = Array.prototype.every if not pixelData.every?
-
-			# проверяем все цвета, если 0, значит мимо
-			return not pixelData.every (value) -> value == 0
-
-		# находится ли точка внутри объекта по его позиции / размерам
-		testRect: (pointX, pointY) ->
-
-			rect = {
-
-				left: @_position[0] + @_parentPosition[0]
-				top: @_position[1] + @_parentPosition[1]
-
-			}
-
-			rect.right = rect.left + @_sizes[0]
-			rect.bottom = rect.top + @_sizes[1]
-
-			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
-
-		# получить размеры сцены
-		getSizes: () -> @_sizes
-
-		# установка прямоугольной маски
-		# ВНИМАНИЕ!
-		# В браузере firefox есть баг (на 25.04.17), а именно:
-		# при попытке нарисовать на канве изображение, используя одновременно
-		# маску и тень (setMask and setShadow в данном случае), получается
-		# странная хрень, а точнее маска НЕ работает в данном случае.
-		# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
-		setMask: (x, y, width, height) ->
-
-			if arguments.length < 4
-
-				# если меньше четырех аргументов,
-				# просто удаляем маску
-				@_mask = false
-
-			else
-
-				@_mask = {
-
-					x: @_int x
-					y: @_int y
-					width: @_int width
-					height: @_int height
-
-				}
-
-			@_needAnimation = true
 
 		# установка опций
 		setTransform: (options) ->
@@ -272,21 +160,31 @@ define ["base", "Image", "Text", "Graph", "TilingImage"], (base, Image, Text, Gr
 			@context.globalAlpha = @_alpha
 			@_needAnimation = true
 
+		# 
 		# анимация сцены
+		# 
 		animate: () ->
 
+			# 
 			# очистка контекста
+			# 
 			@context.clearRect 0, 0, @canvas.width, @canvas.height
 
+			# 
 			# установка маски
-			if @_mask
+			# 
+			if @mask
 
 				@context.beginPath()
-				@context.rect @_mask.x, @_mask.y, @_mask.width, @_mask.height
+				@context.rect @mask.x, @mask.y, @mask.width, @mask.height
 				@context.clip()
 
+			# 
 			# анимация
-			@objects.forEach (_object) => _object.animate()
+			# 
+			@childrens.forEach (child) -> child.animate()
 
+			# 
 			# анимация больше не нужна
-			@_needAnimation = false
+			# 
+			@needAnimation = false

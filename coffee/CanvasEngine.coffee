@@ -26,12 +26,34 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 			super options
 
 			# 
-			# создаем сцену по умолчанию и делаем ее активной сценой
-			# 
+			# создаем сцену по умолчанию
+			#
 			@add {
 
 				type: "scene"
 				name: "default"
+
+			}
+
+			# 
+			# Свойство хранит имя активной сцены в виде строки,
+			# НО при обращении возвращает активную СЦЕНУ, либо если она была удалена,
+			# то первую сцену в списке, либо если список пуст, то false
+			# 
+			_scene = "default"
+			Object.defineProperty @, "activeScene", {
+
+				get: () -> 
+
+					result = @get _scene
+					result = @childrens[0] unless result
+					result = false unless result
+					result
+
+				set: (value) -> 
+
+					_scene = "" + value
+					@get _scene
 
 			}
 
@@ -77,7 +99,23 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 				# на какую сцену добавить объект?
 				# 
 				scene = @get options.scene
-				scene = @scene unless scene
+
+				# 
+				# если в опциях не указана сцена, то добавляем на активную сцену
+				# 
+				scene = @activeScene unless scene
+
+				# 
+				# если в списке нет ниодной сцены, создадим сцену по умолчанию
+				# 
+				unless scene
+
+					scene = @add {
+
+						type: "scene"
+						name: "default"
+
+					}
 
 				# 
 				# добавляем объект на нужную сцену
@@ -124,7 +162,37 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 			# 
 			# делаем новую сцену активной
 			# 
-			@scene = scene
+			@activeScene = scene.name
+
+		# 
+		# удаляем сцену по ее имени
+		# отдельная функция, т.к. тут нужно удалить канвас с элемента
+		# 
+		remove: (childName) ->
+
+			index = @index childName
+			if index == -1 then return false
+			@parent.removeChild @childrens[index].canvas
+			@childrens.splice index, 1
+			return true
+
+		# 
+		# переносим сцену на верх отображения
+		# для чего делаем ее zIndex на 1 больше максимального из существующих
+		# 
+		onTop: (childName) ->
+
+			maxZ = 0
+			result = false
+
+			@childrens.forEach (child) ->
+
+				maxZ = child.zIndex if child.zIndex > maxZ
+				result = child if childName == child.name
+
+			result.zIndex = maxZ + 1 if result
+
+			return result
 
 		# 
 		# запуск анимации

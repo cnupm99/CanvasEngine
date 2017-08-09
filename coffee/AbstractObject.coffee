@@ -27,6 +27,9 @@ define () ->
 		# методы:
 		# 
 		#  get(childName): Object/false - поиск среди дочерних элементов по имени элемента
+		#  remove(childName): Boolean - удаление дочернего элемента по его имени
+		#  rename(oldName, newName): Boolean - переименование дочернего элемента
+		#  index(childName): int - возвращает индекс элемента в массиве дочерних по его имени
 		#  shift(deltaX, deltaY):Array - сдвигаем объект на нужное смещение по осям
 		#  point(value1, value2): Array - приведение выражений к виду [x, y]
 		#  int(value): int - приведение к целому числу
@@ -257,12 +260,41 @@ define () ->
 		# 
 		get: (childName) ->
 
-			result = false
+			index = @index childName
+			if index == -1 then return false
+			return @childrens[index]
 
-			@childrens.some (child) ->
+		# 
+		# удаление дочернего элемента по его имени
+		# 
+		remove: (childName) ->
+
+			index = @index childName
+			if index == -1 then return false
+			@childrens.splice index, 1
+			return true
+
+		# 
+		# переименование дочернего элемента
+		# 
+		rename: (oldName, newName) ->
+
+			index = @index oldName
+			if index == -1 then return false
+			@childrens[index].name = newName
+			return true
+
+		# 
+		# возвращает индекс элемента в массиве дочерних по его имени
+		# 
+		index: (childName) ->
+
+			result = -1
+
+			@childrens.some (child, index) ->
 
 				flag = child.name == childName
-				result = child if flag
+				result = index if flag
 				return flag
 
 			return result
