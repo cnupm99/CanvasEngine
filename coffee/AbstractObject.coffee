@@ -68,192 +68,9 @@ define () ->
 			@needAnimation = true
 
 			# 
-			# видимость объекта, устанавливаемая пользователем
-			# true / false
+			# Устанавливаем свойства
 			# 
-			_visible = if options.visible? then options.visible else true
-			Object.defineProperty @, "visible", {
-
-				get: () -> _visible
-				set: (value) -> 
-
-					_visible = if value? then value else true
-
-					# 
-					# сообщаем движку, нужно ли анимировать объект
-					# 
-					@needAnimation = _visible
-
-			}
-
-			# 
-			# позиция объекта
-			# массив вида [x, y], либо объект вида {x: int, y: int}
-			# 
-			_position = @point options.position
-			Object.defineProperty @, "position", {
-
-				get: () -> _position
-				set: (value) -> 
-
-					_position = @point value
-					@needAnimation = true
-					_position
-
-			}
-
-			# 
-			# размер объекта
-			# массив вида [width, height], либо объект вида {width: int, height: int}
-			# 
-			_size = @point options.size
-			Object.defineProperty @, "size", {
-
-				get: () -> _size
-				set: (value) -> 
-
-					_size = @point value
-					@needAnimation = true
-					_size
-
-			}
-
-			# 
-			# координаты точки, являющейся центром объекта,
-			# вокруг этой точки производится вращение объекта
-			# координаты точки задаются не относительно начала координат,
-			# а относительно левого верхнего угла объекта
-			# массив вида [x, y], либо объект вида {x: int, y: int}
-			# 
-			_center = @point options.center
-			Object.defineProperty @, "center", {
-
-				get: () -> _center
-				set: (value) -> 
-
-					_center = @point value
-					@needAnimation = true
-					_center
-
-			}
-
-			# 
-			# поворот объекта вокруг точки center по часовой стрелке, измеряется в градусах
-			# число
-			# 
-			_rotation = @number options.rotation
-			Object.defineProperty @, "rotation", {
-
-				get: () -> _rotation
-				set: (value) -> 
-
-					_rotation = @number value
-					@needAnimation = true
-					_rotation
-
-			}
-
-			# 
-			# прозрачность объекта
-			# число от 0 до 1
-			# 
-			_alpha = @number options.alpha
-			Object.defineProperty @, "alpha", {
-
-				get: () -> _alpha
-				set: (value) -> 
-
-					_alpha = @number value
-					
-					# 
-					# ограничения
-					# 
-					_alpha = 0 if _alpha < 0
-					_alpha = 1 if _alpha > 1
-
-					@needAnimation = true
-					_alpha
-
-			}
-
-			# 
-			# прямоугольная маска, применимо к Scene
-			# если маска дейтсвует, то на сцене будет отображаться только объекты внутри маски
-			# объект вида {x: int, y: int, width: int, height: int} или false
-			# 
-			# ВНИМАНИЕ!
-			# В браузере firefox есть баг (на 25.04.17), а именно:
-			# при попытке нарисовать на канве изображение, используя одновременно
-			# маску и тень (mask и shadow в данном случае), получается
-			# странная хрень, а точнее маска НЕ работает в данном случае
-			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
-			# 
-			_mask = options.mask or false
-			Object.defineProperty @, "mask", {
-
-				get: () -> _mask
-				set: (value) -> 
-
-					if (not value?) or (not value)
-
-						_mask = false
-						return
-
-					_mask = {
-
-						x: @int value.x
-						y: @int value.y
-						width: @int value.width
-						height: @int value.height 
-
-					}
-
-					@needAnimation = true
-					_mask
-
-			}
-
-			# 
-			# тень объекта
-			# объект вида {color: string, blur: int, offsetX: int, offsetY: int, offset: int} или false
-			# не нужно указывать одновременно offsetX, offsetY и offset
-			# offset указывается вместо offsetX и offsetY, если offsetX == offsetY
-			# 
-			# ВНИМАНИЕ!
-			# В браузере firefox есть баг (на 25.04.17), а именно:
-			# при попытке нарисовать на канве изображение, используя одновременно
-			# маску и тень (mask и shadow в данном случае), получается
-			# странная хрень, а точнее маска НЕ работает в данном случае
-			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
-			# 
-			_shadow = options.shadow or false
-			Object.defineProperty @, "shadow", {
-
-				get: () -> _shadow
-				set: (value) -> 
-
-					if (not value?) or (not value)
-
-						_shadow = false
-						return
-
-					_shadow = {
-
-						# 
-						# не проверяем значения color и blur, потому что по умолчанию они отличны от 0
-						# 
-						color: value.color or "#000"
-						blur: value.blur or 3
-
-						offsetX: @int value.offsetX
-						offsetY: @int value.offsetY
-						offset: @int value.offset
-
-					}
-
-					@needAnimation = true
-
-			}
+			@_setProperties options
 
 		# 
 		# поиск среди дочерних элементов по имени элемента
@@ -356,3 +173,240 @@ define () ->
 		# переводим градусы в радианы
 		# 
 		deg2rad: (value) -> @number(value) * Math.PI / 180
+
+		# 
+		# Создание и установка свойств объекта
+		# 
+		_setProperties: (options) ->
+
+			_visible = _position = _size = _center = _rotation = _alpha = _mask = _shadow = 0
+
+			# 
+			# видимость объекта, устанавливаемая пользователем
+			# true / false
+			# 
+			Object.defineProperty @, "visible", {
+
+				get: () -> _visible
+				set: (value) -> 
+
+					_visible = if value? then value else true
+					@_setVisible()
+
+			}
+			@visible = if options.visible? then options.visible else true
+
+			# 
+			# позиция объекта
+			# массив вида [x, y], либо объект вида {x: int, y: int}
+			# 
+			Object.defineProperty @, "position", {
+
+				get: () -> _position
+				set: (value) -> 
+
+					_position = @point value
+					@_setPosition()
+
+			}
+			@position = @point options.position
+
+			# 
+			# размер объекта
+			# массив вида [width, height], либо объект вида {width: int, height: int}
+			# 
+			Object.defineProperty @, "size", {
+
+				get: () -> _size
+				set: (value) -> 
+
+					_size = @point value
+					@_setSize()
+
+			}
+			@size = @point options.size
+
+			# 
+			# сделаем начальные размеры 100х100, если они не были заданы
+			# 
+			@size = [100, 100] if _size[0] == 0 and _size[1] == 0
+
+			# 
+			# координаты точки, являющейся центром объекта,
+			# вокруг этой точки производится вращение объекта
+			# координаты точки задаются не относительно начала координат,
+			# а относительно левого верхнего угла объекта
+			# массив вида [x, y], либо объект вида {x: int, y: int}
+			# 
+			Object.defineProperty @, "center", {
+
+				get: () -> _center
+				set: (value) -> 
+
+					_center = @point value
+					@_setCenter()
+
+			}
+			@center = @point options.center
+
+			# 
+			# поворот объекта вокруг точки center по часовой стрелке, измеряется в градусах
+			# число
+			# 
+			Object.defineProperty @, "rotation", {
+
+				get: () -> _rotation
+				set: (value) -> 
+
+					_rotation = @number value
+					@_setRotation()
+
+			}
+			@rotation = @number options.rotation
+
+			# 
+			# прозрачность объекта
+			# число от 0 до 1
+			# 
+			Object.defineProperty @, "alpha", {
+
+				get: () -> _alpha
+				set: (value) -> 
+
+					_alpha = @number value
+					@_setAlpha()
+
+			}
+			@alpha = if options.alpha? then @number options.alpha else 1
+
+			# 
+			# прямоугольная маска, применимо к Scene
+			# если маска дейтсвует, то на сцене будет отображаться только объекты внутри маски
+			# объект вида {x: int, y: int, width: int, height: int} или false
+			# 
+			# ВНИМАНИЕ!
+			# В браузере firefox есть баг (на 25.04.17), а именно:
+			# при попытке нарисовать на канве изображение, используя одновременно
+			# маску и тень (mask и shadow в данном случае), получается
+			# странная хрень, а точнее маска НЕ работает в данном случае
+			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
+			# 
+			Object.defineProperty @, "mask", {
+
+				get: () -> _mask
+				set: (value) -> 
+
+					if (not value?) or (not value)
+
+						_mask = false
+						return
+
+					_mask = {
+
+						x: @int value.x
+						y: @int value.y
+						width: @int value.width
+						height: @int value.height 
+
+					}
+
+					@_setMask()
+
+			}
+			@mask = options.mask or false
+
+			# 
+			# тень объекта
+			# объект вида {color: string, blur: int, offsetX: int, offsetY: int, offset: int} или false
+			# не нужно указывать одновременно offsetX, offsetY и offset
+			# offset указывается вместо offsetX и offsetY, если offsetX == offsetY
+			# 
+			# ВНИМАНИЕ!
+			# В браузере firefox есть баг (на 25.04.17), а именно:
+			# при попытке нарисовать на канве изображение, используя одновременно
+			# маску и тень (mask и shadow в данном случае), получается
+			# странная хрень, а точнее маска НЕ работает в данном случае
+			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
+			# 
+			Object.defineProperty @, "shadow", {
+
+				get: () -> _shadow
+				set: (value) -> 
+
+					if (not value?) or (not value)
+
+						_shadow = false
+						return
+
+					_shadow = {
+
+						# 
+						# не проверяем значения color и blur, потому что по умолчанию они отличны от 0
+						# 
+						color: value.color or "#000"
+						blur: value.blur or 3
+
+						offsetX: @int value.offsetX
+						offsetY: @int value.offsetY
+						offset: @int value.offset
+
+					}
+
+					@_setShadow()
+
+			}
+			@shadow = options.shadow or false
+
+		# 
+		# Далее идут функции, выполняемые после установки свойств объекта.
+		# Это нужно для того, чтобы в дочерних классах можно было перезаписать эту функцию,
+		# т.е. сделать перегрузку свойства
+		# 
+
+		_setVisible: () -> 
+
+			# 
+			# сообщаем движку, нужно ли анимировать объект
+			# 
+			@needAnimation = @visible
+
+		_setPosition: () ->
+
+			@needAnimation = true
+			@position
+
+		_setSize: () ->
+
+			@needAnimation = true
+			@size
+
+		_setCenter: () ->
+
+			@needAnimation = true
+			@center
+
+		_setRotation: () ->
+
+			@needAnimation = true
+			@rotation
+
+		_setAlpha: () ->
+
+			# 
+			# ограничения
+			# 
+			@alpha = 0 if @alpha < 0
+			@alpha = 1 if @alpha > 1
+
+			@needAnimation = true
+			@alpha
+
+		_setMask: () ->
+
+			@needAnimation = true
+			@mask
+
+		_setShadow: () ->
+
+			@needAnimation = true
+			@shadow

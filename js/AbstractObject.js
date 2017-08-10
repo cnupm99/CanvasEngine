@@ -5,134 +5,52 @@
     var AbstractObject;
     return AbstractObject = (function() {
       function AbstractObject(options) {
-        var _alpha, _center, _mask, _position, _rotation, _shadow, _size, _visible;
         if (!options) {
           options = {};
         }
         this.parent = options.parent || document.body;
         this.childrens = [];
         this.needAnimation = true;
-        _visible = options.visible != null ? options.visible : true;
-        Object.defineProperty(this, "visible", {
-          get: function() {
-            return _visible;
-          },
-          set: function(value) {
-            _visible = value != null ? value : true;
-            return this.needAnimation = _visible;
-          }
-        });
-        _position = this.point(options.position);
-        Object.defineProperty(this, "position", {
-          get: function() {
-            return _position;
-          },
-          set: function(value) {
-            _position = this.point(value);
-            this.needAnimation = true;
-            return _position;
-          }
-        });
-        _size = this.point(options.size);
-        Object.defineProperty(this, "size", {
-          get: function() {
-            return _size;
-          },
-          set: function(value) {
-            _size = this.point(value);
-            this.needAnimation = true;
-            return _size;
-          }
-        });
-        _center = this.point(options.center);
-        Object.defineProperty(this, "center", {
-          get: function() {
-            return _center;
-          },
-          set: function(value) {
-            _center = this.point(value);
-            this.needAnimation = true;
-            return _center;
-          }
-        });
-        _rotation = this.number(options.rotation);
-        Object.defineProperty(this, "rotation", {
-          get: function() {
-            return _rotation;
-          },
-          set: function(value) {
-            _rotation = this.number(value);
-            this.needAnimation = true;
-            return _rotation;
-          }
-        });
-        _alpha = this.number(options.alpha);
-        Object.defineProperty(this, "alpha", {
-          get: function() {
-            return _alpha;
-          },
-          set: function(value) {
-            _alpha = this.number(value);
-            if (_alpha < 0) {
-              _alpha = 0;
-            }
-            if (_alpha > 1) {
-              _alpha = 1;
-            }
-            this.needAnimation = true;
-            return _alpha;
-          }
-        });
-        _mask = options.mask || false;
-        Object.defineProperty(this, "mask", {
-          get: function() {
-            return _mask;
-          },
-          set: function(value) {
-            if ((value == null) || (!value)) {
-              _mask = false;
-              return;
-            }
-            _mask = {
-              x: this.int(value.x),
-              y: this.int(value.y),
-              width: this.int(value.width),
-              height: this.int(value.height)
-            };
-            this.needAnimation = true;
-            return _mask;
-          }
-        });
-        _shadow = options.shadow || false;
-        Object.defineProperty(this, "shadow", {
-          get: function() {
-            return _shadow;
-          },
-          set: function(value) {
-            if ((value == null) || (!value)) {
-              _shadow = false;
-              return;
-            }
-            _shadow = {
-              color: value.color || "#000",
-              blur: value.blur || 3,
-              offsetX: this.int(value.offsetX),
-              offsetY: this.int(value.offsetY),
-              offset: this.int(value.offset)
-            };
-            return this.needAnimation = true;
-          }
-        });
+        this._setProperties(options);
       }
 
       AbstractObject.prototype.get = function(childName) {
+        var index;
+        index = this.index(childName);
+        if (index === -1) {
+          return false;
+        }
+        return this.childrens[index];
+      };
+
+      AbstractObject.prototype.remove = function(childName) {
+        var index;
+        index = this.index(childName);
+        if (index === -1) {
+          return false;
+        }
+        this.childrens.splice(index, 1);
+        return true;
+      };
+
+      AbstractObject.prototype.rename = function(oldName, newName) {
+        var index;
+        index = this.index(oldName);
+        if (index === -1) {
+          return false;
+        }
+        this.childrens[index].name = newName;
+        return true;
+      };
+
+      AbstractObject.prototype.index = function(childName) {
         var result;
-        result = false;
-        this.childrens.some(function(child) {
+        result = -1;
+        this.childrens.some(function(child, index) {
           var flag;
           flag = child.name === childName;
           if (flag) {
-            result = child;
+            result = index;
           }
           return flag;
         });
@@ -183,6 +101,158 @@
 
       AbstractObject.prototype.deg2rad = function(value) {
         return this.number(value) * Math.PI / 180;
+      };
+
+      AbstractObject.prototype._setProperties = function(options) {
+        var _alpha, _center, _mask, _position, _rotation, _shadow, _size, _visible;
+        _visible = _position = _size = _center = _rotation = _alpha = _mask = _shadow = 0;
+        Object.defineProperty(this, "visible", {
+          get: function() {
+            return _visible;
+          },
+          set: function(value) {
+            _visible = value != null ? value : true;
+            return this._setVisible();
+          }
+        });
+        this.visible = options.visible != null ? options.visible : true;
+        Object.defineProperty(this, "position", {
+          get: function() {
+            return _position;
+          },
+          set: function(value) {
+            _position = this.point(value);
+            return this._setPosition();
+          }
+        });
+        this.position = this.point(options.position);
+        Object.defineProperty(this, "size", {
+          get: function() {
+            return _size;
+          },
+          set: function(value) {
+            _size = this.point(value);
+            return this._setSize();
+          }
+        });
+        this.size = this.point(options.size);
+        if (_size[0] === 0 && _size[1] === 0) {
+          this.size = [100, 100];
+        }
+        Object.defineProperty(this, "center", {
+          get: function() {
+            return _center;
+          },
+          set: function(value) {
+            _center = this.point(value);
+            return this._setCenter();
+          }
+        });
+        this.center = this.point(options.center);
+        Object.defineProperty(this, "rotation", {
+          get: function() {
+            return _rotation;
+          },
+          set: function(value) {
+            _rotation = this.number(value);
+            return this._setRotation();
+          }
+        });
+        this.rotation = this.number(options.rotation);
+        Object.defineProperty(this, "alpha", {
+          get: function() {
+            return _alpha;
+          },
+          set: function(value) {
+            _alpha = this.number(value);
+            return this._setAlpha();
+          }
+        });
+        this.alpha = options.alpha != null ? this.number(options.alpha) : 1;
+        Object.defineProperty(this, "mask", {
+          get: function() {
+            return _mask;
+          },
+          set: function(value) {
+            if ((value == null) || (!value)) {
+              _mask = false;
+              return;
+            }
+            _mask = {
+              x: this.int(value.x),
+              y: this.int(value.y),
+              width: this.int(value.width),
+              height: this.int(value.height)
+            };
+            return this._setMask();
+          }
+        });
+        this.mask = options.mask || false;
+        Object.defineProperty(this, "shadow", {
+          get: function() {
+            return _shadow;
+          },
+          set: function(value) {
+            if ((value == null) || (!value)) {
+              _shadow = false;
+              return;
+            }
+            _shadow = {
+              color: value.color || "#000",
+              blur: value.blur || 3,
+              offsetX: this.int(value.offsetX),
+              offsetY: this.int(value.offsetY),
+              offset: this.int(value.offset)
+            };
+            return this._setShadow();
+          }
+        });
+        return this.shadow = options.shadow || false;
+      };
+
+      AbstractObject.prototype._setVisible = function() {
+        return this.needAnimation = this.visible;
+      };
+
+      AbstractObject.prototype._setPosition = function() {
+        this.needAnimation = true;
+        return this.position;
+      };
+
+      AbstractObject.prototype._setSize = function() {
+        this.needAnimation = true;
+        return this.size;
+      };
+
+      AbstractObject.prototype._setCenter = function() {
+        this.needAnimation = true;
+        return this.center;
+      };
+
+      AbstractObject.prototype._setRotation = function() {
+        this.needAnimation = true;
+        return this.rotation;
+      };
+
+      AbstractObject.prototype._setAlpha = function() {
+        if (this.alpha < 0) {
+          this.alpha = 0;
+        }
+        if (this.alpha > 1) {
+          this.alpha = 1;
+        }
+        this.needAnimation = true;
+        return this.alpha;
+      };
+
+      AbstractObject.prototype._setMask = function() {
+        this.needAnimation = true;
+        return this.mask;
+      };
+
+      AbstractObject.prototype._setShadow = function() {
+        this.needAnimation = true;
+        return this.shadow;
       };
 
       return AbstractObject;

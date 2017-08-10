@@ -13,7 +13,9 @@
         DisplayObject.__super__.constructor.call(this, options);
         this.name = options.name || "";
         this.type = "DisplayObject";
-        this.context = this.parent.context;
+        if (!this.context) {
+          this.context = this.parent.context;
+        }
       }
 
       DisplayObject.prototype.testPoint = function(pointX, pointY) {

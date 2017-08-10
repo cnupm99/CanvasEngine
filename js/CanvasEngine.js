@@ -21,6 +21,25 @@
           type: "scene",
           name: "default"
         });
+        Object.defineProperty(this, "activeScene", {
+          get: function() {
+            var result;
+            result = this.get(_scene);
+            if (!result) {
+              result = this.childrens[0];
+            }
+            if (!result) {
+              result = false;
+            }
+            return result;
+          },
+          set: function(value) {
+            var _scene;
+            _scene = "" + value;
+            return this.get(_scene);
+          }
+        });
+        this.scene = "default";
         this.beforeAnimate = [];
         this.start();
       }
@@ -36,7 +55,13 @@
         } else {
           scene = this.get(options.scene);
           if (!scene) {
-            scene = this.scene;
+            scene = this.activeScene;
+          }
+          if (!scene) {
+            scene = this.add({
+              type: "scene",
+              name: "default"
+            });
           }
           return scene.add(options);
         }
@@ -72,7 +97,36 @@
         options.stage = this.parent;
         scene = new Scene(options);
         this.childrens.push(scene);
-        return this.scene = scene;
+        return this.activeScene = scene.name;
+      };
+
+      CanvasEngine.prototype.remove = function(childName) {
+        var index;
+        index = this.index(childName);
+        if (index === -1) {
+          return false;
+        }
+        this.parent.removeChild(this.childrens[index].canvas);
+        this.childrens.splice(index, 1);
+        return true;
+      };
+
+      CanvasEngine.prototype.onTop = function(childName) {
+        var maxZ, result;
+        maxZ = 0;
+        result = false;
+        this.childrens.forEach(function(child) {
+          if (child.zIndex > maxZ) {
+            maxZ = child.zIndex;
+          }
+          if (childName === child.name) {
+            return result = child;
+          }
+        });
+        if (result) {
+          result.zIndex = maxZ + 1;
+        }
+        return result;
       };
 
       CanvasEngine.prototype.start = function() {

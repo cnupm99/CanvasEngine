@@ -40,7 +40,6 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 			# НО при обращении возвращает активную СЦЕНУ, либо если она была удалена,
 			# то первую сцену в списке, либо если список пуст, то false
 			# 
-			_scene = "default"
 			Object.defineProperty @, "activeScene", {
 
 				get: () -> 
@@ -56,6 +55,7 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 					@get _scene
 
 			}
+			@scene = "default"
 
 			# 
 			# массив функций для выполнения в цикле перед анимацией

@@ -41,7 +41,7 @@ define ["AbstractObject"], (AbstractObject) ->
 			# 
 			# контекст для рисования
 			# 
-			@context = @parent.context
+			@context = @parent.context unless @context
 
 		# 
 		# проверяем, пуста ли точка с данными координатами

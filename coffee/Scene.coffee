@@ -10,6 +10,24 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 		constructor: (options) ->
 
 			# 
+			# элемент для добавления канваса
+			# всегда должен быть
+			# 
+			@stage = options.stage or document.body
+			
+			# 
+			# создаем канвас
+			# 
+			@canvas = document.createElement "canvas"
+			@canvas.style.position = "absolute"
+			@stage.appendChild @canvas
+
+			# 
+			# контекст
+			# 
+			@context = @canvas.getContext "2d"
+
+			# 
 			# создаем DisplayObject
 			# 
 			super options
@@ -20,28 +38,9 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			@type = "scene"
 
 			# 
-			# элемент для добавления канваса
-			# всегда должен быть
-			# 
-			@stage = options.stage
-			
-			# 
-			# создаем канвас
-			# 
-			@canvas = document.createElement "canvas"
-			@canvas.style.position = "absolute"
-			@stage.addChild @canvas
-
-			# 
-			# контекст
-			# 
-			@context = @canvas.getContext "2d"
-
-			# 
 			# индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
 			# целое число >= 0
 			# 
-			_zIndex = @point options.zIndex
 			Object.defineProperty @, "zIndex", {
 
 				get: () -> _zIndex
@@ -52,6 +51,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 					_zIndex
 
 			}
+			@zIndex = @int options.zIndex
 
 			# 
 			# анимация пока не нужна (сцена пуста)
@@ -105,61 +105,6 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# 
 			return result
 
-		# установка опций
-		setTransform: (options) ->
-
-			@setSizes options.sizes
-			@setPosition options.position
-			@setCenter options.center
-			@setRotation options.rotation
-			@setAlpha options.alpha
-
-		# размер
-		setSizes: (sizes) ->
-
-			@_sizes = @_point sizes if sizes?
-
-			@canvas.width = @_sizes[0]
-			@canvas.height = @_sizes[1]
-
-			@_needAnimation = true
-
-		# позиция
-		setPosition: (position) ->
-
-			@_position = @_point position if position?
-
-			@canvas.style.left = @_position[0] + "px"
-			@canvas.style.top = @_position[1] + "px"
-
-			@_needAnimation = true
-
-		# центр
-		setCenter: (center) ->
-
-			@_center = @_point center if center?
-
-			@context.translate @_center[0], @_center[1]
-
-			@_needAnimation = true
-
-		# поворот
-		setRotation: (rotation) ->
-
-			@_rotation = @_value rotation if rotation?
-
-			@context.rotation = @_rotation * Math.PI / 180
-
-			@_needAnimation = true
-
-		# прозрачность
-		setAlpha: (alpha) ->
-
-			@_alpha = @_value alpha if alpha?
-
-			@context.globalAlpha = @_alpha
-			@_needAnimation = true
-
 		# 
 		# анимация сцены
 		# 
@@ -188,3 +133,61 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# анимация больше не нужна
 			# 
 			@needAnimation = false
+
+		# 
+		# Далее функции, перегружающие свойсва экранного объекта,
+		# т.к. нам нужно в этом случае двигать, поворачивать и т.д. сам канвас
+		# 
+
+		_setPosition: () ->
+
+			super()
+
+			# 
+			# двигаем канвас по экрану
+			# 
+			@canvas.style.left = @position[0] + "px"
+			@canvas.style.top = @position[1] + "px"
+
+			@position
+
+		_setSize: () ->
+
+			super()
+
+			# 
+			# меняем размер канваса
+			# 
+			@canvas.width = @size[0]
+			@canvas.height = @size[1]
+
+			@size
+
+		_setCenter: () ->
+
+			super()
+
+			# 
+			# сдвигаем начало координат в центр
+			# 
+			@context.translate @center[0], @center[1]
+
+			@center
+
+		_setRotation: () ->
+
+			super()
+
+			# 
+			# поворот всего контекста на угол
+			# 
+			@context.rotate @deg2rad(@rotation)
+
+			@rotation
+
+		_setAlpha: () ->
+
+			super()
+
+			@context.globalAlpha = @alpha
+			@alpha
