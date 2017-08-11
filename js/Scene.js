@@ -10,11 +10,23 @@
       extend(Scene, superClass);
 
       function Scene(options) {
-        this.stage = options.stage || document.body;
-        this.canvas = document.createElement("canvas");
+        Object.defineProperty(this, "stage", {
+          value: options.stage || document.body,
+          writable: false,
+          configurable: false
+        });
+        Object.defineProperty(this, "canvas", {
+          value: document.createElement("canvas"),
+          writable: false,
+          configurable: false
+        });
         this.canvas.style.position = "absolute";
         this.stage.appendChild(this.canvas);
-        this.context = this.canvas.getContext("2d");
+        Object.defineProperty(this, "context", {
+          value: this.canvas.getContext("2d"),
+          writable: false,
+          configurable: false
+        });
         Scene.__super__.constructor.call(this, options);
         this.type = "scene";
         Object.defineProperty(this, "zIndex", {
@@ -39,24 +51,6 @@
         }
         if (options.visible == null) {
           options.visible = this.visible;
-        }
-        if (options.position == null) {
-          options.position = this.position;
-        }
-        if (options.size == null) {
-          options.size = this.sizes;
-        }
-        if (options.center == null) {
-          options.center = this.center;
-        }
-        if (options.rotation == null) {
-          options.rotation = this.rotation;
-        }
-        if (options.alpha == null) {
-          options.alpha = this.alpha;
-        }
-        if (options.mask == null) {
-          options.mask = this.mask;
         }
         if (options.shadow == null) {
           options.shadow = this.shadow;

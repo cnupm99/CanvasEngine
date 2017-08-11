@@ -8,7 +8,11 @@
         if (!options) {
           options = {};
         }
-        this.parent = options.parent || document.body;
+        Object.defineProperty(this, "parent", {
+          value: options.parent || document.body,
+          writable: false,
+          configurable: false
+        });
         this.childrens = [];
         this.needAnimation = true;
         this._setProperties(options);
@@ -72,16 +76,16 @@
           return [0, 0];
         }
         if (value2 != null) {
-          return [this.int(value1), this.int(value2)];
+          return [this.number(value1), this.number(value2)];
         }
         if (Array.isArray(value1)) {
-          return [this.int(value1[0]), this.int(value1[1])];
+          return [this.number(value1[0]), this.number(value1[1])];
         } else {
           if ((value1.x != null) && (value1.y != null)) {
-            return [this.int(value1.x), this.int(value1.y)];
+            return [this.number(value1.x), this.number(value1.y)];
           }
           if ((value1.width != null) && (value1.height != null)) {
-            return [this.int(value1.width), this.int(value1.height)];
+            return [this.number(value1.width), this.number(value1.height)];
           }
           return [0, 0];
         }
@@ -104,8 +108,8 @@
       };
 
       AbstractObject.prototype._setProperties = function(options) {
-        var _alpha, _center, _mask, _position, _rotation, _shadow, _size, _visible;
-        _visible = _position = _size = _center = _rotation = _alpha = _mask = _shadow = 0;
+        var _alpha, _anchor, _center, _mask, _position, _realSize, _rotation, _shadow, _size, _visible, getSize;
+        _visible = _position = _size = _realSize = _center = _anchor = _rotation = _alpha = _mask = _shadow = 0;
         Object.defineProperty(this, "visible", {
           get: function() {
             return _visible;
@@ -115,7 +119,6 @@
             return this._setVisible();
           }
         });
-        this.visible = options.visible != null ? options.visible : true;
         Object.defineProperty(this, "position", {
           get: function() {
             return _position;
@@ -125,40 +128,73 @@
             return this._setPosition();
           }
         });
-        this.position = this.point(options.position);
         Object.defineProperty(this, "size", {
           get: function() {
             return _size;
           },
           set: function(value) {
             _size = this.point(value);
+            this.anchor = _anchor;
             return this._setSize();
           }
         });
-        this.size = this.point(options.size);
-        if (_size[0] === 0 && _size[1] === 0) {
-          this.size = [100, 100];
-        }
+        Object.defineProperty(this, "realSize", {
+          get: function() {
+            return _realSize;
+          },
+          set: function(value) {
+            _realSize = this.point(value);
+            this.anchor = _anchor;
+            return this._setRealSize();
+          }
+        });
         Object.defineProperty(this, "center", {
           get: function() {
             return _center;
           },
           set: function(value) {
+            var anchorX, anchorY, size;
             _center = this.point(value);
+            size = getSize();
+            anchorX = size[0] === 0 ? 0 : _center[0] / size[0];
+            anchorY = size[1] === 0 ? 0 : _center[1] / size[1];
+            _anchor = [anchorX, anchorY];
             return this._setCenter();
           }
         });
-        this.center = this.point(options.center);
+        getSize = (function(_this) {
+          return function() {
+            var size;
+            return size = _size[0] === 0 && _size[1] === 0 ? _realSize : _size;
+          };
+        })(this);
+        Object.defineProperty(this, "anchor", {
+          get: function() {
+            return _anchor;
+          },
+          set: function(value) {
+            var size;
+            _anchor = this.point(value);
+            size = getSize();
+            _center = [this.int(size[0] * _anchor[0]), this.int(size[1] * _anchor[1])];
+            return this._setCenter();
+          }
+        });
         Object.defineProperty(this, "rotation", {
           get: function() {
             return _rotation;
           },
           set: function(value) {
             _rotation = this.number(value);
+            if (_rotation < 0) {
+              _rotation = 360 + _rotation;
+            }
+            if (_rotation >= 360) {
+              _rotation = _rotation % 360;
+            }
             return this._setRotation();
           }
         });
-        this.rotation = this.number(options.rotation);
         Object.defineProperty(this, "alpha", {
           get: function() {
             return _alpha;
@@ -168,7 +204,6 @@
             return this._setAlpha();
           }
         });
-        this.alpha = options.alpha != null ? this.number(options.alpha) : 1;
         Object.defineProperty(this, "mask", {
           get: function() {
             return _mask;
@@ -187,7 +222,6 @@
             return this._setMask();
           }
         });
-        this.mask = options.mask || false;
         Object.defineProperty(this, "shadow", {
           get: function() {
             return _shadow;
@@ -207,6 +241,15 @@
             return this._setShadow();
           }
         });
+        this.visible = options.visible != null ? options.visible : true;
+        this.position = options.position;
+        this.size = options.size;
+        this.realSize = [0, 0];
+        this.center = options.center;
+        this.anchor = options.anchor;
+        this.rotation = options.rotation;
+        this.alpha = options.alpha != null ? this.number(options.alpha) : 1;
+        this.mask = options.mask || false;
         return this.shadow = options.shadow || false;
       };
 
@@ -222,6 +265,10 @@
       AbstractObject.prototype._setSize = function() {
         this.needAnimation = true;
         return this.size;
+      };
+
+      AbstractObject.prototype._setRealSize = function() {
+        return this.realSize;
       };
 
       AbstractObject.prototype._setCenter = function() {

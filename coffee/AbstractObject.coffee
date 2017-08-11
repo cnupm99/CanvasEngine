@@ -18,6 +18,7 @@ define () ->
 		#  visible: Boolean - видимость объекта, устанавливаемая пользователем
 		#  position: Array - позиция объекта
 		#  size: Array - размер объекта
+		#  realSize: Array - реальный размер объкта
 		#  center: Array - относительные координаты точки центра объекта, вокруг которой происходит вращение
 		#  rotation: Number - число в градусах, на которое объект повернут вокруг центра по часовой стрелке
 		#  alpha: [0..1] - прозрачность объекта
@@ -50,8 +51,15 @@ define () ->
 			# для CanvasEngine это Element
 			# для Scene это CancasEngine
 			# для других объектов это Scene
+			# свойство только для чтения
 			# 
-			@parent = options.parent or document.body
+			Object.defineProperty @, "parent", {
+
+				value: options.parent or document.body
+				writable: false
+				configurable: false
+
+			}
 
 			# 
 			# массив дочерних элементов,
@@ -141,21 +149,21 @@ define () ->
 			return [0, 0] if (not value1?)
 
 			# передано два параметра, считаем их числами и возвращаем массив
-			return [@int(value1), @int(value2)] if value2?
+			return [@number(value1), @number(value2)] if value2?
 
 			# если передан массив
 			if Array.isArray value1
 
 				# возвращаем первые два элемента
-				return [@int(value1[0]), @int(value1[1])]
+				return [@number(value1[0]), @number(value1[1])]
 
 			# может быть это объект?
 			else
 
 				# если есть свойства x и y
-				return [@int(value1.x), @int(value1.y)] if value1.x? and value1.y?
+				return [@number(value1.x), @number(value1.y)] if value1.x? and value1.y?
 				# если есть свойства width и height
-				return [@int(value1.width), @int(value1.height)] if value1.width? and value1.height?
+				return [@number(value1.width), @number(value1.height)] if value1.width? and value1.height?
 				# по умолчанию
 				return [0, 0]
 
@@ -179,7 +187,7 @@ define () ->
 		# 
 		_setProperties: (options) ->
 
-			_visible = _position = _size = _center = _rotation = _alpha = _mask = _shadow = 0
+			_visible = _position = _size = _realSize = _center = _anchor = _rotation = _alpha = _mask = _shadow = 0
 
 			# 
 			# видимость объекта, устанавливаемая пользователем
@@ -194,7 +202,6 @@ define () ->
 					@_setVisible()
 
 			}
-			@visible = if options.visible? then options.visible else true
 
 			# 
 			# позиция объекта
@@ -209,7 +216,6 @@ define () ->
 					@_setPosition()
 
 			}
-			@position = @point options.position
 
 			# 
 			# размер объекта
@@ -221,15 +227,30 @@ define () ->
 				set: (value) -> 
 
 					_size = @point value
+					@anchor = _anchor
 					@_setSize()
 
 			}
-			@size = @point options.size
 
 			# 
-			# сделаем начальные размеры 100х100, если они не были заданы
+			# реальный размер объекта,
+			# может отличаться от заданного пользователем, например
+			# в случае загрузки картинки
 			# 
-			@size = [100, 100] if _size[0] == 0 and _size[1] == 0
+			# пока не рассчитан программно, считается равным [0, 0]
+			# 
+			# массив вида [width, height], либо объект вида {width: int, height: int}
+			# 
+			Object.defineProperty @, "realSize", {
+
+				get: () -> _realSize
+				set: (value) -> 
+
+					_realSize = @point value
+					@anchor = _anchor
+					@_setRealSize()
+
+			}
 
 			# 
 			# координаты точки, являющейся центром объекта,
@@ -244,10 +265,42 @@ define () ->
 				set: (value) -> 
 
 					_center = @point value
+
+					size = getSize()
+					anchorX = if size[0] == 0 then 0 else _center[0] / size[0]
+					anchorY = if size[1] == 0 then 0 else _center[1] / size[1]
+					_anchor = [anchorX, anchorY]
+
 					@_setCenter()
 
 			}
-			@center = @point options.center
+
+			# 
+			# Думаем, откуда брать размеры
+			# если размеры не заданы пользователем, то пробуем взять реальные размеры
+			# 
+			getSize = () =>
+
+				size = if _size[0] == 0 and _size[1] == 0 then _realSize else _size
+
+			# 
+			# Якорь, дробное число, показывающее, где должен находиться цент относительно размеров объекта,
+			# т.е. center = size * anchor
+			# вообще массив, содержащий числа от 0 до 1, но может иметь и другие значения
+			# 
+			Object.defineProperty @, "anchor", {
+
+				get: () -> _anchor
+
+				set: (value) ->
+
+					_anchor = @point value
+					size = getSize()
+
+					_center = [@int(size[0] * _anchor[0]), @int(size[1] * _anchor[1])]
+					@_setCenter()
+
+			}
 
 			# 
 			# поворот объекта вокруг точки center по часовой стрелке, измеряется в градусах
@@ -259,10 +312,11 @@ define () ->
 				set: (value) -> 
 
 					_rotation = @number value
+					_rotation = 360 + _rotation if _rotation < 0
+					_rotation = _rotation % 360 if _rotation >= 360
 					@_setRotation()
 
 			}
-			@rotation = @number options.rotation
 
 			# 
 			# прозрачность объекта
@@ -277,7 +331,6 @@ define () ->
 					@_setAlpha()
 
 			}
-			@alpha = if options.alpha? then @number options.alpha else 1
 
 			# 
 			# прямоугольная маска, применимо к Scene
@@ -313,7 +366,6 @@ define () ->
 					@_setMask()
 
 			}
-			@mask = options.mask or false
 
 			# 
 			# тень объекта
@@ -355,6 +407,19 @@ define () ->
 					@_setShadow()
 
 			}
+
+			# 
+			# Установка начальных значений
+			# 
+			@visible = if options.visible? then options.visible else true
+			@position = options.position
+			@size = options.size
+			@realSize = [0, 0]
+			@center = options.center
+			@anchor = options.anchor
+			@rotation = options.rotation
+			@alpha = if options.alpha? then @number options.alpha else 1
+			@mask = options.mask or false
 			@shadow = options.shadow or false
 
 		# 
@@ -379,6 +444,10 @@ define () ->
 
 			@needAnimation = true
 			@size
+
+		_setRealSize: () ->
+
+			@realSize
 
 		_setCenter: () ->
 

@@ -9,94 +9,169 @@ define ["DisplayObject"], (DisplayObject) ->
 		# 
 		constructor: (options) ->
 
+			# 
+			# создаем класс родителя
+			# 
 			super options
 
+			# 
+			# тип объекта
+			# 
+			@type = "image"
+
+			# 
 			# событие, выполняемое при загрузке картинки
+			# 
 			@onload = options.onload
 
-			# загрузка или создание картинки
+			# 
+			# Загружена ли картинка,
+			# в данный момент нет,
+			# а значит рисовать ее не нужно
+			# 
+			@loaded = false
+			@needAnimation = false
+
+			# 
+			# создаем элемент
+			# 
+			@image = document.createElement "img"
+
+			# 
+			# Событие при загрузке картинки
+			# 
+			@image.onload = @_imageOnLoad
+
+			# 
+			# Здесь будем хранить src картинки как строку.
+			# При вызове src картика загружается, а адрес устанавливается в loadedFrom
+			# При присвоении loadedFrom картинка не загружается
+			# Это просто строка для хранения адреса картинки
+			# 
+			@loadedFrom = ""
+
+			# 
+			# Свойство для загрузки картики
+			# Возвращает адрес картинки,
+			# но при присвоении загружает ее
+			# 
+			Object.defineProperty @, "src", {
+
+				get: () -> @loadedFrom
+				set: (value) ->
+
+					@loaded = false
+					@needAnimation = false
+					@loadedFrom = value
+
+					# загружаем
+					@image.src = value
+
+			}
+
+			# 
+			# нужно ли загружать картинку
+			# 
 			if options.src?
+				
+				@src = options.src
 
-				# создаем элемент
-				@_image = document.createElement "img"
-				# картинка не загружена
-				@needAnimation = false
-				@_loaded = false
-				# загружаем картинку
-				@setSrc options.src
+			# 
+			# или она уже загружена
+			# 
+			else 
 
-			# картинка уже есть
-			else @from options.from
-
-		# загрузка картинки
-		setSrc: (src) ->
-
-			# не загружена
-			@_loaded = false
-
-			@_image.onload = () => 
-
-				# запоминаем реальные размеры
-				@_realSizes = [@_image.width, @_image.height]
-
-				# если нужно меняем размеры
-				# иначе потом будем масштабировать
-				@_sizes = @_realSizes if (@_sizes[0] <= 0) or (@_sizes[1] <= 0)
-
-				@needAnimation = true
-
-				@_loaded = true
-
-				# если у картинки есть свойство onload, то вызываем его и
-				# сообщаем реальные размеры картинки
-				@onload @_realSizes if @onload?
-
-			@_image.src = src
+				@from options.from
 
 		# 
-		# options.from = {
+		# from = {
 		# 
 		# 	image: Image
-		# 	src: String
-		# 	sizes: [Number, Number]
+		# 	src: String // не обязательно
+		# 	sizes: [Number, Number] // не обязательно
 		# 	
 		# }
 		# 
 		from: (from) ->
 
-			@_image = from.image
-			# получаем ее путь
-			@_src = from.src
-			# размеры
-			@_realSizes = from.sizes
+			# 
+			# если картинки нет, то нет смысла продолжать
+			# 
+			return unless from.image?
+
+			# 
+			# а вот и картинка
+			# 
+			@image = from.image
+
+			# 
+			# Запоминаем src
+			# 
+			@loadedFrom = from.src or ""
+
+			# 
+			# запоминаем реальные размеры
+			# 
+			@realSize = [@image.width, @image.height]
+
+			# 
 			# если нужно меняем размеры
 			# иначе потом будем масштабировать
-			@_sizes = @_realSizes if (@_sizes[0] <= 0) or (@_sizes[1] <= 0)
+			# 
+			@size = @realSize if @size[0] <= 0 or @size[1] <= 0
+
 			# можно рисовать
-			@_loaded = true
+			@loaded = true
 			@needAnimation = true
 
-		# возвращаем размер
-		getSizes: () -> @_sizes
-		# реальный размер картинки
-		getRealSizes: () -> @_realSizes
+		animate: () ->
 
-		animate: (context = @_context) ->
+			# 
+			# если картинка не загружена, то рисовать ее не будем
+			# 
+			return unless @loaded
 
-			return unless @_loaded
+			# 
+			# действия по умолчанию для DisplayObject
+			# 
+			super()
 
-			super context
+			# 
+			# рисуем в реальном размере?
+			# 
+			if @size[0] == @realSize[0] and @size[1] == @realSize[1]
 
-			# в реальном размере
-			if (@_sizes[0] == @_realSizes[0]) and (@_sizes[1] == @_realSizes[1])
-
-				context.drawImage @_image, @_deltaX, @_deltaY
+				@context.drawImage @image, @_deltaX, @_deltaY
 
 			else
 
-				# в масштабе
-				context.drawImage @_image, @_deltaX, @_deltaY, @_sizes[0], @_sizes[1]
+				# 
+				# тут масштабируем картинку
+				# 
+				@context.drawImage @image, @_deltaX, @_deltaY, @size[0], @size[1]
 
-			context.restore()
+			@context.restore()
 
 			@needAnimation = false
+
+		_imageOnLoad: (e) =>
+
+			# 
+			# запоминаем реальные размеры
+			# 
+			@realSize = [@image.width, @image.height]
+
+			# 
+			# если нужно меняем размеры
+			# иначе потом будем масштабировать
+			# 
+			@size = @realSize if @size[0] <= 0 or @size[1] <= 0
+
+			@loaded = true
+			@needAnimation = true
+
+			# 
+			# если у картинки есть свойство onload, то вызываем его и
+			# сообщаем реальные размеры картинки
+			# 
+			@onload @realSize if @onload?

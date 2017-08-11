@@ -14,7 +14,11 @@
         this.name = options.name || "";
         this.type = "DisplayObject";
         if (!this.context) {
-          this.context = this.parent.context;
+          Object.defineProperty(this, "context", {
+            value: this.parent.context,
+            writable: false,
+            configurable: false
+          });
         }
       }
 
@@ -63,7 +67,7 @@
         }
         if (this.rotation !== 0) {
           this.context.translate(this.center[0] + this.position[0], this.center[1] + this.position[1]);
-          this.context.rotate(deg2rad(this.rotation));
+          this.context.rotate(this.deg2rad(this.rotation));
           this._deltaX = -this.center[0];
           this._deltaY = -this.center[1];
         }

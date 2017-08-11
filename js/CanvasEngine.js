@@ -11,17 +11,18 @@
       extend(CanvasEngine, superClass);
 
       function CanvasEngine(options) {
-        this.animate = bind(this.animate, this);
+        this._animate = bind(this._animate, this);
+        var _scene;
         if (!this.canvasSupport()) {
           console.log("your browser not support canvas and/or context");
           return false;
         }
         CanvasEngine.__super__.constructor.call(this, options);
-        this.add({
-          type: "scene",
-          name: "default"
-        });
-        Object.defineProperty(this, "activeScene", {
+        if (this.size[0] === 0 && this.size[1] === 0) {
+          this.size = [this.int(this.parent.clientWidth), this.int(this.parent.clientHeight)];
+        }
+        _scene = "default";
+        Object.defineProperty(this, "scene", {
           get: function() {
             var result;
             result = this.get(_scene);
@@ -34,13 +35,15 @@
             return result;
           },
           set: function(value) {
-            var _scene;
             _scene = "" + value;
             return this.get(_scene);
           }
         });
-        this.scene = "default";
-        this.beforeAnimate = [];
+        this.add({
+          type: "scene",
+          name: "default"
+        });
+        this._beforeAnimate = [];
         this.start();
       }
 
@@ -55,7 +58,7 @@
         } else {
           scene = this.get(options.scene);
           if (!scene) {
-            scene = this.activeScene;
+            scene = this.scene;
           }
           if (!scene) {
             scene = this.add({
@@ -65,39 +68,6 @@
           }
           return scene.add(options);
         }
-      };
-
-      CanvasEngine.prototype.createScene = function(options) {
-        var scene;
-        if (options.visible == null) {
-          options.visible = this.visible;
-        }
-        if (options.position == null) {
-          options.position = this.position;
-        }
-        if (options.size == null) {
-          options.size = this.sizes;
-        }
-        if (options.center == null) {
-          options.center = this.center;
-        }
-        if (options.rotation == null) {
-          options.rotation = this.rotation;
-        }
-        if (options.alpha == null) {
-          options.alpha = this.alpha;
-        }
-        if (options.mask == null) {
-          options.mask = this.mask;
-        }
-        if (options.shadow == null) {
-          options.shadow = this.shadow;
-        }
-        options.parent = this;
-        options.stage = this.parent;
-        scene = new Scene(options);
-        this.childrens.push(scene);
-        return this.activeScene = scene.name;
       };
 
       CanvasEngine.prototype.remove = function(childName) {
@@ -130,42 +100,22 @@
       };
 
       CanvasEngine.prototype.start = function() {
-        return this._render = requestAnimationFrame(this.animate);
+        return this._render = requestAnimationFrame(this._animate);
       };
 
       CanvasEngine.prototype.stop = function() {
         return cancelAnimationFrame(this._render);
       };
 
-      CanvasEngine.prototype.animate = function() {
-        this.beforeAnimate.forEach(function(handler) {
-          if (typeof handler === "function") {
-            return handler();
-          }
-        });
-        this.needAnimation = false;
-        this.childrens.forEach(function(child) {
-          var needAnimation;
-          needAnimation = child.needAnimation || child.childrens.some(function(childOfChild) {
-            return childOfChild.needAnimation;
-          });
-          if (needAnimation) {
-            child.animate();
-          }
-          return this.needAnimation = this.needAnimation || needAnimation;
-        });
-        return this._render = requestAnimationFrame(this.animate);
+      CanvasEngine.prototype.addEvent = function(func) {
+        return this._beforeAnimate.push(func);
       };
 
-      CanvasEngine.prototype.addEvent = function(handler) {
-        return this.beforeAnimate.push(handler);
-      };
-
-      CanvasEngine.prototype.removeEvent = function(handler) {
-        return this.beforeAnimate.forEach((function(_this) {
+      CanvasEngine.prototype.removeEvent = function(func) {
+        return this._beforeAnimate.forEach((function(_this) {
           return function(item, i) {
-            if (item === handler) {
-              return _this.beforeAnimate.splice(i, 1);
+            if (item === func) {
+              return _this._beforeAnimate.splice(i, 1);
             }
           };
         })(this));
@@ -209,6 +159,61 @@
 
       CanvasEngine.prototype.canvasSupport = function() {
         return document.createElement("canvas").getContext != null;
+      };
+
+      CanvasEngine.prototype._createScene = function(options) {
+        var scene;
+        if (options.visible == null) {
+          options.visible = this.visible;
+        }
+        if (options.position == null) {
+          options.position = this.position;
+        }
+        if (options.size == null) {
+          options.size = this.size;
+        }
+        if (options.center == null) {
+          options.center = this.center;
+        }
+        if (options.rotation == null) {
+          options.rotation = this.rotation;
+        }
+        if (options.alpha == null) {
+          options.alpha = this.alpha;
+        }
+        if (options.mask == null) {
+          options.mask = this.mask;
+        }
+        if (options.shadow == null) {
+          options.shadow = this.shadow;
+        }
+        options.parent = this;
+        options.stage = this.parent;
+        scene = new Scene(options);
+        this.childrens.push(scene);
+        return this.scene = scene.name;
+      };
+
+      CanvasEngine.prototype._animate = function() {
+        this._beforeAnimate.forEach(function(handler) {
+          if (typeof handler === "function") {
+            return handler();
+          }
+        });
+        this.needAnimation = false;
+        this.childrens.forEach((function(_this) {
+          return function(child) {
+            var needAnimation;
+            needAnimation = child.needAnimation || child.childrens.some(function(childOfChild) {
+              return childOfChild.needAnimation;
+            });
+            if (needAnimation) {
+              child.animate();
+            }
+            return _this.needAnimation = _this.needAnimation || needAnimation;
+          };
+        })(this));
+        return this._render = requestAnimationFrame(this._animate);
       };
 
       return CanvasEngine;

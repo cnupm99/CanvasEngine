@@ -40,8 +40,20 @@ define ["AbstractObject"], (AbstractObject) ->
 
 			# 
 			# контекст для рисования
+			# либо это объект для рисования, тогда берем контекст у родителя (сцены)
+			# либо это сцена, тогда она сама создаст контекст
 			# 
-			@context = @parent.context unless @context
+			# только для чтения
+			# 
+			unless @context
+
+				Object.defineProperty @, "context", {
+
+					value: @parent.context
+					writable: false
+					configurable: false
+
+				}
 
 		# 
 		# проверяем, пуста ли точка с данными координатами
@@ -129,7 +141,7 @@ define ["AbstractObject"], (AbstractObject) ->
 			if @rotation != 0
 
 				@context.translate @center[0] + @position[0], @center[1] + @position[1]
-				@context.rotate deg2rad(@rotation)
+				@context.rotate @deg2rad(@rotation)
 				@_deltaX = -@center[0]
 				@_deltaY = -@center[1]
 

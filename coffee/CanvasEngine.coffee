@@ -8,7 +8,24 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 	class CanvasEngine extends AbstractObject
 
 		# 
+		# Главный класс, через него осуществляется взаимодействие с движком
 		# 
+		# свойства:
+		# 
+		#  scene: Scene - хранит имя активной сцены, возвращает сцену
+		#  
+		# методы:
+		# 
+		#  add(options): DisplayObject - метод для добавления новых объектов / сцен
+		#  remove(childName): Boolean - удаляем сцену
+		#  onTop(childName): Scene/Boolean - поднимаем сцену на верх отображения
+		#  start() - запускаем цикл анимации
+		#  stop() - останавливаем цикл анимации
+		#  addEvent(func) - добавить функцию, выполняемую каждый раз перед анимацией
+		#  removeEvent(func) - удалить функцию из цикла анимации
+		#  fullscreen(Boolean): Boolean - включить/выключить полноэкранный режим
+		#  isFullscreen(): Boolean - определяет, включен ли полноэкранный режим
+		#  canvasSupport(): Boolean - проверка, поддерживает ли браузер canvas и context
 		# 
 		constructor: (options) ->
 
@@ -26,21 +43,20 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 			super options
 
 			# 
-			# создаем сцену по умолчанию
-			#
-			@add {
+			# если размеры движка не заданы, то пытаемся установить их равными
+			# размеру контейнера
+			# 
+			if @size[0] == 0 and @size[1] == 0
 
-				type: "scene"
-				name: "default"
-
-			}
+				@size = [@int(@parent.clientWidth), @int(@parent.clientHeight)]
 
 			# 
 			# Свойство хранит имя активной сцены в виде строки,
 			# НО при обращении возвращает активную СЦЕНУ, либо если она была удалена,
 			# то первую сцену в списке, либо если список пуст, то false
 			# 
-			Object.defineProperty @, "activeScene", {
+			_scene = "default"
+			Object.defineProperty @, "scene", {
 
 				get: () -> 
 
@@ -55,12 +71,21 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 					@get _scene
 
 			}
-			@scene = "default"
+
+			# 
+			# создаем сцену по умолчанию
+			#
+			@add {
+
+				type: "scene"
+				name: "default"
+
+			}
 
 			# 
 			# массив функций для выполнения в цикле перед анимацией
 			# 
-			@beforeAnimate = []
+			@_beforeAnimate = []
 
 			# 
 			# запуск анимации
@@ -103,7 +128,7 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 				# 
 				# если в опциях не указана сцена, то добавляем на активную сцену
 				# 
-				scene = @activeScene unless scene
+				scene = @scene unless scene
 
 				# 
 				# если в списке нет ниодной сцены, создадим сцену по умолчанию
@@ -121,48 +146,6 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 				# добавляем объект на нужную сцену
 				# 
 				scene.add options
-
-		# 
-		# создание сцены с нужными опциями
-		# 
-		createScene: (options) ->
-
-			# 
-			# если нужно, задаем значения по умолчанию
-			# 
-			options.visible = @visible unless options.visible?
-			options.position = @position unless options.position?
-			options.size = @sizes unless options.size?
-			options.center = @center unless options.center?
-			options.rotation = @rotation unless options.rotation?
-			options.alpha = @alpha unless options.alpha?
-			options.mask = @mask unless options.mask?
-			options.shadow = @shadow unless options.shadow?
-
-			# 
-			# передаем себя, как родителя
-			# 
-			options.parent = @
-
-			# 
-			# передаем родителя, как элемент для создания канваса
-			# 
-			options.stage = @parent
-
-			# 
-			# создаем сцену
-			# 
-			scene = new Scene options
-
-			# 
-			# добавляем в список дочерних объектов
-			# 
-			@childrens.push scene
-
-			# 
-			# делаем новую сцену активной
-			# 
-			@activeScene = scene.name
 
 		# 
 		# удаляем сцену по ее имени
@@ -197,7 +180,7 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 		# 
 		# запуск анимации
 		# 
-		start: () -> @_render = requestAnimationFrame @animate
+		start: () -> @_render = requestAnimationFrame @_animate
 
 		# 
 		# остановка анимации
@@ -205,60 +188,19 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 		stop: () -> cancelAnimationFrame @_render
 
 		# 
-		# цикл анимации, запускается автоматически,
-		# не нужно это делать вручную,
-		# для этого есть методы start() и stop()
-		# 
-		animate: () =>
-
-			# 
-			# выполняем все функции в массиве
-			# 
-			@beforeAnimate.forEach (handler) ->
-
-				handler() if typeof(handler) == "function"
-
-			# 
-			# АНИМАЦИЯ ТУТ
-			# 
-
-			# а может не надо?
-			@needAnimation = false
-			
-			# перебираем сцены
-			@childrens.forEach (child) ->
-
-				# для каждой сцены проверяем дочерние элементы
-				needAnimation = child.needAnimation or child.childrens.some (childOfChild) ->
-
-					# нужно ли рисовать этот дочерний элемент сцены
-					childOfChild.needAnimation
-
-				# собственно анимация
-				child.animate() if needAnimation
-
-				# сохраняем значение
-				@needAnimation = @needAnimation or needAnimation
-
-			# 
-			# продолжаем анимацию
-			# 
-			@_render = requestAnimationFrame @animate
-
-		# 
 		# добавить функцию для выполнения в цикле
 		# функции выполняются в порядке добавления
 		# ПЕРЕД аниамацией
 		# 
-		addEvent: (handler) -> @beforeAnimate.push handler
+		addEvent: (func) -> @_beforeAnimate.push func
 
 		# 
 		# удаление функции из массива
 		# эта функция больше не будет выполняться перед анимацией
 		# 
-		removeEvent: (handler) ->
+		removeEvent: (func) ->
 
-			@beforeAnimate.forEach (item, i) => @beforeAnimate.splice i, 1 if item == handler
+			@_beforeAnimate.forEach (item, i) => @_beforeAnimate.splice i, 1 if item == func
 
 		# 
 		# установить / снять полноэкранный режим
@@ -293,3 +235,86 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 		# проверка, поддерживает ли браузер canvas и context
 		# 
 		canvasSupport: () -> document.createElement("canvas").getContext?
+
+		# 
+		# создание сцены с нужными опциями
+		# 
+		_createScene: (options) ->
+
+			# 
+			# если нужно, задаем значения по умолчанию
+			# 
+			options.visible = @visible unless options.visible?
+			options.position = @position unless options.position?
+			options.size = @size unless options.size?
+			options.center = @center unless options.center?
+			options.rotation = @rotation unless options.rotation?
+			options.alpha = @alpha unless options.alpha?
+			options.mask = @mask unless options.mask?
+			options.shadow = @shadow unless options.shadow?
+
+			# 
+			# передаем себя, как родителя
+			# 
+			options.parent = @
+
+			# 
+			# передаем родителя, как элемент для создания канваса
+			# 
+			options.stage = @parent
+
+			# 
+			# создаем сцену
+			# 
+			scene = new Scene options
+
+			# 
+			# добавляем в список дочерних объектов
+			# 
+			@childrens.push scene
+
+			# 
+			# делаем новую сцену активной
+			# 
+			@scene = scene.name
+
+		# 
+		# цикл анимации, запускается автоматически,
+		# не нужно это делать вручную,
+		# для этого есть методы start() и stop()
+		# 
+		_animate: () =>
+
+			# 
+			# выполняем все функции в массиве
+			# 
+			@_beforeAnimate.forEach (handler) ->
+
+				handler() if typeof(handler) == "function"
+
+			# 
+			# АНИМАЦИЯ ТУТ
+			# 
+
+			# а может не надо?
+			@needAnimation = false
+			
+			# перебираем сцены
+			@childrens.forEach (child) =>
+
+				# для каждой сцены проверяем дочерние элементы
+				needAnimation = child.needAnimation or child.childrens.some (childOfChild) ->
+
+					# нужно ли рисовать этот дочерний элемент сцены
+					childOfChild.needAnimation
+
+				# собственно анимация
+				child.animate() if needAnimation
+
+				# сохраняем значение
+				@needAnimation = @needAnimation or needAnimation
+
+			# 
+			# продолжаем анимацию
+			# 
+			@_render = requestAnimationFrame @_animate

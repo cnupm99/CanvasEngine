@@ -13,7 +13,8 @@ requirejs(["Scene"], function(Scene){
 		name: "Scene1",
 		position: [300, 50],
 		center: [50, 50],
-		rotation: 45
+		rotation: 45,
+		size: [100, 100]
 
 	});
 

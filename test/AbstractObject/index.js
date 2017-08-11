@@ -22,6 +22,5 @@ requirejs(["AbstractObject"], function(AO){
 	}
 
 	console.log(a.position);
-	console.log(a.size);
 
 });

@@ -5,7 +5,14 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 	class Scene extends DisplayObject
 
 		# 
-		# Сцена
+		# Класс сцены, на который добавляются все дочерние объекты
+		# Фактически представляет собой canvas
+		# 
+		# свойства:
+		# 
+		#  @stage: Element - родительский элемент для добавления canvas
+		#  @canvas: Element - canvas для рисования, создается автоматически
+		#  @context: context2d - контекст для рисования, создается автоматически
 		# 
 		constructor: (options) ->
 
@@ -13,19 +20,37 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# элемент для добавления канваса
 			# всегда должен быть
 			# 
-			@stage = options.stage or document.body
+			Object.defineProperty @, "stage", {
+
+				value: options.stage or document.body
+				writable: false
+				configurable: false
+
+			}
 			
 			# 
 			# создаем канвас
 			# 
-			@canvas = document.createElement "canvas"
+			Object.defineProperty @, "canvas", {
+
+				value: document.createElement "canvas"
+				writable: false
+				configurable: false
+
+			}
 			@canvas.style.position = "absolute"
 			@stage.appendChild @canvas
 
 			# 
 			# контекст
 			# 
-			@context = @canvas.getContext "2d"
+			Object.defineProperty @, "context", {
+
+				value: @canvas.getContext "2d"
+				writable: false
+				configurable: false
+
+			}
 
 			# 
 			# создаем DisplayObject
@@ -72,12 +97,6 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# если нужно, задаем значения по умолчанию
 			# 
 			options.visible = @visible unless options.visible?
-			options.position = @position unless options.position?
-			options.size = @sizes unless options.size?
-			options.center = @center unless options.center?
-			options.rotation = @rotation unless options.rotation?
-			options.alpha = @alpha unless options.alpha?
-			options.mask = @mask unless options.mask?
 			options.shadow = @shadow unless options.shadow?
 
 			# 
