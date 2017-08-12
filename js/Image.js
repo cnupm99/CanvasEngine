@@ -38,12 +38,12 @@
         }
       }
 
-      Image.prototype.from = function(from) {
-        if (from.image == null) {
+      Image.prototype.from = function(from, src) {
+        if (from == null) {
           return;
         }
-        this.image = from.image;
-        this.loadedFrom = from.src || "";
+        this.image = from;
+        this.loadedFrom = src || "";
         this.realSize = [this.image.width, this.image.height];
         if (this.size[0] <= 0 || this.size[1] <= 0) {
           this.size = this.realSize;

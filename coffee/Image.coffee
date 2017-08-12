@@ -5,7 +5,20 @@ define ["DisplayObject"], (DisplayObject) ->
 	class Image extends DisplayObject
 
 		# 
-		# Изображение
+		# Класс для загрузки и отображения изображений
+		# 
+		# свойства:
+		# 
+		#  onload: Function - ссылка на функцию, которая должна выполниться после загрузки картинки
+		#  loaded: Boolean - загружена ли картинка
+		#  image: Image - объект картинки
+		#  loadedFrom: String - строка с адресом картинки
+		#  src: свойство для загрузки картинки с указанным адресом
+		#  
+		# методы:
+		# 
+		#  from(Object) - создание из уже существующей и загруженной картинки
+		#  animate() - попытка нарисовать объект
 		# 
 		constructor: (options) ->
 
@@ -84,30 +97,27 @@ define ["DisplayObject"], (DisplayObject) ->
 				@from options.from
 
 		# 
-		# from = {
-		# 
+		# Создание картинки из уже созданной и загруженной
+		# 	
 		# 	image: Image
 		# 	src: String // не обязательно
-		# 	sizes: [Number, Number] // не обязательно
-		# 	
-		# }
 		# 
-		from: (from) ->
+		from: (from, src) ->
 
 			# 
 			# если картинки нет, то нет смысла продолжать
 			# 
-			return unless from.image?
+			return unless from?
 
 			# 
 			# а вот и картинка
 			# 
-			@image = from.image
+			@image = from
 
 			# 
 			# Запоминаем src
 			# 
-			@loadedFrom = from.src or ""
+			@loadedFrom = src or ""
 
 			# 
 			# запоминаем реальные размеры

@@ -10,9 +10,15 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 		# 
 		# свойства:
 		# 
-		#  @stage: Element - родительский элемент для добавления canvas
-		#  @canvas: Element - canvas для рисования, создается автоматически
-		#  @context: context2d - контекст для рисования, создается автоматически
+		#  stage: Element - родительский элемент для добавления canvas
+		#  canvas: Element - canvas для рисования, создается автоматически
+		#  context: context2d - контекст для рисования, создается автоматически
+		#  zIndex: int - индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
+		#  
+		# методы:
+		# 
+		#  add(Object): DisplayObject - добавление дочернего объекта
+		#  animate() - попытка нарисовать объект
 		# 
 		constructor: (options) ->
 
