@@ -2,96 +2,206 @@
 
 define ["DisplayObject"], (DisplayObject) ->
 
+	# 
+	# Класс для вывода текстовой информации
+	# 
+	# свойства:
+	# 
+	#  fontHeight: int - высота текста с текущим шрифтом
+	#  textWidth: int - ширина текущего текста
+	#  font: String - текущий шрифт
+	#  fillStyle: String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
+	#  strokeStyle: String/Boolean - обводка шрифта или false, если обводка не нужна
+	#  strokeWidth: int - ширина обводки
+	#  text: String - отображаемый текст
+	#  
+	# методы:
+	# 
+	#  animate() - попытка нарисовать объект
+	# 
 	class Text extends DisplayObject
 
 		constructor: (options) ->
 
 			super options
 
-			# шрифт
-			@setFont options.font
-			# текст
-			@setText(options.text or "")
-			# заливка
-			@fillStyle options.fillStyle
-			# обводка
-			@_strokeStyle = options.strokeStyle or false
-			# толщина обводки
-			@_strokeWidth = options.strokeWidth or 1
+			# 
+			# высота текста с текущим шрифтом,
+			# вычисляется автоматичекски при установке шрифта
+			# 
+			@fontHeight = 0
 
-			@needAnimation = true
+			# 
+			# ширина текущего текста
+			# вычисляется автоматически при установке текста
+			# 
+			@textWidth = 0
 
-		setText: (text) ->
+			@_setTextProperties options
 
-			@_text = text
+		animate: () ->
 
-			# определяем ширину текста
-			# используя для этого ссылку на контекст
-			@_context.save()
-			@_context.font = @_font
-			@width = @_context.measureText(@_text).width
-			@_context.restore()
+			super()
 
-			@needAnimation = true
+			# 
+			# установим шрифт контекста
+			# 
+			@context.font = @font
 
-		# если указать массив, то можно забацать градиент
-		# [[size, color], ... ]
-		fillStyle: (style) ->
-
-			@_fillStyle = style or false
-			@needAnimation = true
-
-		strokeStyle: (style) ->
-
-			@_strokeStyle = style or false
-			@needAnimation = true
-
-		setFont: (font) ->
-
-			@_font = font or "12px Arial"
-
-			# устанавливаем реальную высоту шрифта в пикселях
-			span = document.createElement "span"
-			span.appendChild document.createTextNode("height")
-			span.style.cssText = "font: " + @_font + "; white-space: nowrap; display: inline;"
-			document.body.appendChild span
-			@fontHeight = span.offsetHeight
-			document.body.removeChild span
-
-			@needAnimation = true
-
-		animate: (context = @_context) ->
-
-			super context
-
-			context.font = @_font
+			# 
 			# по умолчанию позиционируем текст по верхнему краю
-			context.textBaseline = "top"
+			# 
+			@context.textBaseline = "top"
 			
-			if @_fillStyle
+			# 
+			# нужна ли заливка
+			# 
+			if @fillStyle
 
 				# а может зальем текст градиентом?
-				if Array.isArray @_fillStyle
+				if Array.isArray @fillStyle
 
+					# 
 					# создаем градиент по нужным точкам
-					gradient = context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight
+					# 
+					gradient = @context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight
+
+					# 
 					# добавляем цвета
-					@_fillStyle.forEach (color) ->
+					# 
+					@fillStyle.forEach (color) ->
+						
 						# сначала размер, потом цвет
 						gradient.addColorStop color[0], color[1]
+
+					# 
 					# заливка градиентом
-					context.fillStyle = gradient
+					# 
+					@context.fillStyle = gradient
 
-				else context.fillStyle = @_fillStyle
+				# 
+				# ну или просто цветом
+				# 
+				else @context.fillStyle = @fillStyle
 
-				context.fillText @_text, @_deltaX, @_deltaY
+				# 
+				# выводим залитый текст
+				# 
+				@context.fillText @text, @_deltaX, @_deltaY
 
-			if @_strokeStyle
+			# 
+			# что насчет обводки?
+			# 
+			if @strokeStyle
 
-				context.strokeStyle = @_strokeStyle
-				context.lineWidth = @_strokeWidth
-				context.strokeText @_text, @_deltaX, @_deltaY
+				@context.strokeStyle = @strokeStyle
+				@context.lineWidth = @strokeWidth
+				@context.strokeText @text, @_deltaX, @_deltaY
 
-			context.restore()
+			@context.restore()
 
 			@needAnimation = false
+
+		_setTextProperties: (options) ->
+
+			_font = _fillStyle = _strokeStyle = _strokeWidth = _text = ""
+
+			# 
+			# шрифт надписи, строка
+			# 
+			Object.defineProperty @, "font", {
+
+				get: () -> _font
+				set: (value) ->
+
+					_font = value or "12px Arial"
+
+					# 
+					# устанавливаем реальную высоту шрифта в пикселях
+					# 
+					span = document.createElement "span"
+					span.appendChild document.createTextNode("height")
+					span.style.cssText = "font: " + _font + "; white-space: nowrap; display: inline;"
+					document.body.appendChild span
+					@fontHeight = span.offsetHeight
+					document.body.removeChild span
+
+					@needAnimation = true
+					_font
+
+			}
+
+			# 
+			# текущая заливка, градиент или false, если заливка не нужна
+			# 
+			Object.defineProperty @, "fillStyle", {
+
+				get: () -> _fillStyle
+				set: (value) ->
+
+					_fillStyle = value or false
+					@needAnimation = true
+					_fillStyle
+
+			}
+
+			# 
+			# обводка шрифта или false, если обводка не нужна
+			# 
+			Object.defineProperty @, "strokeStyle", {
+
+				get: () -> _strokeStyle
+				set: (value) ->
+
+					_strokeStyle = value or false
+					@needAnimation = true
+					_strokeStyle
+
+			}
+
+			# 
+			# ширина обводки
+			# 
+			Object.defineProperty @, "strokeWidth", {
+
+				get: () -> _strokeWidth
+				set: (value) ->
+
+					_strokeWidth = @int(value) or 1
+					@needAnimation = true
+					_strokeWidth
+
+			}
+
+			# 
+			# текущий текст надписи
+			# 
+			Object.defineProperty @, "text", {
+
+				get: () -> _text
+				set: (value) ->
+
+					_text = value or ""
+
+					# 
+					# определяем ширину текста
+					# используя для этого ссылку на контекст
+					# 
+					@context.save()
+					@context.font = _font
+					@textWidth = @context.measureText(_text).width
+					@context.restore()
+
+					@needAnimation = true
+					_text
+
+			}
+
+			# 
+			# установка начальных значений
+			# 
+			@font = options.font
+			@fillStyle = options.fillStyle
+			@strokeStyle = options.strokeStyle
+			@strokeWidth = options.strokeWidth
+			@text = options.text

@@ -11,72 +11,106 @@
 
       function Text(options) {
         Text.__super__.constructor.call(this, options);
-        this.setFont(options.font);
-        this.setText(options.text || "");
-        this.fillStyle(options.fillStyle);
-        this._strokeStyle = options.strokeStyle || false;
-        this._strokeWidth = options.strokeWidth || 1;
-        this.needAnimation = true;
+        this.fontHeight = 0;
+        this.textWidth = 0;
+        this._setTextProperties(options);
       }
 
-      Text.prototype.setText = function(text) {
-        this._text = text;
-        this._context.save();
-        this._context.font = this._font;
-        this.width = this._context.measureText(this._text).width;
-        this._context.restore();
-        return this.needAnimation = true;
-      };
-
-      Text.prototype.fillStyle = function(style) {
-        this._fillStyle = style || false;
-        return this.needAnimation = true;
-      };
-
-      Text.prototype.strokeStyle = function(style) {
-        this._strokeStyle = style || false;
-        return this.needAnimation = true;
-      };
-
-      Text.prototype.setFont = function(font) {
-        var span;
-        this._font = font || "12px Arial";
-        span = document.createElement("span");
-        span.appendChild(document.createTextNode("height"));
-        span.style.cssText = "font: " + this._font + "; white-space: nowrap; display: inline;";
-        document.body.appendChild(span);
-        this.fontHeight = span.offsetHeight;
-        document.body.removeChild(span);
-        return this.needAnimation = true;
-      };
-
-      Text.prototype.animate = function(context) {
+      Text.prototype.animate = function() {
         var gradient;
-        if (context == null) {
-          context = this._context;
-        }
-        Text.__super__.animate.call(this, context);
-        context.font = this._font;
-        context.textBaseline = "top";
-        if (this._fillStyle) {
-          if (Array.isArray(this._fillStyle)) {
-            gradient = context.createLinearGradient(this._deltaX, this._deltaY, this._deltaX, this._deltaY + this.fontHeight);
-            this._fillStyle.forEach(function(color) {
+        Text.__super__.animate.call(this);
+        this.context.font = this.font;
+        this.context.textBaseline = "top";
+        if (this.fillStyle) {
+          if (Array.isArray(this.fillStyle)) {
+            gradient = this.context.createLinearGradient(this._deltaX, this._deltaY, this._deltaX, this._deltaY + this.fontHeight);
+            this.fillStyle.forEach(function(color) {
               return gradient.addColorStop(color[0], color[1]);
             });
-            context.fillStyle = gradient;
+            this.context.fillStyle = gradient;
           } else {
-            context.fillStyle = this._fillStyle;
+            this.context.fillStyle = this.fillStyle;
           }
-          context.fillText(this._text, this._deltaX, this._deltaY);
+          this.context.fillText(this.text, this._deltaX, this._deltaY);
         }
-        if (this._strokeStyle) {
-          context.strokeStyle = this._strokeStyle;
-          context.lineWidth = this._strokeWidth;
-          context.strokeText(this._text, this._deltaX, this._deltaY);
+        if (this.strokeStyle) {
+          this.context.strokeStyle = this.strokeStyle;
+          this.context.lineWidth = this.strokeWidth;
+          this.context.strokeText(this.text, this._deltaX, this._deltaY);
         }
-        context.restore();
+        this.context.restore();
         return this.needAnimation = false;
+      };
+
+      Text.prototype._setTextProperties = function(options) {
+        var _fillStyle, _font, _strokeStyle, _strokeWidth, _text;
+        _font = _fillStyle = _strokeStyle = _strokeWidth = _text = "";
+        Object.defineProperty(this, "font", {
+          get: function() {
+            return _font;
+          },
+          set: function(value) {
+            var span;
+            _font = value || "12px Arial";
+            span = document.createElement("span");
+            span.appendChild(document.createTextNode("height"));
+            span.style.cssText = "font: " + _font + "; white-space: nowrap; display: inline;";
+            document.body.appendChild(span);
+            this.fontHeight = span.offsetHeight;
+            document.body.removeChild(span);
+            this.needAnimation = true;
+            return _font;
+          }
+        });
+        Object.defineProperty(this, "fillStyle", {
+          get: function() {
+            return _fillStyle;
+          },
+          set: function(value) {
+            _fillStyle = value || false;
+            this.needAnimation = true;
+            return _fillStyle;
+          }
+        });
+        Object.defineProperty(this, "strokeStyle", {
+          get: function() {
+            return _strokeStyle;
+          },
+          set: function(value) {
+            _strokeStyle = value || false;
+            this.needAnimation = true;
+            return _strokeStyle;
+          }
+        });
+        Object.defineProperty(this, "strokeWidth", {
+          get: function() {
+            return _strokeWidth;
+          },
+          set: function(value) {
+            _strokeWidth = this.int(value) || 1;
+            this.needAnimation = true;
+            return _strokeWidth;
+          }
+        });
+        Object.defineProperty(this, "text", {
+          get: function() {
+            return _text;
+          },
+          set: function(value) {
+            _text = value || "";
+            this.context.save();
+            this.context.font = _font;
+            this.textWidth = this.context.measureText(_text).width;
+            this.context.restore();
+            this.needAnimation = true;
+            return _text;
+          }
+        });
+        this.font = options.font;
+        this.fillStyle = options.fillStyle;
+        this.strokeStyle = options.strokeStyle;
+        this.strokeWidth = options.strokeWidth;
+        return this.text = options.text;
       };
 
       return Text;
