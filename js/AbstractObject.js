@@ -220,14 +220,10 @@
           set: function(value) {
             if ((value == null) || (!value)) {
               _mask = false;
+              this._setMask();
               return;
             }
-            _mask = {
-              x: this.int(value.x),
-              y: this.int(value.y),
-              width: this.int(value.width),
-              height: this.int(value.height)
-            };
+            _mask = value;
             return this._setMask();
           }
         });

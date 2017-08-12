@@ -77,7 +77,7 @@
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         if (this.mask) {
           this.context.beginPath();
-          this.context.rect(this.mask.x, this.mask.y, this.mask.width, this.mask.height);
+          this.context.rect(this.mask[0], this.mask[1], this.mask[2], this.mask[3]);
           this.context.clip();
         }
         this.childrens.forEach(function(child) {

@@ -24,7 +24,7 @@ define () ->
 		#  scale: Array - коэффициенты для масштабирования объектов
 		#  rotation: Number - число в градусах, на которое объект повернут вокруг центра по часовой стрелке
 		#  alpha: [0..1] - прозрачность объекта
-		#  mask: Object - маска объекта
+		#  mask: Array - маска объекта
 		#  shadow: Object - тень объекта
 		#  
 		# методы:
@@ -351,7 +351,7 @@ define () ->
 			# 
 			# прямоугольная маска, применимо к Scene
 			# если маска дейтсвует, то на сцене будет отображаться только объекты внутри маски
-			# объект вида {x: int, y: int, width: int, height: int} или false
+			# массив [int, int, int, int] или false
 			# 
 			# ВНИМАНИЕ!
 			# В браузере firefox есть баг (на 25.04.17), а именно:
@@ -368,17 +368,10 @@ define () ->
 					if (not value?) or (not value)
 
 						_mask = false
+						@_setMask()
 						return
 
-					_mask = {
-
-						x: @int value.x
-						y: @int value.y
-						width: @int value.width
-						height: @int value.height 
-
-					}
-
+					_mask = value
 					@_setMask()
 
 			}

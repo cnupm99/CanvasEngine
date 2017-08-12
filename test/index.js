@@ -2,8 +2,8 @@
 
 requirejs.config({
 	
-	baseUrl: "../bin"
-	// baseUrl: "../js"
+	// baseUrl: "../bin"
+	baseUrl: "../js"
 
 });
 
@@ -13,7 +13,7 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	// создаем движок
 	var ce = new CanvasEngine({
 
-		sizes: [1000, 800]
+		size: [1000, 800]
 
 	});
 
@@ -86,53 +86,16 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	// Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
 
 	// добавим картинке тень
-	image.setShadow({
+	image.shadow = {
 
 		blur: 20
 
-	});
+	};
 
 	// добавим на сцену маску
-	scene1.setMask(250, 250, 200, 200);
+	scene1.mask = [250, 250, 200, 200];
 
 	var shadow = false;
-
-	// так можно обратиться напрямую к канвасу
-	// и добавить событие
-	scene1.canvas.addEventListener("mousemove", function(e){
-
-		// ВНИМАНИЕ!
-		// использовать этот метод ЛОКАЛЬНО нужно осторожно, так как
-		// в браузерах на основе chrome будет возникать ошибка безопасности
-		// (как будто пытаешься загрузить изображение с другого хоста).
-		// В firefox работает и локально без проблем.
-		// При загрузке кода на сервер работает во всех браузерах.
-
-		if(scene1.testPoint(e.clientX, e.clientY)) {
-
-			document.body.style.cursor = "pointer";
-			
-			if (!shadow) {
-
-				image.setShadow({});
-				shadow = true;
-
-			}
-
-		} else {
-
-			document.body.style.cursor = "default";
-			
-			if (shadow) {
-
-				image.setShadow();
-				shadow = false;
-
-			}
-
-		}
-
-	});
 
 	// создаем графический объект,
 	// одновременно создается новая сцена
@@ -156,10 +119,10 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	// рисуем прямоугольник с тенью и скругленными углами
 	// и градиентом
 	graph2.linearGradient(0, 0, 100, 100, [[0, "#CCC"], [1, "#555"]]);
-	graph2.setShadow({
+	graph2.shadow = {
 		color: "#888800",
 		blur: 30
-	});
+	};
 	graph2.rect(0, 0, 100, 100, 10);
 	graph2.fill()
 

@@ -146,7 +146,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			if @mask
 
 				@context.beginPath()
-				@context.rect @mask.x, @mask.y, @mask.width, @mask.height
+				@context.rect @mask[0], @mask[1], @mask[2], @mask[3]
 				@context.clip()
 
 			# 
