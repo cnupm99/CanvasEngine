@@ -187,7 +187,7 @@ define () ->
 		# 
 		_setProperties: (options) ->
 
-			_visible = _position = _size = _realSize = _center = _anchor = _rotation = _alpha = _mask = _shadow = 0
+			_visible = _position = _size = _realSize = _center = _anchor = _scale = _rotation = _alpha = _mask = _shadow = 0
 
 			# 
 			# видимость объекта, устанавливаемая пользователем
@@ -299,6 +299,20 @@ define () ->
 
 					_center = [@int(size[0] * _anchor[0]), @int(size[1] * _anchor[1])]
 					@_setCenter()
+
+			}
+
+			# 
+			# Свойство хранит коэффициенты для масштабирования объектов
+			# массив вида [x, y]
+			# 
+			Object.defineProperty @, "scale", {
+
+				get: () -> _scale
+				set: (value) -> 
+
+					_scale = @point value
+					@_setScale()
 
 			}
 
@@ -417,6 +431,7 @@ define () ->
 			@realSize = [0, 0]
 			@center = options.center
 			@anchor = options.anchor
+			@scale = options.scale or [1, 1]
 			@rotation = options.rotation
 			@alpha = if options.alpha? then @number options.alpha else 1
 			@mask = options.mask or false
@@ -453,6 +468,11 @@ define () ->
 
 			@needAnimation = true
 			@center
+
+		_setScale: () ->
+
+			@needAnimation = true
+			@scale
 
 		_setRotation: () ->
 

@@ -108,8 +108,8 @@
       };
 
       AbstractObject.prototype._setProperties = function(options) {
-        var _alpha, _anchor, _center, _mask, _position, _realSize, _rotation, _shadow, _size, _visible, getSize;
-        _visible = _position = _size = _realSize = _center = _anchor = _rotation = _alpha = _mask = _shadow = 0;
+        var _alpha, _anchor, _center, _mask, _position, _realSize, _rotation, _scale, _shadow, _size, _visible, getSize;
+        _visible = _position = _size = _realSize = _center = _anchor = _scale = _rotation = _alpha = _mask = _shadow = 0;
         Object.defineProperty(this, "visible", {
           get: function() {
             return _visible;
@@ -180,6 +180,15 @@
             return this._setCenter();
           }
         });
+        Object.defineProperty(this, "scale", {
+          get: function() {
+            return _scale;
+          },
+          set: function(value) {
+            _scale = this.point(value);
+            return this._setScale();
+          }
+        });
         Object.defineProperty(this, "rotation", {
           get: function() {
             return _rotation;
@@ -247,6 +256,7 @@
         this.realSize = [0, 0];
         this.center = options.center;
         this.anchor = options.anchor;
+        this.scale = options.scale || [1, 1];
         this.rotation = options.rotation;
         this.alpha = options.alpha != null ? this.number(options.alpha) : 1;
         this.mask = options.mask || false;
@@ -274,6 +284,11 @@
       AbstractObject.prototype._setCenter = function() {
         this.needAnimation = true;
         return this.center;
+      };
+
+      AbstractObject.prototype._setScale = function() {
+        this.needAnimation = true;
+        return this.scale;
       };
 
       AbstractObject.prototype._setRotation = function() {

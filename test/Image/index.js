@@ -23,9 +23,20 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	});
 
+	var scale = 1,
+		ds = 0.01;
+
 	CE.addEvent(function(){
 
 		image.rotation++;
+
+		scale += ds;
+		if ((scale > 1.2) || (scale < 0.5)) {
+
+			ds = -ds;
+
+		}
+		image.scale = [scale, scale];
 
 	});
 

@@ -137,6 +137,10 @@ define ["AbstractObject"], (AbstractObject) ->
 				@context.shadowOffsetX = Math.max @shadow.offsetX, @shadow.offset
 				@context.shadowOffsetY = Math.max @shadow.offsetY, @shadow.offset
 
+			if @scale[0] != 1 or @scale[1] != 1
+
+				@context.scale @scale[0], @scale[1]
+
 			# смещение и поворот холста
 			if @rotation != 0
 

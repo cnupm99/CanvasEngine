@@ -65,6 +65,9 @@
           this.context.shadowOffsetX = Math.max(this.shadow.offsetX, this.shadow.offset);
           this.context.shadowOffsetY = Math.max(this.shadow.offsetY, this.shadow.offset);
         }
+        if (this.scale[0] !== 1 || this.scale[1] !== 1) {
+          this.context.scale(this.scale[0], this.scale[1]);
+        }
         if (this.rotation !== 0) {
           this.context.translate(this.center[0] + this.position[0], this.center[1] + this.position[1]);
           this.context.rotate(this.deg2rad(this.rotation));
