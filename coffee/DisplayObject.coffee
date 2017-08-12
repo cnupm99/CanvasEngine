@@ -62,24 +62,20 @@ define ["AbstractObject"], (AbstractObject) ->
 		# использовать этот метод ЛОКАЛЬНО нужно осторожно, так как
 		# в браузерах на основе chrome будет возникать ошибка безопасности
 		# (как будто пытаешься загрузить изображение с другого хоста).
-		# В firefox работает и локально без проблем.
-		# При загрузке кода на сервер работает во всех браузерах
+		# При загрузке кода на сервер работает во всех браузерах.
 		# 
 		testPoint: (pointX, pointY) ->
+
+			# 
+			# получаем координаты канваса в окне
+			# 
+			rect = if @canvas? then @canvas.getBoundingClientRect() else @parent.canvas.getBoundingClientRect()
 
 			# получаем координаты точки на канвасе, относительно самого канваса
 			# т.е. без учета родителей,
 			# считая началом координат левый верхний угол канваса
-			offsetX = pointX - @parent.position[0]
-			offsetY = pointY - @parent.position[1]
-
-			# 
-			# для сцены есть дополнительное смещение координат канваса
-			# 
-			if @type == "scene"
-
-				offsetX -= @position[0]
-				offsetY -= @position[1]
+			offsetX = pointX - rect.left
+			offsetY = pointY - rect.top
 
 			# данные пикселя
 			imageData = @context.getImageData offsetX, offsetY, 1, 1
@@ -97,16 +93,36 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		testRect: (pointX, pointY) ->
 
-			rect = {
+			# 
+			# если это НЕ сцена
+			# 
+			unless @canvas?
 
-				left: @position[0] + @parent.position[0]
-				top: @position[1] + @parent.position[1]
+				# 
+				# получаем координаты канваса сцены
+				# 
+				rect = @parent.canvas.getBoundingClientRect()
+				
+				# 
+				# корректируем позицией и размерами объекта
+				# 
+				rect = {
 
-			}
+					left: rect.left + @position[0]
+					top: rect.top + @position[1]
+					right: rect.left + @position[0] + @size[0]
+					bottom: rect.top + @position[1] + @size[1]
 
-			rect.right = rect.left + @size[0]
-			rect.bottom = rect.top + @size[1]
+				}
 
+			# 
+			# а если это сцена, то просто получаем ее размеры
+			# 
+			else rect = @canvas.getBoundingClientRect()
+
+			# 
+			# собственно сравнение координат
+			# 
 			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
 
 		# 

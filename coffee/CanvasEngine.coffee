@@ -278,6 +278,8 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 			# 
 			@scene = scene.name
 
+			return scene
+
 		# 
 		# цикл анимации, запускается автоматически,
 		# не нужно это делать вручную,

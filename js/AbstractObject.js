@@ -238,6 +238,7 @@
           set: function(value) {
             if ((value == null) || (!value)) {
               _shadow = false;
+              this._setShadow();
               return;
             }
             _shadow = {

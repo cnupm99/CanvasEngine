@@ -191,7 +191,8 @@
         options.stage = this.parent;
         scene = new Scene(options);
         this.childrens.push(scene);
-        return this.scene = scene.name;
+        this.scene = scene.name;
+        return scene;
       };
 
       CanvasEngine.prototype._animate = function() {

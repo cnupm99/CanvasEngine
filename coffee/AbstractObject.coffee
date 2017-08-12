@@ -404,6 +404,7 @@ define () ->
 					if (not value?) or (not value)
 
 						_shadow = false
+						@_setShadow()
 						return
 
 					_shadow = {

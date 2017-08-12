@@ -23,13 +23,10 @@
       }
 
       DisplayObject.prototype.testPoint = function(pointX, pointY) {
-        var imageData, offsetX, offsetY, pixelData;
-        offsetX = pointX - this.parent.position[0];
-        offsetY = pointY - this.parent.position[1];
-        if (this.type === "scene") {
-          offsetX -= this.position[0];
-          offsetY -= this.position[1];
-        }
+        var imageData, offsetX, offsetY, pixelData, rect;
+        rect = this.canvas != null ? this.canvas.getBoundingClientRect() : this.parent.canvas.getBoundingClientRect();
+        offsetX = pointX - rect.left;
+        offsetY = pointY - rect.top;
         imageData = this.context.getImageData(offsetX, offsetY, 1, 1);
         pixelData = imageData.data;
         if (pixelData.every == null) {
@@ -42,12 +39,17 @@
 
       DisplayObject.prototype.testRect = function(pointX, pointY) {
         var rect;
-        rect = {
-          left: this.position[0] + this.parent.position[0],
-          top: this.position[1] + this.parent.position[1]
-        };
-        rect.right = rect.left + this.size[0];
-        rect.bottom = rect.top + this.size[1];
+        if (this.canvas == null) {
+          rect = this.parent.canvas.getBoundingClientRect();
+          rect = {
+            left: rect.left + this.position[0],
+            top: rect.top + this.position[1],
+            right: rect.left + this.position[0] + this.size[0],
+            bottom: rect.top + this.position[1] + this.size[1]
+          };
+        } else {
+          rect = this.canvas.getBoundingClientRect();
+        }
         return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
       };
 
