@@ -2,37 +2,65 @@
 
 define ["Image"], (Image) ->
 
+	# 
+	# Изображение, которое замостит указанную область
+	# 
+	# свойства:
+	#  
+	#  rect:Array - прямоугольник для замастивания
+	#  
+	# методы:
+	# 
+	#  animate() - попытка нарисовать объект 
+	# 
 	class TilingImage extends Image
 
-		# 
-		# Изображение, которое замостит указанную область
-		# 
 		constructor: (options) ->
 
 			super options
 
+			# 
 			# область замостивания по умолчанию равна размеру контекста
-			@_rect = options.rect or [0, 0, options.parent.sizes[0], options.parent.sizes[1]]
+			# 
+			# массив вида [int, int, int, int]
+			# 
+			_rect = 0
+			Object.defineProperty @, "rect", {
 
-		# установка области
-		setRect: (rect) ->
+				get: () -> _rect
+				set: (value) ->
 
-			@_rect = rect
-			@needAnimation = true
+					_rect = value or [0, 0, @parent.size[0], @parent.size[1]]
+					@needAnimation = true
+					_rect
 
-		animate: (context = @_context) ->
+			}
+			@rect = options.rect 
 
-			return unless @_loaded
+		animate: () ->
 
-			super context
+			return unless @loaded
 
+			# 
+			# Начало отрисовки
+			# 
+			@context.beginPath()
+
+			# 
 			# создаем паттерн
-			context.fillStyle = context.createPattern @_image, "repeat"
-			# рисуем прямоугольник
-			context.rect @_rect[0], @_rect[1], @_rect[2], @_rect[3]
-			# заливаем паттерном
-			context.fill()
+			# 
+			@context.fillStyle = @context.createPattern @image, "repeat"
 
-			context.restore()
+			# 
+			# рисуем прямоугольник
+			# 
+			@context.rect @rect[0], @rect[1], @rect[2], @rect[3]
+
+			# 
+			# заливаем паттерном
+			# 
+			@context.fill()
+
+			@context.restore()
 
 			@needAnimation = false

@@ -42,4 +42,13 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	console.log(image);
 
+	var image2 = CE.add({
+
+		type: "image",
+		src: "../flower.png",
+		size: [100, 100],
+		position: [500, 100]
+
+	});
+
 });

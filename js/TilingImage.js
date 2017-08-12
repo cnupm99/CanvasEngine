@@ -10,27 +10,31 @@
       extend(TilingImage, superClass);
 
       function TilingImage(options) {
+        var _rect;
         TilingImage.__super__.constructor.call(this, options);
-        this._rect = options.rect || [0, 0, options.parent.sizes[0], options.parent.sizes[1]];
+        _rect = 0;
+        Object.defineProperty(this, "rect", {
+          get: function() {
+            return _rect;
+          },
+          set: function(value) {
+            _rect = value || [0, 0, this.parent.size[0], this.parent.size[1]];
+            this.needAnimation = true;
+            return _rect;
+          }
+        });
+        this.rect = options.rect;
       }
 
-      TilingImage.prototype.setRect = function(rect) {
-        this._rect = rect;
-        return this.needAnimation = true;
-      };
-
-      TilingImage.prototype.animate = function(context) {
-        if (context == null) {
-          context = this._context;
-        }
-        if (!this._loaded) {
+      TilingImage.prototype.animate = function() {
+        if (!this.loaded) {
           return;
         }
-        TilingImage.__super__.animate.call(this, context);
-        context.fillStyle = context.createPattern(this._image, "repeat");
-        context.rect(this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
-        context.fill();
-        context.restore();
+        this.context.beginPath();
+        this.context.fillStyle = this.context.createPattern(this.image, "repeat");
+        this.context.rect(this.rect[0], this.rect[1], this.rect[2], this.rect[3]);
+        this.context.fill();
+        this.context.restore();
         return this.needAnimation = false;
       };
 
