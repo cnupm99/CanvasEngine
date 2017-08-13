@@ -138,7 +138,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# 
 			# очистка контекста
 			# 
-			@context.clearRect 0, 0, @canvas.width, @canvas.height
+			@context.clearRect 0, 0, @size[0], @size[1]
 
 			# 
 			# установка маски

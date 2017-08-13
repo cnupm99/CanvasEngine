@@ -290,9 +290,7 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 			# 
 			# выполняем все функции в массиве
 			# 
-			@_beforeAnimate.forEach (handler) ->
-
-				handler() if typeof(handler) == "function"
+			@_beforeAnimate.forEach (func) -> func()
 
 			# 
 			# АНИМАЦИЯ ТУТ

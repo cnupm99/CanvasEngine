@@ -172,7 +172,6 @@ define () ->
 		# 
 		# приведение выражения к целому числу
 		# 
-		# int: (value) -> Math.round @number(value)
 		int: (value) -> @number(value) >> 0
 
 		# 

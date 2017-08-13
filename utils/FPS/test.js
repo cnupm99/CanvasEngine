@@ -46,10 +46,11 @@ requirejs(["CanvasEngine"], function(CanvasEngine) {
 
 	ce.addEvent(function(){
 
+		rotation++;
+
 		scene.objects.forEach(function(child){
 
-			rotation++;
-			child.setRotation(rotation / 180 * Math.PI);
+			child.setRotation(rotation);
 
 		});
 

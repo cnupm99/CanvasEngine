@@ -196,10 +196,8 @@
       };
 
       CanvasEngine.prototype._animate = function() {
-        this._beforeAnimate.forEach(function(handler) {
-          if (typeof handler === "function") {
-            return handler();
-          }
+        this._beforeAnimate.forEach(function(func) {
+          return func();
         });
         this.needAnimation = false;
         this.childrens.forEach((function(_this) {

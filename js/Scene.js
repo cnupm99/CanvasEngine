@@ -74,7 +74,7 @@
       };
 
       Scene.prototype.animate = function() {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.clearRect(0, 0, this.size[0], this.size[1]);
         if (this.mask) {
           this.context.beginPath();
           this.context.rect(this.mask[0], this.mask[1], this.mask[2], this.mask[3]);

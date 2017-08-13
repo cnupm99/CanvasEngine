@@ -23,4 +23,7 @@ requirejs(["AbstractObject"], function(AO){
 
 	console.log(a.position);
 
+	console.log(a.int(3.14));
+	console.log(a.int(-3.1456));
+
 });

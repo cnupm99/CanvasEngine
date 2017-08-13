@@ -38,9 +38,9 @@ requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
 			type: "image",
 			src: "../star_" + kind + ".png",
 			position: position,
-			center: [12, 12],
+			// center: [12, 12],
 			rotation: rotation,
-			// anchor: [0.5, 0.5]
+			anchor: [0.5, 0.5]
 
 		});
 
@@ -49,7 +49,7 @@ requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
 	ce.addEvent(function(){
 
 		scene.childrens.forEach(function(child){
-
+			
 			child.rotation++;
 
 		});
