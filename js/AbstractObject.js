@@ -92,7 +92,7 @@
       };
 
       AbstractObject.prototype.int = function(value) {
-        return Math.round(this.number(value));
+        return this.number(value) >> 0;
       };
 
       AbstractObject.prototype.number = function(value) {
@@ -134,7 +134,11 @@
           },
           set: function(value) {
             _size = this.point(value);
-            this.anchor = _anchor;
+            if (_center[0] === 0 && _center[1] === 0) {
+              this.anchor = _anchor;
+            } else {
+              this.center = _center;
+            }
             return this._setSize();
           }
         });
@@ -144,10 +148,20 @@
           },
           set: function(value) {
             _realSize = this.point(value);
-            this.anchor = _anchor;
+            if (_center[0] === 0 && _center[1] === 0) {
+              this.anchor = _anchor;
+            } else {
+              this.center = _center;
+            }
             return this._setRealSize();
           }
         });
+        getSize = (function(_this) {
+          return function() {
+            var size;
+            return size = _size[0] === 0 && _size[1] === 0 ? _realSize : _size;
+          };
+        })(this);
         Object.defineProperty(this, "center", {
           get: function() {
             return _center;
@@ -162,12 +176,6 @@
             return this._setCenter();
           }
         });
-        getSize = (function(_this) {
-          return function() {
-            var size;
-            return size = _size[0] === 0 && _size[1] === 0 ? _realSize : _size;
-          };
-        })(this);
         Object.defineProperty(this, "anchor", {
           get: function() {
             return _anchor;
@@ -252,7 +260,9 @@
         this.size = options.size;
         this.realSize = [0, 0];
         this.center = options.center;
-        this.anchor = options.anchor;
+        if (options.anchor != null) {
+          this.anchor = options.anchor;
+        }
         this.scale = options.scale || [1, 1];
         this.rotation = options.rotation;
         this.alpha = options.alpha != null ? this.number(options.alpha) : 1;

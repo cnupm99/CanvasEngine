@@ -6,9 +6,23 @@
   define(function() {
     var FPS;
     return FPS = (function() {
-      function FPS(options) {
+      function FPS(CE, position) {
+        if (position == null) {
+          position = [0, 0];
+        }
+        this._update = bind(this._update, this);
         this._onTimer = bind(this._onTimer, this);
-        this._scene = options.scene;
+        if (CE == null) {
+          return;
+        }
+        this.CE = CE;
+        this._scene = CE.add({
+          type: "scene",
+          name: "FPS",
+          zIndex: 9999,
+          size: [100, 45],
+          position: position
+        });
         this._graph = this._scene.add({
           type: "graph"
         });
@@ -16,15 +30,16 @@
         this._caption = this._scene.add({
           type: "text",
           fillStyle: "#00FF00",
-          font: "10px Arial",
+          font: "12px Arial",
           position: [3, 1]
         });
         this._caption2 = this._scene.add({
           type: "text",
-          fillStyle: "#FF0000",
-          font: "10px Arial",
-          position: [48, 1]
+          fillStyle: "#FFFF00",
+          font: "12px Arial",
+          position: [53, 1]
         });
+        CE.addEvent(this._update);
         this.start();
         this._onTimer();
       }
@@ -46,29 +61,29 @@
         this._updateValue = this._updateCounter;
         this._updateCounter = 0;
         this._values.push([this._FPSValue, this._updateValue]);
-        if (this._values.length === 84) {
+        if (this._values.length === 94) {
           this._values.shift();
         }
         this._graph.clear();
         this._graph.fillStyle("#000");
-        this._graph.rect(0, 0, 90, 40);
+        this._graph.rect(0, 0, 100, 45);
         this._graph.fill();
         for (i = j = 0, ref = this._values.length; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
-          x = 87 - this._values.length + i;
+          x = 97 - this._values.length + i;
           fps = this._values[i][0];
           ups = this._values[i][1];
           this._graph.strokeStyle("#00FF00");
-          this._graph.line(x, 37, x, 37 - 23 * fps / 60);
-          this._graph.strokeStyle("#FF0000");
-          this._graph.line(x, 37, x, 37 - 23 * ups / 60);
+          this._graph.line(x, 42, x, 42 - 26 * fps / 60);
+          this._graph.strokeStyle("#FFFF00");
+          this._graph.line(x, 42, x, 42 - 26 * ups / 60);
         }
-        this._caption.setText("FPS: " + this._FPSValue);
-        return this._caption2.setText("UPS: " + this._updateValue);
+        this._caption.text = "FPS: " + this._FPSValue;
+        return this._caption2.text = "UPS: " + this._updateValue;
       };
 
-      FPS.prototype.update = function(needAnimation) {
+      FPS.prototype._update = function() {
         this._counter++;
-        if (needAnimation) {
+        if (this.CE.needAnimation) {
           return this._updateCounter++;
         }
       };

@@ -172,7 +172,8 @@ define () ->
 		# 
 		# приведение выражения к целому числу
 		# 
-		int: (value) -> Math.round @number(value)
+		# int: (value) -> Math.round @number(value)
+		int: (value) -> @number(value) >> 0
 
 		# 
 		# приведение выражения к числу
@@ -229,7 +230,7 @@ define () ->
 				set: (value) -> 
 
 					_size = @point value
-					@anchor = _anchor
+					if _center[0] == 0 and _center[1] == 0 then @anchor = _anchor else @center = _center
 					@_setSize()
 
 			}
@@ -249,10 +250,18 @@ define () ->
 				set: (value) -> 
 
 					_realSize = @point value
-					@anchor = _anchor
+					if _center[0] == 0 and _center[1] == 0 then @anchor = _anchor else @center = _center
 					@_setRealSize()
 
 			}
+
+			# 
+			# Думаем, откуда брать размеры
+			# если размеры не заданы пользователем, то пробуем взять реальные размеры
+			# 
+			getSize = () =>
+
+				size = if _size[0] == 0 and _size[1] == 0 then _realSize else _size
 
 			# 
 			# координаты точки, являющейся центром объекта,
@@ -276,14 +285,6 @@ define () ->
 					@_setCenter()
 
 			}
-
-			# 
-			# Думаем, откуда брать размеры
-			# если размеры не заданы пользователем, то пробуем взять реальные размеры
-			# 
-			getSize = () =>
-
-				size = if _size[0] == 0 and _size[1] == 0 then _realSize else _size
 
 			# 
 			# Якорь, дробное число, показывающее, где должен находиться цент относительно размеров объекта,
@@ -426,7 +427,7 @@ define () ->
 			@size = options.size
 			@realSize = [0, 0]
 			@center = options.center
-			@anchor = options.anchor
+			@anchor = options.anchor if options.anchor?
 			@scale = options.scale or [1, 1]
 			@rotation = options.rotation
 			@alpha = if options.alpha? then @number options.alpha else 1

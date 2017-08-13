@@ -47,7 +47,15 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 		type: "image",
 		src: "../flower.png",
 		size: [100, 100],
-		position: [500, 100]
+		position: [500, 100],
+		// anchor: [0.5, 0.5],
+		center: [50, 50]
+
+	});
+
+	CE.addEvent(function(){
+
+		image2.rotation++;
 
 	});
 
