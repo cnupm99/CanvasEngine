@@ -17,6 +17,11 @@ define ["DisplayObject"], (DisplayObject) ->
 	#  
 	# методы:
 	# 
+	#  setFont()
+	#  setFillStyle()
+	#  setStrokeStyle()
+	#  setStrokeWidth()
+	#  setText()
 	#  animate() - попытка нарисовать объект
 	# 
 	class Text extends DisplayObject
@@ -37,7 +42,83 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			@textWidth = 0
 
-			@_setTextProperties options
+			_font = _fillStyle = _strokeStyle = _strokeWidth = _text = ""
+
+			# 
+			# шрифт надписи, строка
+			# 
+			@setFont options.font
+
+			# 
+			# текущая заливка, градиент или false, если заливка не нужна
+			# 
+			@setFillStyle options.fillStyle
+
+			# 
+			# обводка шрифта или false, если обводка не нужна
+			# 
+			@setStrokeStyle options.strokeStyle
+
+			# 
+			# ширина обводки
+			# 
+			@setStrokeWidth options.strokeWidth
+
+			# 
+			# текущий текст надписи
+			# 
+			@setText options.text
+
+		setFont: (value) ->
+
+			@font = value or "12px Arial"
+
+			# 
+			# устанавливаем реальную высоту шрифта в пикселях
+			# 
+			span = document.createElement "span"
+			span.appendChild document.createTextNode("height")
+			span.style.cssText = "font: " + @font + "; white-space: nowrap; display: inline;"
+			document.body.appendChild span
+			@fontHeight = span.offsetHeight
+			document.body.removeChild span
+
+			@needAnimation = true
+			@font
+
+		setFillStyle: (value) ->
+
+			@fillStyle = value or false
+			@needAnimation = true
+			@fillStyle
+
+		setStrokeStyle: (value) ->
+
+			@strokeStyle = value or false
+			@needAnimation = true
+			@strokeStyle
+
+		setStrokeWidth: (value) ->
+
+			@strokeWidth = @int(value) or 1
+			@needAnimation = true
+			@strokeWidth
+
+		setText: (value) ->
+
+			@text = value or ""
+
+			# 
+			# определяем ширину текста
+			# используя для этого ссылку на контекст
+			# 
+			@context.save()
+			@context.font = @font
+			@textWidth = @context.measureText(@text).width
+			@context.restore()
+
+			@needAnimation = true
+			@text
 
 		animate: () ->
 
@@ -101,107 +182,3 @@ define ["DisplayObject"], (DisplayObject) ->
 			@context.restore()
 
 			@needAnimation = false
-
-		_setTextProperties: (options) ->
-
-			_font = _fillStyle = _strokeStyle = _strokeWidth = _text = ""
-
-			# 
-			# шрифт надписи, строка
-			# 
-			Object.defineProperty @, "font", {
-
-				get: () -> _font
-				set: (value) ->
-
-					_font = value or "12px Arial"
-
-					# 
-					# устанавливаем реальную высоту шрифта в пикселях
-					# 
-					span = document.createElement "span"
-					span.appendChild document.createTextNode("height")
-					span.style.cssText = "font: " + _font + "; white-space: nowrap; display: inline;"
-					document.body.appendChild span
-					@fontHeight = span.offsetHeight
-					document.body.removeChild span
-
-					@needAnimation = true
-					_font
-
-			}
-
-			# 
-			# текущая заливка, градиент или false, если заливка не нужна
-			# 
-			Object.defineProperty @, "fillStyle", {
-
-				get: () -> _fillStyle
-				set: (value) ->
-
-					_fillStyle = value or false
-					@needAnimation = true
-					_fillStyle
-
-			}
-
-			# 
-			# обводка шрифта или false, если обводка не нужна
-			# 
-			Object.defineProperty @, "strokeStyle", {
-
-				get: () -> _strokeStyle
-				set: (value) ->
-
-					_strokeStyle = value or false
-					@needAnimation = true
-					_strokeStyle
-
-			}
-
-			# 
-			# ширина обводки
-			# 
-			Object.defineProperty @, "strokeWidth", {
-
-				get: () -> _strokeWidth
-				set: (value) ->
-
-					_strokeWidth = @int(value) or 1
-					@needAnimation = true
-					_strokeWidth
-
-			}
-
-			# 
-			# текущий текст надписи
-			# 
-			Object.defineProperty @, "text", {
-
-				get: () -> _text
-				set: (value) ->
-
-					_text = value or ""
-
-					# 
-					# определяем ширину текста
-					# используя для этого ссылку на контекст
-					# 
-					@context.save()
-					@context.font = _font
-					@textWidth = @context.measureText(_text).width
-					@context.restore()
-
-					@needAnimation = true
-					_text
-
-			}
-
-			# 
-			# установка начальных значений
-			# 
-			@font = options.font
-			@fillStyle = options.fillStyle
-			@strokeStyle = options.strokeStyle
-			@strokeWidth = options.strokeWidth
-			@text = options.text

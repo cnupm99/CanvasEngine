@@ -19,44 +19,38 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 		# 
 		#  add(Object): DisplayObject - добавление дочернего объекта
 		#  animate() - попытка нарисовать объект
+		#  
+		# установка свойств:
+		# 
+		#  setZIndex()
+		#  setPosition()
+		#  setSize()
+		#  setCenter()
+		#  setRotation()
+		#  setAlpha()
 		# 
 		constructor: (options) ->
 
 			# 
 			# элемент для добавления канваса
 			# всегда должен быть
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			Object.defineProperty @, "stage", {
-
-				value: options.stage or document.body
-				writable: false
-				configurable: false
-
-			}
+			@stage = options.stage or document.body
 			
 			# 
 			# создаем канвас
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			Object.defineProperty @, "canvas", {
-
-				value: document.createElement "canvas"
-				writable: false
-				configurable: false
-
-			}
+			@canvas = document.createElement "canvas"
 			@canvas.style.position = "absolute"
 			@stage.appendChild @canvas
 
 			# 
 			# контекст
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			Object.defineProperty @, "context", {
-
-				value: @canvas.getContext "2d"
-				writable: false
-				configurable: false
-
-			}
+			@context = @canvas.getContext "2d"
 
 			# 
 			# создаем DisplayObject
@@ -72,17 +66,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
 			# целое число >= 0
 			# 
-			Object.defineProperty @, "zIndex", {
-
-				get: () -> _zIndex
-				set: (value) -> 
-
-					_zIndex = @int value
-					@canvas.style.zIndex = _zIndex
-					_zIndex
-
-			}
-			@zIndex = @int options.zIndex
+			@setZIndex options.zIndex
 
 			# 
 			# анимация пока не нужна (сцена пуста)
@@ -160,59 +144,64 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			@needAnimation = false
 
 		# 
+		# Установка zIndex
+		# 
+		setZIndex: (value) ->
+
+			@zIndex = @int value
+			@canvas.style.zIndex = @zIndex
+			@zIndex
+
+		# 
 		# Далее функции, перегружающие свойсва экранного объекта,
 		# т.к. нам нужно в этом случае двигать, поворачивать и т.д. сам канвас
 		# 
 
-		_setPosition: () ->
+		setPosition: (value) ->
 
-			super()
+			super value
 
 			# 
 			# двигаем канвас по экрану
 			# 
 			@canvas.style.left = @position[0] + "px"
 			@canvas.style.top = @position[1] + "px"
-
 			@position
 
-		_setSize: () ->
+		setSize: (value) ->
 
-			super()
+			super value
 
 			# 
 			# меняем размер канваса
 			# 
 			@canvas.width = @size[0]
 			@canvas.height = @size[1]
-
 			@size
 
-		_setCenter: () ->
+		setCenter: (value) ->
 
-			super()
+			super value
 
 			# 
 			# сдвигаем начало координат в центр
 			# 
 			@context.translate @center[0], @center[1]
-
 			@center
 
-		_setRotation: () ->
+		setRotation: (value) ->
 
-			super()
+			super value
 
 			# 
 			# поворот всего контекста на угол
 			# 
 			@context.rotate @deg2rad(@rotation)
-
 			@rotation
 
-		_setAlpha: () ->
+		setAlpha: (value) ->
 
-			super()
+			super value
 
 			@context.globalAlpha = @alpha
 			@alpha

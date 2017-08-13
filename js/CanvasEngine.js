@@ -12,38 +12,20 @@
 
       function CanvasEngine(options) {
         this._animate = bind(this._animate, this);
-        var _scene;
         if (!this.canvasSupport()) {
           console.log("your browser not support canvas and/or context");
           return false;
         }
         CanvasEngine.__super__.constructor.call(this, options);
         if (this.size[0] === 0 && this.size[1] === 0) {
-          this.size = [this.int(this.parent.clientWidth), this.int(this.parent.clientHeight)];
+          this.setSize([this.int(this.parent.clientWidth), this.int(this.parent.clientHeight)]);
         }
-        _scene = "default";
-        Object.defineProperty(this, "scene", {
-          get: function() {
-            var result;
-            result = this.get(_scene);
-            if (!result) {
-              result = this.childrens[0];
-            }
-            if (!result) {
-              result = false;
-            }
-            return result;
-          },
-          set: function(value) {
-            _scene = "" + value;
-            return this.get(_scene);
-          }
-        });
+        this._beforeAnimate = [];
+        this._scene = "default";
         this.add({
           type: "scene",
           name: "default"
         });
-        this._beforeAnimate = [];
         this.start();
       }
 
@@ -58,7 +40,7 @@
         } else {
           scene = this.get(options.scene);
           if (!scene) {
-            scene = this.scene;
+            scene = this.getActive();
           }
           if (!scene) {
             scene = this.add({
@@ -94,9 +76,26 @@
           }
         });
         if (result) {
-          result.zIndex = maxZ + 1;
+          result.setZIndex(maxZ + 1);
         }
         return result;
+      };
+
+      CanvasEngine.prototype.getActive = function() {
+        var result;
+        result = this.get(this._scene);
+        if (!result) {
+          result = this.childrens[0];
+        }
+        if (!result) {
+          result = false;
+        }
+        return result;
+      };
+
+      CanvasEngine.prototype.setActive = function(sceneName) {
+        this._scene = sceneName || "default";
+        return this.getActive();
       };
 
       CanvasEngine.prototype.start = function() {

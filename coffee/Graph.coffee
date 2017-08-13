@@ -82,8 +82,8 @@ define ["DisplayObject"], (DisplayObject) ->
 			@_commands.push {
 
 				"command": "gradient"
-				"point1": @point x1, y1
-				"point2": @point x2, y2
+				"point1": @pixel x1, y1
+				"point2": @pixel x2, y2
 				"colors": colors
 
 			}
@@ -132,7 +132,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			@_commands.push {
 
 				"command": "moveTo"
-				"point": @point toX, toY
+				"point": @pixel toX, toY
 
 			}
 
@@ -144,7 +144,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			@_commands.push {
 
 				"command": "lineTo"
-				"point": @point toX, toY
+				"point": @pixel toX, toY
 
 			}
 
@@ -160,8 +160,8 @@ define ["DisplayObject"], (DisplayObject) ->
 			@_commands.push {
 
 				"command": "line"
-				"from": @point fromX, fromY
-				"to": @point toX, toY
+				"from": @pixel fromX, fromY
+				"to": @pixel toX, toY
 
 			}
 
@@ -172,15 +172,12 @@ define ["DisplayObject"], (DisplayObject) ->
 		# 
 		rect: (fromX, fromY, width, height, radius = 0) ->
 
-			point = @point fromX, fromY
-			size = @point width, height
-
 			@_commands.push {
 
 				"command": "rect"
-				"point": point
-				"size": size
-				"radius": radius
+				"point": @pixel fromX, fromY
+				"size": @pixel width, height
+				"radius": @int radius
 
 			}
 

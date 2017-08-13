@@ -11,6 +11,7 @@ define ["Image"], (Image) ->
 	#  
 	# методы:
 	# 
+	#  setRect()
 	#  animate() - попытка нарисовать объект 
 	# 
 	class TilingImage extends Image
@@ -24,18 +25,16 @@ define ["Image"], (Image) ->
 			# 
 			# массив вида [int, int, int, int]
 			# 
-			_rect = 0
-			Object.defineProperty @, "rect", {
+			@setRect options.rect
 
-				get: () -> _rect
-				set: (value) ->
+		# 
+		# Установка области
+		# 
+		setRect: (value) ->
 
-					_rect = value or [0, 0, @parent.size[0], @parent.size[1]]
-					@needAnimation = true
-					_rect
-
-			}
-			@rect = options.rect 
+			@rect = value or [0, 0, @parent.size[0], @parent.size[1]]
+			@needAnimation = true
+			@rect
 
 		animate: () ->
 

@@ -37,8 +37,8 @@
       Graph.prototype.linearGradient = function(x1, y1, x2, y2, colors) {
         return this._commands.push({
           "command": "gradient",
-          "point1": this.point(x1, y1),
-          "point2": this.point(x2, y2),
+          "point1": this.pixel(x1, y1),
+          "point2": this.pixel(x2, y2),
           "colors": colors
         });
       };
@@ -67,14 +67,14 @@
       Graph.prototype.moveTo = function(toX, toY) {
         return this._commands.push({
           "command": "moveTo",
-          "point": this.point(toX, toY)
+          "point": this.pixel(toX, toY)
         });
       };
 
       Graph.prototype.lineTo = function(toX, toY) {
         this._commands.push({
           "command": "lineTo",
-          "point": this.point(toX, toY)
+          "point": this.pixel(toX, toY)
         });
         return this.needAnimation = true;
       };
@@ -82,24 +82,21 @@
       Graph.prototype.line = function(fromX, fromY, toX, toY) {
         this._commands.push({
           "command": "line",
-          "from": this.point(fromX, fromY),
-          "to": this.point(toX, toY)
+          "from": this.pixel(fromX, fromY),
+          "to": this.pixel(toX, toY)
         });
         return this.needAnimation = true;
       };
 
       Graph.prototype.rect = function(fromX, fromY, width, height, radius) {
-        var point, size;
         if (radius == null) {
           radius = 0;
         }
-        point = this.point(fromX, fromY);
-        size = this.point(width, height);
         this._commands.push({
           "command": "rect",
-          "point": point,
-          "size": size,
-          "radius": radius
+          "point": this.pixel(fromX, fromY),
+          "size": this.pixel(width, height),
+          "radius": this.int(radius)
         });
         return this.needAnimation = true;
       };

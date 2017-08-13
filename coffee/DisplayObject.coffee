@@ -43,17 +43,9 @@ define ["AbstractObject"], (AbstractObject) ->
 			# либо это объект для рисования, тогда берем контекст у родителя (сцены)
 			# либо это сцена, тогда она сама создаст контекст
 			# 
-			# только для чтения
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			unless @context
-
-				Object.defineProperty @, "context", {
-
-					value: @parent.context
-					writable: false
-					configurable: false
-
-				}
+			@context = @parent.context unless @context?
 
 		# 
 		# проверяем, пуста ли точка с данными координатами

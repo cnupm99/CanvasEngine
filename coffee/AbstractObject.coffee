@@ -35,9 +35,25 @@ define () ->
 		#  index(childName): int - возвращает индекс элемента в массиве дочерних по его имени
 		#  shift(deltaX, deltaY):Array - сдвигаем объект на нужное смещение по осям
 		#  point(value1, value2): Array - приведение выражений к виду [x, y]
+		#  pixel(value1, value2): округляет результат point
 		#  int(value): int - приведение к целому числу
 		#  number(value): Number - приведение к числу
 		#  deg2rad(value): Number - перевод из градусов в радианы
+		#  
+		# методы для установки свойств:
+		# 
+		#  set(Object) - задает все или некоторые свойства объекта через объект опций
+		#  setVisible()
+		#  setPosition()
+		#  setSize()
+		#  setRealSize()
+		#  setCenter()
+		#  setAnchor()
+		#  setScale()
+		#  setRotation()
+		#  setAlpha()
+		#  setMask()
+		#  setShadow()
 		#   
 
 		constructor: (options) ->
@@ -46,41 +62,36 @@ define () ->
 			# если ничего не передано в качестве опций, создаем пустой объект
 			# чтобы можно было обратиться к его свойствам
 			# 
-			options = {} unless options
+			options = {} unless options?
 
 			# 
 			# родитель объекта, он должен быть всегда
 			# для CanvasEngine это Element
 			# для Scene это CancasEngine
 			# для других объектов это Scene
-			# свойство только для чтения
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			Object.defineProperty @, "parent", {
-
-				value: options.parent or document.body
-				writable: false
-				configurable: false
-
-			}
+			@parent = options.parent or document.body
 
 			# 
 			# массив дочерних элементов,
 			# для CanvasEngine это Scene
 			# для Scene остальные элементы
 			# для остальных элементов - массив пустой
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
 			@childrens = []
 
 			# 
 			# нужно ли анимировать данный объект с точки зрения движка
-			# не нужно в ручную менять это свойство, для этого есть следующее...
+			# не нужно в ручную менять это свойство, для этого есть visible
 			# 
 			@needAnimation = true
 
 			# 
-			# Устанавливаем свойства
+			# установка свойств
 			# 
-			@_setProperties options
+			@_setProperties options			
 
 		# 
 		# поиск среди дочерних элементов по имени элемента
@@ -131,7 +142,7 @@ define () ->
 		# 
 		shift: (deltaX = 0, deltaY = 0) ->
 
-			@position = [deltaX + @position[0], deltaY + @position[1]]
+			@setPosition [deltaX + @position[0], deltaY + @position[1]]
 
 		# 
 		# приведение выражений к виду [x, y]
@@ -170,6 +181,14 @@ define () ->
 				return [0, 0]
 
 		# 
+		# Округляет результ point
+		# 
+		pixel: (value1, value2) ->
+
+			result = @point value1, value2
+			[result[0] >> 0, result[1] >> 0]
+
+		# 
 		# приведение выражения к целому числу
 		# 
 		int: (value) -> @number(value) >> 0
@@ -182,57 +201,153 @@ define () ->
 		# 
 		# переводим градусы в радианы
 		# 
-		deg2rad: (value) -> @number(value) * Math.PI / 180
+		deg2rad: (value) -> @number(value) * @_PIDIV180
+
+		# 
+		# Установка всех или определенных свойств через объект опций
+		# 
+		set: (options) ->
+
+			return unless options?
+
+			@setVisible options.visible if options.visible?
+			@setPosition options.position if options.position?
+			@setSize options.size if options.size?
+			@setRealSize options.realSize if options.realSize?
+			@setCenter options.center if options.center?
+			@setAnchor options.anchor if options.anchor?
+			@setScale options.scale if options.scale?
+			@setRotation options.rotation if options.rotation?
+			@setAlpha options.alpha if options.alpha?
+			@setMask options.mask if options.mask?
+			@setShadow options.shadow if options.shadow?
+
+		# 
+		# Далее идут функции, выполняемые после установки свойств объекта.
+		# Это нужно для того, чтобы в дочерних классах можно было перезаписать эту функцию,
+		# т.е. сделать перегрузку свойства
+		# 
+
+		setVisible: (value) -> 
+
+			@visible = if value? then value else true
+			@needAnimation = @visible
+
+		setPosition: (value) ->
+
+			@position = @pixel value
+			@needAnimation = true
+			@position
+
+		setSize: (value) ->
+
+			@size = @pixel value
+			@setAnchor @anchor
+			@needAnimation = true
+			@size
+
+		setRealSize: (value) ->
+
+			@realSize = @pixel value
+			@setAnchor @anchor
+			@realSize
+
+		setCenter: (value) ->
+
+			@center = @pixel value
+
+			size = if @size[0] == 0 and @size[1] == 0 then @realSize else @size
+			anchorX = if size[0] == 0 then 0 else @center[0] / size[0]
+			anchorY = if size[1] == 0 then 0 else @center[1] / size[1]
+			@anchor = [anchorX, anchorY]
+
+			@needAnimation = true
+			@center
+
+		setAnchor: (value) ->
+
+			@anchor = @point value
+			
+			size = if @size[0] == 0 and @size[1] == 0 then @realSize else @size
+			@center = [@int(size[0] * @anchor[0]), @int(size[1] * @anchor[1])]
+
+			@needAnimation = true
+			@anchor
+
+		setScale: (value) ->
+
+			@scale = if value then @point value else [1, 1]
+			@needAnimation = true
+			@scale
+
+		setRotation: (value) ->
+
+			@rotation = @number value
+			@rotation = 360 + @rotation if @rotation < 0
+			@rotation = @rotation % 360 if @rotation >= 360
+			@needAnimation = true
+			@rotation
+
+		setAlpha: (value) ->
+
+			@alpha = if value then @number value else 1
+			@alpha = 0 if @alpha < 0
+			@alpha = 1 if @alpha > 1
+
+			@needAnimation = true
+			@alpha
+
+		setMask: (value) ->
+
+			if (not value?) or (not value) then @mask = false else @mask = value
+
+			@needAnimation = true
+			@mask
+
+		setShadow: (value) ->
+
+			if (not value?) or (not value) then @shadow = false
+			else
+
+				@shadow = {
+
+					# 
+					# не проверяем значения color и blur, потому что по умолчанию они отличны от 0
+					# 
+					color: value.color or "#000"
+					blur: value.blur or 3
+
+					offsetX: @int value.offsetX
+					offsetY: @int value.offsetY
+					offset: @int value.offset
+
+				}
+
+			@needAnimation = true
+			@shadow
 
 		# 
 		# Создание и установка свойств объекта
 		# 
 		_setProperties: (options) ->
 
-			_visible = _position = _size = _realSize = _center = _anchor = _scale = _rotation = _alpha = _mask = _shadow = 0
+			# 
+			# Ниже идут свойтсва объекта.
+			# НЕ НУЖНО МЕНЯТЬ ИХ ВРУЧНУЮ, для этого есть соответствующая функция
+			# вида setPosition, setSize и т.д.
+			# 
 
 			# 
 			# видимость объекта, устанавливаемая пользователем
 			# true / false
 			# 
-			Object.defineProperty @, "visible", {
-
-				get: () -> _visible
-				set: (value) -> 
-
-					_visible = if value? then value else true
-					@_setVisible()
-
-			}
+			@setVisible options.visible
 
 			# 
 			# позиция объекта
 			# массив вида [x, y], либо объект вида {x: int, y: int}
 			# 
-			Object.defineProperty @, "position", {
-
-				get: () -> _position
-				set: (value) -> 
-
-					_position = @point value
-					@_setPosition()
-
-			}
-
-			# 
-			# размер объекта
-			# массив вида [width, height], либо объект вида {width: int, height: int}
-			# 
-			Object.defineProperty @, "size", {
-
-				get: () -> _size
-				set: (value) -> 
-
-					_size = @point value
-					if _center[0] == 0 and _center[1] == 0 then @anchor = _anchor else @center = _center
-					@_setSize()
-
-			}
+			@setPosition options.position
 
 			# 
 			# реальный размер объекта,
@@ -243,24 +358,13 @@ define () ->
 			# 
 			# массив вида [width, height], либо объект вида {width: int, height: int}
 			# 
-			Object.defineProperty @, "realSize", {
-
-				get: () -> _realSize
-				set: (value) -> 
-
-					_realSize = @point value
-					if _center[0] == 0 and _center[1] == 0 then @anchor = _anchor else @center = _center
-					@_setRealSize()
-
-			}
+			@realSize = [0, 0]
 
 			# 
-			# Думаем, откуда брать размеры
-			# если размеры не заданы пользователем, то пробуем взять реальные размеры
+			# размер объекта
+			# массив вида [width, height], либо объект вида {width: int, height: int}
 			# 
-			getSize = () =>
-
-				size = if _size[0] == 0 and _size[1] == 0 then _realSize else _size
+			@setSize options.size
 
 			# 
 			# координаты точки, являющейся центром объекта,
@@ -269,84 +373,32 @@ define () ->
 			# а относительно левого верхнего угла объекта
 			# массив вида [x, y], либо объект вида {x: int, y: int}
 			# 
-			Object.defineProperty @, "center", {
-
-				get: () -> _center
-				set: (value) -> 
-
-					_center = @point value
-
-					size = getSize()
-					anchorX = if size[0] == 0 then 0 else _center[0] / size[0]
-					anchorY = if size[1] == 0 then 0 else _center[1] / size[1]
-					_anchor = [anchorX, anchorY]
-
-					@_setCenter()
-
-			}
+			@setCenter options.center if options.center? or not options.anchor?
 
 			# 
 			# Якорь, дробное число, показывающее, где должен находиться цент относительно размеров объекта,
 			# т.е. center = size * anchor
-			# вообще массив, содержащий числа от 0 до 1, но может иметь и другие значения
+			# массив [number, number]
 			# 
-			Object.defineProperty @, "anchor", {
-
-				get: () -> _anchor
-
-				set: (value) ->
-
-					_anchor = @point value
-					size = getSize()
-
-					_center = [@int(size[0] * _anchor[0]), @int(size[1] * _anchor[1])]
-					@_setCenter()
-
-			}
+			@setAnchor options.anchor if options.anchor? and not options.center?
 
 			# 
 			# Свойство хранит коэффициенты для масштабирования объектов
 			# массив вида [x, y]
 			# 
-			Object.defineProperty @, "scale", {
-
-				get: () -> _scale
-				set: (value) -> 
-
-					_scale = @point value
-					@_setScale()
-
-			}
+			@setScale options.scale
 
 			# 
 			# поворот объекта вокруг точки center по часовой стрелке, измеряется в градусах
 			# число
 			# 
-			Object.defineProperty @, "rotation", {
-
-				get: () -> _rotation
-				set: (value) -> 
-
-					_rotation = @number value
-					_rotation = 360 + _rotation if _rotation < 0
-					_rotation = _rotation % 360 if _rotation >= 360
-					@_setRotation()
-
-			}
+			@setRotation options.rotation
 
 			# 
 			# прозрачность объекта
 			# число от 0 до 1
 			# 
-			Object.defineProperty @, "alpha", {
-
-				get: () -> _alpha
-				set: (value) -> 
-
-					_alpha = @number value
-					@_setAlpha()
-
-			}
+			@setAlpha options.alpha
 
 			# 
 			# прямоугольная маска, применимо к Scene
@@ -360,21 +412,7 @@ define () ->
 			# странная хрень, а точнее маска НЕ работает в данном случае
 			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
 			# 
-			Object.defineProperty @, "mask", {
-
-				get: () -> _mask
-				set: (value) -> 
-
-					if (not value?) or (not value)
-
-						_mask = false
-						@_setMask()
-						return
-
-					_mask = value
-					@_setMask()
-
-			}
+			@setMask options.mask
 
 			# 
 			# тень объекта
@@ -388,110 +426,11 @@ define () ->
 			# маску и тень (mask и shadow в данном случае), получается
 			# странная хрень, а точнее маска НЕ работает в данном случае
 			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
-			# 
-			Object.defineProperty @, "shadow", {
-
-				get: () -> _shadow
-				set: (value) -> 
-
-					if (not value?) or (not value)
-
-						_shadow = false
-						@_setShadow()
-						return
-
-					_shadow = {
-
-						# 
-						# не проверяем значения color и blur, потому что по умолчанию они отличны от 0
-						# 
-						color: value.color or "#000"
-						blur: value.blur or 3
-
-						offsetX: @int value.offsetX
-						offsetY: @int value.offsetY
-						offset: @int value.offset
-
-					}
-
-					@_setShadow()
-
-			}
-
-			# 
-			# Установка начальных значений
-			# 
-			@visible = if options.visible? then options.visible else true
-			@position = options.position
-			@size = options.size
-			@realSize = [0, 0]
-			@center = options.center
-			@anchor = options.anchor if options.anchor?
-			@scale = options.scale or [1, 1]
-			@rotation = options.rotation
-			@alpha = if options.alpha? then @number options.alpha else 1
-			@mask = options.mask or false
-			@shadow = options.shadow or false
+			#
+			@setShadow options.shadow
 
 		# 
-		# Далее идут функции, выполняемые после установки свойств объекта.
-		# Это нужно для того, чтобы в дочерних классах можно было перезаписать эту функцию,
-		# т.е. сделать перегрузку свойства
+		# константа, для ускорения рассчетов
+		# используется в rad
 		# 
-
-		_setVisible: () -> 
-
-			# 
-			# сообщаем движку, нужно ли анимировать объект
-			# 
-			@needAnimation = @visible
-
-		_setPosition: () ->
-
-			@needAnimation = true
-			@position
-
-		_setSize: () ->
-
-			@needAnimation = true
-			@size
-
-		_setRealSize: () ->
-
-			@realSize
-
-		_setCenter: () ->
-
-			@needAnimation = true
-			@center
-
-		_setScale: () ->
-
-			@needAnimation = true
-			@scale
-
-		_setRotation: () ->
-
-			@needAnimation = true
-			@rotation
-
-		_setAlpha: () ->
-
-			# 
-			# ограничения
-			# 
-			@alpha = 0 if @alpha < 0
-			@alpha = 1 if @alpha > 1
-
-			@needAnimation = true
-			@alpha
-
-		_setMask: () ->
-
-			@needAnimation = true
-			@mask
-
-		_setShadow: () ->
-
-			@needAnimation = true
-			@shadow
+		_PIDIV180: Math.PI / 180

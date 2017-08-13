@@ -50,10 +50,12 @@ requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
 
 		scene.childrens.forEach(function(child){
 			
-			child.rotation++;
+			child.setRotation(child.rotation + 1);
 
 		});
 
 	});
+
+	console.log(ce.childrens);
 
 });
