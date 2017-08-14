@@ -35,6 +35,7 @@ define () ->
 		#  index(childName): int - возвращает индекс элемента в массиве дочерних по его имени
 		#  shift(deltaX, deltaY):Array - сдвигаем объект на нужное смещение по осям
 		#  point(value1, value2): Array - приведение выражений к виду [x, y]
+		#  pixel(value1, value2): Array - округляет результат pixel
 		#  int(value): int - приведение к целому числу
 		#  number(value): Number - приведение к числу
 		#  deg2rad(value): Number - перевод из градусов в радианы
@@ -170,6 +171,14 @@ define () ->
 				return [0, 0]
 
 		# 
+		# Округляет результ point
+		# 
+		pixel: (value1, value2) ->
+
+			result = @point value1, value2
+			[result[0] >> 0, result[1] >> 0]
+
+		# 
 		# приведение выражения к целому числу
 		# 
 		int: (value) -> @number(value) >> 0
@@ -214,7 +223,7 @@ define () ->
 				get: () -> _position
 				set: (value) -> 
 
-					_position = @point value
+					_position = @pixel value
 					@_setPosition()
 
 			}
@@ -228,7 +237,7 @@ define () ->
 				get: () -> _size
 				set: (value) -> 
 
-					_size = @point value
+					_size = @pixel value
 					if _center[0] == 0 and _center[1] == 0 then @anchor = _anchor else @center = _center
 					@_setSize()
 
@@ -248,7 +257,7 @@ define () ->
 				get: () -> _realSize
 				set: (value) -> 
 
-					_realSize = @point value
+					_realSize = @pixel value
 					if _center[0] == 0 and _center[1] == 0 then @anchor = _anchor else @center = _center
 					@_setRealSize()
 
@@ -274,7 +283,7 @@ define () ->
 				get: () -> _center
 				set: (value) -> 
 
-					_center = @point value
+					_center = @pixel value
 
 					size = getSize()
 					anchorX = if size[0] == 0 then 0 else _center[0] / size[0]

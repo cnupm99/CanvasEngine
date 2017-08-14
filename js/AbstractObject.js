@@ -91,6 +91,12 @@
         }
       };
 
+      AbstractObject.prototype.pixel = function(value1, value2) {
+        var result;
+        result = this.point(value1, value2);
+        return [result[0] >> 0, result[1] >> 0];
+      };
+
       AbstractObject.prototype.int = function(value) {
         return this.number(value) >> 0;
       };
@@ -124,7 +130,7 @@
             return _position;
           },
           set: function(value) {
-            _position = this.point(value);
+            _position = this.pixel(value);
             return this._setPosition();
           }
         });
@@ -133,7 +139,7 @@
             return _size;
           },
           set: function(value) {
-            _size = this.point(value);
+            _size = this.pixel(value);
             if (_center[0] === 0 && _center[1] === 0) {
               this.anchor = _anchor;
             } else {
@@ -147,7 +153,7 @@
             return _realSize;
           },
           set: function(value) {
-            _realSize = this.point(value);
+            _realSize = this.pixel(value);
             if (_center[0] === 0 && _center[1] === 0) {
               this.anchor = _anchor;
             } else {
@@ -168,7 +174,7 @@
           },
           set: function(value) {
             var anchorX, anchorY, size;
-            _center = this.point(value);
+            _center = this.pixel(value);
             size = getSize();
             anchorX = size[0] === 0 ? 0 : _center[0] / size[0];
             anchorY = size[1] === 0 ? 0 : _center[1] / size[1];
