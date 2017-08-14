@@ -1,1542 +1,461 @@
-# 
-# 
+#
+#
 # CanvasEngine
-# 
-# 
+#
+#
 
 "use strict";
 
 define () ->
 
-	#
-	#
-	# base class
-	#
-	#
-
 	# 
-	# базовые свойства и методы для всех классов
+	# Абстрактный объект, не имеющий отображения на экране
+	# но вмещающий в себя основные свойства и методы
+	# других объектов
 	# 
-	class base
+	class AbstractObject
 
 		# 
-		# options = {
+		# свойства:
 		# 
-		# 	parent: DomElement
-		# 	rotation: number
-		# 	alpha: number
-		# 	
-		# 	sizes: Array / Object
-		# 	position: Array / Object
-		# 	center: Array / Object
+		#  parent: Object/Element - родитель объекта
+		#  childrens: Array - массив дочерних объектов
+		#  needAnimation: Boolean - нужно ли анимировать данный объект с точки зрения движка
+		#  visible: Boolean - видимость объекта, устанавливаемая пользователем
+		#  position: Array - позиция объекта
+		#  size: Array - размер объекта
+		#  realSize: Array - реальный размер объкта
+		#  center: Array - относительные координаты точки центра объекта, вокруг которой происходит вращение
+		#  anchor: Array - дробное число, показывающее, где должен находиться цент относительно размеров объекта
+		#  scale: Array - коэффициенты для масштабирования объектов
+		#  rotation: Number - число в градусах, на которое объект повернут вокруг центра по часовой стрелке
+		#  alpha: [0..1] - прозрачность объекта
+		#  mask: Array - маска объекта
+		#  shadow: Object - тень объекта
+		#  
+		# методы:
 		# 
-		# }
+		#  get(childName): Object/false - поиск среди дочерних элементов по имени элемента
+		#  remove(childName): Boolean - удаление дочернего элемента по его имени
+		#  rename(oldName, newName): Boolean - переименование дочернего элемента
+		#  index(childName): int - возвращает индекс элемента в массиве дочерних по его имени
+		#  shift(deltaX, deltaY):Array - сдвигаем объект на нужное смещение по осям
+		#  point(value1, value2): Array - приведение выражений к виду [x, y]
+		#  pixel(value1, value2): округляет результат point
+		#  int(value): int - приведение к целому числу
+		#  number(value): Number - приведение к числу
+		#  deg2rad(value): Number - перевод из градусов в радианы
+		#  
+		# методы для установки свойств:
 		# 
+		#  set(Object) - задает все или некоторые свойства объекта через объект опций
+		#  setVisible()
+		#  setPosition()
+		#  setSize()
+		#  setRealSize()
+		#  setCenter()
+		#  setAnchor()
+		#  setScale()
+		#  setRotation()
+		#  setAlpha()
+		#  setMask()
+		#  setShadow()
+		#   
 
 		constructor: (options) ->
 
-			# поворот
-			@_rotation = options.rotation or 0
-			# прозрачность
-			@_alpha = options.alpha or 1
-			# размеры
-			@_sizes = @_point options.sizes
-			# позиция
-			@_position = @_point options.position
-			# центр
-			@_center = @_point options.center
+			# 
+			# если ничего не передано в качестве опций, создаем пустой объект
+			# чтобы можно было обратиться к его свойствам
+			# 
+			options = {} unless options?
+
+			# 
+			# родитель объекта, он должен быть всегда
+			# для CanvasEngine это Element
+			# для Scene это CancasEngine
+			# для других объектов это Scene
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+			# 
+			@parent = options.parent or document.body
+
+			# 
+			# массив дочерних элементов,
+			# для CanvasEngine это Scene
+			# для Scene остальные элементы
+			# для остальных элементов - массив пустой
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+			# 
+			@childrens = []
+
+			# 
+			# нужно ли анимировать данный объект с точки зрения движка
+			# не нужно в ручную менять это свойство, для этого есть visible
+			# 
+			@needAnimation = true
+
+			# 
+			# установка свойств
+			# 
+			@_setProperties options			
 
 		# 
-		# приведение к виду [x, y]
+		# поиск среди дочерних элементов по имени элемента
+		# 
+		get: (childName) ->
+
+			index = @index childName
+			if index == -1 then return false
+			return @childrens[index]
+
+		# 
+		# удаление дочернего элемента по его имени
+		# 
+		remove: (childName) ->
+
+			index = @index childName
+			if index == -1 then return false
+			@childrens.splice index, 1
+			return true
+
+		# 
+		# переименование дочернего элемента
+		# 
+		rename: (oldName, newName) ->
+
+			index = @index oldName
+			if index == -1 then return false
+			@childrens[index].name = newName
+			return true
+
+		# 
+		# возвращает индекс элемента в массиве дочерних по его имени
+		# 
+		index: (childName) ->
+
+			result = -1
+
+			@childrens.some (child, index) ->
+
+				flag = child.name == childName
+				result = index if flag
+				return flag
+
+			return result
+
+		# 
+		# сдвигаем объект на нужную величину по осям
+		# 
+		shift: (deltaX = 0, deltaY = 0) ->
+
+			@setPosition [deltaX + @position[0], deltaY + @position[1]]
+
+		# 
+		# приведение выражений к виду [x, y]
 		# 
 		# 	все точки хранятся и передаются в виде массивов [x, y]
-		# 	чтобы сократить время и объем записей
-		# 	множества точек
+		# 	чтобы сократить время и объем записей множества точек
 		# 	
-		_point: (value, value2) ->
+		# 	если ничего не передано, возвращает [0, 0]
+		# 	если передано два параметра, вернет [value1, value2]
+		# 	если первый параметр массив, то вернет [value1[0], value1[1]]
+		# 	если первый параметр объект, то вернет [value1.x, value1.y] либо [value1.width, value1.height]
+		# 	иначе вeрнет [0, 0]
+		# 	
+		point: (value1, value2) ->
 
 			# значение не существует
-			return [0, 0] if (not value?)
+			return [0, 0] if (not value1?)
 
 			# передано два параметра, считаем их числами и возвращаем массив
-			return [@_int(value), @_int(value2)] if value2?
+			return [@number(value1), @number(value2)] if value2?
 
 			# если передан массив
-			if Array.isArray value
+			if Array.isArray value1
 
 				# возвращаем первые два элемента
-				return [@_int(value[0]), @_int(value[1])]
+				return [@number(value1[0]), @number(value1[1])]
 
 			# может быть это объект?
 			else
 
 				# если есть свойства x и y
-				return [@_int(value.x), @_int(value.y)] if value.x? and value.y?
+				return [@number(value1.x), @number(value1.y)] if value1.x? and value1.y?
 				# если есть свойства width и height
-				return [@_int(value.width), @_int(value.height)] if value.width? and value.height?
+				return [@number(value1.width), @number(value1.height)] if value1.width? and value1.height?
 				# по умолчанию
 				return [0, 0]
 
-		# приведение к целому
-		_int: (value) -> Math.round @_value(value)
+		# 
+		# Округляет результ point
+		# 
+		pixel: (value1, value2) ->
 
-		# приведение к числу
-		_value: (value) -> if value? then +value else 0
-
-	#
-	#
-	# DisplayObject class
-	#
-	#
-
-	class DisplayObject extends base
+			result = @point value1, value2
+			[result[0] >> 0, result[1] >> 0]
 
 		# 
-		# Базовые методы и свойства экранных объектов
+		# приведение выражения к целому числу
 		# 
-		constructor: (options) ->
+		int: (value) -> @number(value) >> 0
 
-			super options
+		# 
+		# приведение выражения к числу
+		# 
+		number: (value) -> if value? then +value else 0
 
-			# имя
-			@name = options.name
-			# тень
-			@_shadow = false
-			# видимость объекта
-			@_visible = if options.visible? then options.visible else true
-			# контекст для рисования
-			@_context = options.parent.context
-			# позиция родителя для вычисления координат
-			@_parentPosition = options.parent.position
+		# 
+		# переводим градусы в радианы
+		# 
+		deg2rad: (value) -> @number(value) * @_PIDIV180
 
-			# нужна ли анимация
-			@needAnimation = @_visible
+		# 
+		# Установка всех или определенных свойств через объект опций
+		# 
+		set: (options) ->
 
-		# проверяем, пуста ли точка с данными координатами
-		# а для начала находится ли точка внутри объекта
-		# ВНИМАНИЕ!
-		# использовать этот метод ЛОКАЛЬНО нужно осторожно, так как
-		# в браузерах на основе chrome будет возникать ошибка безопасности
-		# (как будто пытаешься загрузить изображение с другого хоста).
-		# В firefox работает и локально без проблем.
-		# При загрузке кода на сервер работает во всех браузерах.
-		testPoint: (pointX, pointY) ->
+			return unless options?
 
-			# получаем координаты точки на канвасе, относительно самого канваса
-			# т.е. без учета родителей,
-			# считая началом координат левый верхний угол канваса
-			offsetX = pointX - @_parentPosition[0]
-			offsetY = pointY - @_parentPosition[1]
+			@setVisible options.visible if options.visible?
+			@setPosition options.position if options.position?
+			@setSize options.size if options.size?
+			@setRealSize options.realSize if options.realSize?
+			@setCenter options.center if options.center?
+			@setAnchor options.anchor if options.anchor?
+			@setScale options.scale if options.scale?
+			@setRotation options.rotation if options.rotation?
+			@setAlpha options.alpha if options.alpha?
+			@setMask options.mask if options.mask?
+			@setShadow options.shadow if options.shadow?
 
-			# данные пикселя
-			imageData = @_context.getImageData offsetX, offsetY, 1, 1
-			# цвет пикселя
-			pixelData = imageData.data
+		# 
+		# Далее идут функции, выполняемые после установки свойств объекта.
+		# Это нужно для того, чтобы в дочерних классах можно было перезаписать эту функцию,
+		# т.е. сделать перегрузку свойства
+		# 
 
-			# проверяем нужный метод?
-			pixelData.every = Array.prototype.every if not pixelData.every?
+		setVisible: (value) -> 
 
-			# проверяем все цвета, если 0, значит мимо
-			return not pixelData.every (value) -> value == 0
+			@visible = if value? then value else true
+			@needAnimation = @visible
 
-		# находится ли точка внутри объекта по его позиции / размерам
-		testRect: (pointX, pointY) ->
+		setPosition: (value) ->
 
-			rect = {
+			@position = @pixel value
+			@needAnimation = true
+			@position
 
-				left: @_position[0] + @_parentPosition[0]
-				top: @_position[1] + @_parentPosition[1]
+		setSize: (value) ->
 
-			}
+			@size = @pixel value
+			@setAnchor @anchor
+			@needAnimation = true
+			@size
 
-			rect.right = rect.left + @_sizes[0]
-			rect.bottom = rect.top + @_sizes[1]
+		setRealSize: (value) ->
 
-			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
+			@realSize = @pixel value
+			@setAnchor @anchor
+			@realSize
 
-		# возвращаем позицию
-		getPosition: () -> @_position
+		setCenter: (value) ->
 
-		# возвращаем центр
-		getCenter: () -> @_center
+			@center = @pixel value
 
-		# сдвигаем объект на нужную величину по осям
-		shift: (_deltaX = 0, _deltaY = 0) ->
+			size = if @size[0] == 0 and @size[1] == 0 then @realSize else @size
+			anchorX = if size[0] == 0 then 0 else @center[0] / size[0]
+			anchorY = if size[1] == 0 then 0 else @center[1] / size[1]
+			@anchor = [anchorX, anchorY]
 
-			@setPosition [_deltaX + @_position[0], _deltaY + @_position[1]]
+			@needAnimation = true
+			@center
 
-		# установка видимости
-		setVisible: (value) ->
+		setAnchor: (value) ->
 
-			@_visible = if value? then value else true
-			@needAnimation = @_visible
+			@anchor = @point value
+			
+			size = if @size[0] == 0 and @size[1] == 0 then @realSize else @size
+			@center = [@int(size[0] * @anchor[0]), @int(size[1] * @anchor[1])]
 
-		# установка опций
-		setTransform: (options) ->
+			@needAnimation = true
+			@anchor
 
-			@setSizes options.sizes
+		setScale: (value) ->
+
+			@scale = if value then @point value else [1, 1]
+			@needAnimation = true
+			@scale
+
+		setRotation: (value) ->
+
+			@rotation = @number value
+			@rotation = 360 + @rotation if @rotation < 0
+			@rotation = @rotation % 360 if @rotation >= 360
+			@needAnimation = true
+			@rotation
+
+		setAlpha: (value) ->
+
+			@alpha = if value then @number value else 1
+			@alpha = 0 if @alpha < 0
+			@alpha = 1 if @alpha > 1
+
+			@needAnimation = true
+			@alpha
+
+		setMask: (value) ->
+
+			if (not value?) or (not value) then @mask = false else @mask = value
+
+			@needAnimation = true
+			@mask
+
+		setShadow: (value) ->
+
+			if (not value?) or (not value) then @shadow = false
+			else
+
+				@shadow = {
+
+					# 
+					# не проверяем значения color и blur, потому что по умолчанию они отличны от 0
+					# 
+					color: value.color or "#000"
+					blur: value.blur or 3
+
+					offsetX: @int value.offsetX
+					offsetY: @int value.offsetY
+					offset: @int value.offset
+
+				}
+
+			@needAnimation = true
+			@shadow
+
+		# 
+		# Создание и установка свойств объекта
+		# 
+		_setProperties: (options) ->
+
+			# 
+			# Ниже идут свойтсва объекта.
+			# НЕ НУЖНО МЕНЯТЬ ИХ ВРУЧНУЮ, для этого есть соответствующая функция
+			# вида setPosition, setSize и т.д.
+			# 
+
+			# 
+			# видимость объекта, устанавливаемая пользователем
+			# true / false
+			# 
+			@setVisible options.visible
+
+			# 
+			# позиция объекта
+			# массив вида [x, y], либо объект вида {x: int, y: int}
+			# 
 			@setPosition options.position
-			@setCenter options.center
+
+			# 
+			# реальный размер объекта,
+			# может отличаться от заданного пользователем, например
+			# в случае загрузки картинки
+			# 
+			# пока не рассчитан программно, считается равным [0, 0]
+			# 
+			# массив вида [width, height], либо объект вида {width: int, height: int}
+			# 
+			@realSize = [0, 0]
+
+			# 
+			# размер объекта
+			# массив вида [width, height], либо объект вида {width: int, height: int}
+			# 
+			@setSize options.size
+
+			# 
+			# координаты точки, являющейся центром объекта,
+			# вокруг этой точки производится вращение объекта
+			# координаты точки задаются не относительно начала координат,
+			# а относительно левого верхнего угла объекта
+			# массив вида [x, y], либо объект вида {x: int, y: int}
+			# 
+			@setCenter options.center if options.center? or not options.anchor?
+
+			# 
+			# Якорь, дробное число, показывающее, где должен находиться цент относительно размеров объекта,
+			# т.е. center = size * anchor
+			# массив [number, number]
+			# 
+			@setAnchor options.anchor if options.anchor? and not options.center?
+
+			# 
+			# Свойство хранит коэффициенты для масштабирования объектов
+			# массив вида [x, y]
+			# 
+			@setScale options.scale
+
+			# 
+			# поворот объекта вокруг точки center по часовой стрелке, измеряется в градусах
+			# число
+			# 
 			@setRotation options.rotation
+
+			# 
+			# прозрачность объекта
+			# число от 0 до 1
+			# 
 			@setAlpha options.alpha
 
-		# размер
-		setSizes: (sizes) ->
-
-			@_sizes = @_point sizes if sizes?
-
-			@needAnimation = true
-
-		# позиция
-		setPosition: (position) ->
-
-			@_position = @_point position if position?
-
-			@needAnimation = true
-
-		# центр, вокруг которого происходит вращение
-		setCenter: (center) ->
-
-			@_center = @_point center if center?
-
-			@needAnimation = true
-
-		# поворот
-		setRotation: (rotation) ->
-
-			@_rotation = @_value rotation if rotation?
-
-			@needAnimation = true
-
-		# прозрачность
-		setAlpha: (alpha) ->
-
-			@_alpha = @_value alpha if alpha?
-
-			@needAnimation = true
-
-		# тень
-		# # ВНИМАНИЕ!
-		# В браузере firefox есть баг (на 25.04.17), а именно:
-		# при попытке нарисовать на канве изображение, используя одновременно
-		# маску и тень (setMask and setShadow в данном случае), получается
-		# странная хрень, а точнее маска НЕ работает в данном случае.
-		# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
-		setShadow: (options) ->
-
-			if options?
-
-				@_shadow = {
-
-					color: options.color or "#000"
-					blur: options.blur or 3
-					offsetX: options.offsetX or 0
-					offsetY: options.offsetY or 0
-					offset: options.offset or 0
-
-				}
-
-			else
-
-				@_shadow = false
-
-			@needAnimation = true
-
-		# анимация
-		animate: (context) ->
-
-			# если объект не видимый
-			# то рисовать его не нужно
-			unless @_visible
-
-				@needAnimation = false
-				return
-
-			# сохранить контекст
-			context.save()
-
-			# смещение
-			@_deltaX = @_position[0]
-			@_deltaY = @_position[1]
-
-			# установка тени
-			if @_shadow
-
-				context.shadowColor = @_shadow.color
-				context.shadowBlur = @_shadow.blur
-				context.shadowOffsetX = Math.max @_shadow.offsetX, @_shadow.offset
-				context.shadowOffsetY = Math.max @_shadow.offsetY, @_shadow.offset
-
-			# смещение и поворот холста
-			if @_rotation != 0
-
-				context.translate @_center[0] + @_position[0], @_center[1] + @_position[1]
-				context.rotate @_rotation * Math.PI / 180
-				@_deltaX = -@_center[0]
-				@_deltaY = -@_center[1]
-
-			# анимация больше не нужна
-			@needAnimation = false
-
-	#
-	#
-	# Graph class
-	#
-	#
-
-	class Graph extends DisplayObject
-
-		constructor: (options) ->
-
-			super options
-
-			# массив команд для рисования
-			@_commands = []
-
-			@needAnimation = false
-
-		# рисуем линию, соединяющую две точки
-		line: (fromX, fromY, toX, toY) ->
-
-			from = @_point fromX, fromY
-			to = @_point toX, toY
-
-			@_commands.push {
-
-				"command": "line"
-				"from": from
-				"to": to
-
-			}
-
-			@needAnimation = true
-
-		# очистка экрана и команд
-		clear: () -> 
-
-			@_commands = []
-			@needAnimation = true
-
-		# стиль линий
-		strokeStyle: (style) ->
-
-			@_commands.push {
-
-				"command": "strokeStyle"
-				"style": style
-
-			}
-
-		# стиль заливки
-		fillStyle: (style) ->
-
-			@_commands.push {
-
-				"command": "fillStyle"
-				"style": style
-
-			}
-
-		# устновка градиента
-		# colors = Array [ [size, color], .... ], где color:String, size:Number [0..1]
-		linearGradient: (x1, y1, x2, y2, colors) ->
-
-			@_commands.push {
-
-				"command": "gradient"
-				"point1": @_point x1, y1
-				"point2": @_point x2, y2
-				"colors": colors
-
-			}
-
-		# рисуем прямоугольник, если указан radius, то скругляем углы
-		rect: (fromX, fromY, width, height, radius = 0) ->
-
-			point = @_point fromX, fromY
-			sizes = @_point width, height
-
-			@_commands.push {
-
-				"command": "rect"
-				"point": point
-				"sizes": sizes
-				"radius": radius
-
-			}
-
-			@needAnimation = true
-
-		moveTo: (toX, toY) ->
-
-			point = @_point toX, toY
-
-			@_commands.push {
-
-				"command": "moveTo"
-				"point": point
-
-			}
-
-		lineTo: (toX, toY) ->
-
-			point = @_point toX, toY
-
-			@_commands.push {
-
-				"command": "lineTo"
-				"point": point
-
-			}
-
-			@needAnimation = true
-
-		fill: () ->
-
-			@_commands.push {
-
-				"command": "fill"
-
-			}
-
-			@needAnimation = true
-
-		stroke: () ->
-
-			@_commands.push {
-
-				"command": "stroke"
-
-			}
-
-			@needAnimation = true
-
-		# линия из множества точек
-		# второй параметр говорит, нужно ли ее рисовать,
-		# он нужен, чтобы рисовать многоугольники без границы
-		polyline: (points, stroke = true) ->
-
-			@_commands.push {
-
-				"command": "beginPath"
-
-			}
-
-			@moveTo points[0][0], points[0][1]
-
-			points.forEach (point) => @lineTo point[0], point[1]
-
-			if stroke
-
-				@_commands.push {
-
-					"command": "stroke"
-
-				}
-
-			@needAnimation = true
-
-		# полигон
-		polygon: (points) ->
-
-			@polyline points, false
-			@lineTo points[0][0], points[0][1]
-
-			@_commands.push {
-
-				"command": "stroke"
-
-			}
-			@_commands.push {
-
-				"command": "fill"
-
-			}
-
-			@needAnimation = true
-
-		# толщина линий
-		lineWidth: (width) ->
-
-			width = @_int width
-
-			@_commands.push {
-
-				"command": "lineWidth"
-				"width": width
-
-			}
-
-		# установка пунктирной линии
-		setLineDash: (dash) ->
-
-			@_commands.push {
-
-				"command": "setDash"
-				"dash": dash
-
-			}
-
-		# смещение пунктирной линии
-		lineDashOffset: (offset) ->
-
-			offset = @_int offset
-
-			@_commands.push {
-
-				"command": "dashOffset"
-				"offset": offset
-
-			}
-
-		# рисуем пряоугольник со скругленными углами
-		_drawRoundedRect: (context, x, y, width, height, radius) ->
-
-			# предварительные вычисления
-			pi = Math.PI
-			halfpi = pi / 2
-			x1 = x + radius
-			x2 = x + width - radius
-			y1 = y + radius
-			y2 = y + height - radius
-			# рисуем
-			context.moveTo x1, y
-			context.lineTo x2, y
-			context.arc x2, y1, radius, -halfpi, 0
-			context.lineTo x + width, y2
-			context.arc x2, y2, radius, 0, halfpi
-			context.lineTo x1, y + height
-			context.arc x1, y2, radius, halfpi, pi
-			context.lineTo x, y1
-			context.arc x1, y1, radius, pi, 3 * halfpi
-
-		animate: (context = @_context) ->
-
-			super context
-
-			# установим закругленные окончания линий
-			context.lineCap = "round"
-
-			# перебираем все команды в массиве команд и выполняем соответствующие действия
-			# можно было поменять строковые команды на числа вида 0, 1, 2 .... и т.д.,
-			# но зачем?
-			@_commands.forEach (command) =>
-
-				switch command.command
-
-					when "beginPath" then context.beginPath()
-
-					when "stroke" then context.stroke()
-
-					when "fill" then context.fill()
-
-					when "setDash" then context.setLineDash command.dash
-
-					when "dashOffset" then context.lineDashOffset = command.offset
-
-					when "moveTo" then context.moveTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
-
-					when "lineTo" then context.lineTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
-
-					when "line"
-
-						context.beginPath()
-						context.moveTo command.from[0] + @_deltaX, command.from[1] + @_deltaY
-						context.lineTo command.to[0] + @_deltaX, command.to[1] + @_deltaY
-						context.stroke()
-
-					when "strokeStyle" then context.strokeStyle = command.style
-
-					when "fillStyle" then context.fillStyle = command.style
-
-					when "lineWidth" then context.lineWidth = command.width
-
-					when "rect"
-
-						context.beginPath()
-						
-						# обычный прямоугольник
-						if command.radius == 0
-						
-							context.rect command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.sizes[0], command.sizes[1]
-
-						# прямоугольник со скругленными углами
-						else @_drawRoundedRect context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.sizes[0], command.sizes[1], command.radius
-
-					when "gradient"
-
-						# создаем градиент по нужным точкам
-						gradient = context.createLinearGradient command.point1[0] + @_deltaX, command.point1[1] + @_deltaY, command.point2[0] + @_deltaX, command.point2[1] + @_deltaY
-						# добавляем цвета
-						command.colors.forEach (color) ->
-							# сначала размер, потом цвет
-							gradient.addColorStop color[0], color[1]
-						# заливка градиентом
-						context.fillStyle = gradient
-
-			context.restore()
-
-			@needAnimation = false
-
-	#
-	#
-	# Text class
-	#
-	#
-	
-	class Text extends DisplayObject
-
-		constructor: (options) ->
-
-			super options
-
-			# шрифт
-			@setFont options.font
-			# текст
-			@setText(options.text or "")
-			# заливка
-			@fillStyle options.fillStyle
-			# обводка
-			@_strokeStyle = options.strokeStyle or false
-			# толщина обводки
-			@_strokeWidth = options.strokeWidth or 1
-
-			@needAnimation = true
-
-		setText: (text) ->
-
-			@_text = text
-
-			# определяем ширину текста
-			# используя для этого ссылку на контекст
-			@_context.save()
-			@_context.font = @_font
-			@width = @_context.measureText(@_text).width
-			@_context.restore()
-
-			@needAnimation = true
-
-		# если указать массив, то можно забацать градиент
-		# [[size, color], ... ]
-		fillStyle: (style) ->
-
-			@_fillStyle = style or false
-			@needAnimation = true
-
-		strokeStyle: (style) ->
-
-			@_strokeStyle = style or false
-			@needAnimation = true
-
-		setFont: (font) ->
-
-			@_font = font or "12px Arial"
-
-			# устанавливаем реальную высоту шрифта в пикселях
-			span = document.createElement "span"
-			span.appendChild document.createTextNode("height")
-			span.style.cssText = "font: " + @_font + "; white-space: nowrap; display: inline;"
-			document.body.appendChild span
-			@fontHeight = span.offsetHeight
-			document.body.removeChild span
-
-			@needAnimation = true
-
-		animate: (context = @_context) ->
-
-			super context
-
-			context.font = @_font
-			# по умолчанию позиционируем текст по верхнему краю
-			context.textBaseline = "top"
-			
-			if @_fillStyle
-
-				# а может зальем текст градиентом?
-				if Array.isArray @_fillStyle
-
-					# создаем градиент по нужным точкам
-					gradient = context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight
-					# добавляем цвета
-					@_fillStyle.forEach (color) ->
-						# сначала размер, потом цвет
-						gradient.addColorStop color[0], color[1]
-					# заливка градиентом
-					context.fillStyle = gradient
-
-				else context.fillStyle = @_fillStyle
-
-				context.fillText @_text, @_deltaX, @_deltaY
-
-			if @_strokeStyle
-
-				context.strokeStyle = @_strokeStyle
-				context.lineWidth = @_strokeWidth
-				context.strokeText @_text, @_deltaX, @_deltaY
-
-			context.restore()
-
-			@needAnimation = false
-
-	#
-	#
-	# Image class
-	#
-	#
-
-	class Image extends DisplayObject
+			# 
+			# прямоугольная маска, применимо к Scene
+			# если маска дейтсвует, то на сцене будет отображаться только объекты внутри маски
+			# массив [int, int, int, int] или false
+			# 
+			# ВНИМАНИЕ!
+			# В браузере firefox есть баг (на 25.04.17), а именно:
+			# при попытке нарисовать на канве изображение, используя одновременно
+			# маску и тень (mask и shadow в данном случае), получается
+			# странная хрень, а точнее маска НЕ работает в данном случае
+			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
+			# 
+			@setMask options.mask
+
+			# 
+			# тень объекта
+			# объект вида {color: string, blur: int, offsetX: int, offsetY: int, offset: int} или false
+			# не нужно указывать одновременно offsetX, offsetY и offset
+			# offset указывается вместо offsetX и offsetY, если offsetX == offsetY
+			# 
+			# ВНИМАНИЕ!
+			# В браузере firefox есть баг (на 25.04.17), а именно:
+			# при попытке нарисовать на канве изображение, используя одновременно
+			# маску и тень (mask и shadow в данном случае), получается
+			# странная хрень, а точнее маска НЕ работает в данном случае
+			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
+			#
+			@setShadow options.shadow
 
 		# 
-		# Изображение
+		# константа, для ускорения рассчетов
+		# используется в rad
 		# 
-		constructor: (options) ->
+		_PIDIV180: Math.PI / 180
 
-			super options
+	# 	# Абстрактный объект, отображаемый на экране	# 	class DisplayObject extends AbstractObject		# 		# свойсва:		# 		#  name: String - название объекта		#  type: String - тип объекта		#  context: Context2d - контекст для рисования		#  		# методы:		# 		#  testPoint(pointX, pointY) - проверка, пуста ли данная точка		#  testRect(pointX, pointY) - проверка, входит ли точка в прямоугольник объекта		#  animate() - попытка нарисовать объект		# 		constructor: (options) ->			# 			# конструктор базового класса			# 			super options			# 			# имя, задается пользователем, либо пустая строка			# используется для поиска по имени			# 			@name = options.name or ""			# 			# тип объекта, каждый класс пусть присваивает самостоятельно			# 			@type = "DisplayObject"			# 			# контекст для рисования			# либо это объект для рисования, тогда берем контекст у родителя (сцены)			# либо это сцена, тогда она сама создаст контекст			# 			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ			# 			@context = @parent.context unless @context?		# 		# проверяем, пуста ли точка с данными координатами		# 		# ВНИМАНИЕ!		# использовать этот метод ЛОКАЛЬНО нужно осторожно, так как		# в браузерах на основе chrome будет возникать ошибка безопасности		# (как будто пытаешься загрузить изображение с другого хоста).		# При загрузке кода на сервер работает во всех браузерах.		# 		testPoint: (pointX, pointY) ->			# 			# получаем координаты канваса в окне			# 			rect = if @canvas? then @canvas.getBoundingClientRect() else @parent.canvas.getBoundingClientRect()			# получаем координаты точки на канвасе, относительно самого канваса			# т.е. без учета родителей,			# считая началом координат левый верхний угол канваса			offsetX = pointX - rect.left			offsetY = pointY - rect.top			# данные пикселя			imageData = @context.getImageData offsetX, offsetY, 1, 1			# цвет пикселя			pixelData = imageData.data			# проверяем нужный метод?			pixelData.every = Array.prototype.every if not pixelData.every?			# проверяем все цвета, если 0, значит мимо			return not pixelData.every (value) -> value == 0		# 		# находится ли точка внутри объекта по его позиции / размерам		# 		testRect: (pointX, pointY) ->			# 			# если это НЕ сцена			# 			unless @canvas?				# 				# получаем координаты канваса сцены				# 				rect = @parent.canvas.getBoundingClientRect()								# 				# корректируем позицией и размерами объекта				# 				rect = {					left: rect.left + @position[0]					top: rect.top + @position[1]					right: rect.left + @position[0] + @size[0]					bottom: rect.top + @position[1] + @size[1]				}			# 			# а если это сцена, то просто получаем ее размеры			# 			else rect = @canvas.getBoundingClientRect()			# 			# собственно сравнение координат			# 			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)		# 		# анимация объекта, запускается автоматически,		# делать вручную это не нужно		# 		animate: () ->			# если объект не видимый			# то рисовать его не нужно			unless @visible				@needAnimation = false				return			# сохранить контекст			@context.save()			# смещение			@_deltaX = @position[0]			@_deltaY = @position[1]			# установка тени			if @shadow				@context.shadowColor = @shadow.color				@context.shadowBlur = @shadow.blur				@context.shadowOffsetX = Math.max @shadow.offsetX, @shadow.offset				@context.shadowOffsetY = Math.max @shadow.offsetY, @shadow.offset			if @scale[0] != 1 or @scale[1] != 1				@context.scale @scale[0], @scale[1]			# смещение и поворот холста			if @rotation != 0				@context.translate @center[0] + @position[0], @center[1] + @position[1]				@context.rotate @deg2rad(@rotation)				@_deltaX = -@center[0]				@_deltaY = -@center[1]			# анимация больше не нужна			@needAnimation = false
 
-			# событие, выполняемое при загрузке картинки
-			@onload = options.onload
+	# 	# Класс для рисования графических примитивов	# 	# методы:	# 	#  clear() - очистка экрана и команд	#  strokeStyle(String) - стиль линий	#  fillStyle(String) - стиль заливки	#  linearGradient(int, int, int, int, Array) - установка градиента	#  lineWidth(int) - толщина линий	#  setLineDash(int) - установка пунктирной линии	#  lineDashOffset(int) - смещение пунктирной линии	#  moveTo(int, int) - перемещение указателя	#  lineTo(int, int) - линия в указанную точку	#  line(int, int, int, int) - рисуем линию по двум точкам	#  rect(int, int, int, int, int) - рисуем прямоугольник (опционально скругленный)	#  polyline(Array, Boolean) - полилиния	#  polygon(Array) - полигон	#  fill() - заливка фигуры	#  stroke() - прорисовка контура	#  animate() - попытка нарисовать объект	#  log() - выводим массив комманд в консоль	# 	class Graph extends DisplayObject		constructor: (options) ->			super options			# массив команд для рисования			@_commands = []			@needAnimation = false		# 		# Далее идут функции для рисования графических примитивов		# Все они сохраняют свои данные в _commands		# 		# 		# очистка экрана и команд		# 		clear: () -> 			@_commands = []			@needAnimation = true		# 		# стиль линий		# 		strokeStyle: (style) ->			@_commands.push {				"command": "strokeStyle"				"style": style			}		# 		# стиль заливки		# 		fillStyle: (style) ->			@_commands.push {				"command": "fillStyle"				"style": style			}		# 		# устновка градиента		# colors = Array [ [size, color], .... ], где color:String, size:Number [0..1]		# 		linearGradient: (x1, y1, x2, y2, colors) ->			@_commands.push {				"command": "gradient"				"point1": @pixel x1, y1				"point2": @pixel x2, y2				"colors": colors			}		# 		# толщина линий		# 		lineWidth: (width) ->			@_commands.push {				"command": "lineWidth"				"width": @int width			}		# 		# установка пунктирной линии		# 		setLineDash: (dash) ->			@_commands.push {				"command": "setDash"				"dash": dash			}		# 		# смещение пунктирной линии		# 		lineDashOffset: (offset) ->			@_commands.push {				"command": "dashOffset"				"offset": @int offset			}		# 		# Перевод указателя в точку		# 		moveTo: (toX, toY) ->			@_commands.push {				"command": "moveTo"				"point": @pixel toX, toY			}		# 		# Линия из текущей точки в указанную		# 		lineTo: (toX, toY) ->			@_commands.push {				"command": "lineTo"				"point": @pixel toX, toY			}			@needAnimation = true		# 		# рисуем линию, соединяющую две точки,		# разница между moveTo + lineTo еще и в том, что line рисует линию,		# т.е. автоматически делает stroke()		# 		line: (fromX, fromY, toX, toY) ->			@_commands.push {				"command": "line"				"from": @pixel fromX, fromY				"to": @pixel toX, toY			}			@needAnimation = true		# 		# рисуем прямоугольник, если указан radius, то скругляем углы		# 		rect: (fromX, fromY, width, height, radius = 0) ->			@_commands.push {				"command": "rect"				"point": @pixel fromX, fromY				"size": @pixel width, height				"radius": @int radius			}			@needAnimation = true		# 		# линия из множества точек		# второй параметр говорит, нужно ли ее рисовать,		# он нужен, чтобы рисовать многоугольники без границы		# 		polyline: (points, stroke = true) ->			@_commands.push {				"command": "beginPath"			}			@moveTo points[0][0], points[0][1]			points.forEach (point) => @lineTo point[0], point[1]			if stroke then @stroke()			@needAnimation = true		# 		# полигон		# 		polygon: (points) ->			@polyline points, false			@lineTo points[0][0], points[0][1]			@stroke()			@fill()		# 		# Заливка		# 		fill: () ->			@_commands.push {				"command": "fill"			}			@needAnimation = true		# 		# Рисуем контур		# 		stroke: () ->			@_commands.push {				"command": "stroke"			}			@needAnimation = true		animate: () ->			super()			# 			# установим закругленные окончания линий			# 			@context.lineCap = "round"			# 			# перебираем все команды в массиве команд и выполняем соответствующие действия			# можно было поменять строковые команды на числа вида 0, 1, 2 .... и т.д.,			# но зачем?			# 			@_commands.forEach (command) =>				switch command.command					when "beginPath" then @context.beginPath()					when "stroke" then @context.stroke()					when "fill" then @context.fill()					when "setDash" then @context.setLineDash command.dash					when "dashOffset" then @context.lineDashOffset = command.offset					when "moveTo" then @context.moveTo command.point[0] + @_deltaX, command.point[1] + @_deltaY					when "lineTo" then @context.lineTo command.point[0] + @_deltaX, command.point[1] + @_deltaY					when "line"						@context.beginPath()						@context.moveTo command.from[0] + @_deltaX, command.from[1] + @_deltaY						@context.lineTo command.to[0] + @_deltaX, command.to[1] + @_deltaY						@context.stroke()					when "strokeStyle" then @context.strokeStyle = command.style					when "fillStyle" then @context.fillStyle = command.style					when "lineWidth" then @context.lineWidth = command.width					when "rect"						@context.beginPath()												# обычный прямоугольник						if command.radius == 0													@context.rect command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1]						# прямоугольник со скругленными углами						else @_drawRoundedRect @context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1], command.radius					when "gradient"						# создаем градиент по нужным точкам						gradient = @context.createLinearGradient command.point1[0] + @_deltaX, command.point1[1] + @_deltaY, command.point2[0] + @_deltaX, command.point2[1] + @_deltaY						# добавляем цвета						command.colors.forEach (color) ->							# сначала размер, потом цвет							gradient.addColorStop color[0], color[1]						# заливка градиентом						@context.fillStyle = gradient			@context.restore()			@needAnimation = false		# 		# В информационных целях		# выводим массив комманд в консоль		# 		log: () -> console.log @_commands		# 		# рисуем пряоугольник со скругленными углами		# 		_drawRoundedRect: (context, x, y, width, height, radius) ->			# предварительные вычисления			pi = Math.PI			halfpi = pi / 2			x1 = x + radius			x2 = x + width - radius			y1 = y + radius			y2 = y + height - radius			# рисуем			context.moveTo x1, y			context.lineTo x2, y			context.arc x2, y1, radius, -halfpi, 0			context.lineTo x + width, y2			context.arc x2, y2, radius, 0, halfpi			context.lineTo x1, y + height			context.arc x1, y2, radius, halfpi, pi			context.lineTo x, y1			context.arc x1, y1, radius, pi, 3 * halfpi
 
-			# загрузка или создание картинки
-			if options.src?
+	class Image extends DisplayObject		# 		# Класс для загрузки и отображения изображений		# 		# свойства:		# 		#  onload: Function - ссылка на функцию, которая должна выполниться после загрузки картинки		#  loaded: Boolean - загружена ли картинка		#  image: Image - объект картинки		#  loadedFrom: String - строка с адресом картинки		#  		# методы:		# 		#  src(string): загрузка картинки с указанным адресом		#  from(Object) - создание из уже существующей и загруженной картинки		#  animate() - попытка нарисовать объект		# 		constructor: (options) ->			# 			# создаем класс родителя			# 			super options			# 			# тип объекта			# 			@type = "image"			# 			# событие, выполняемое при загрузке картинки			# 			@onload = options.onload			# 			# Загружена ли картинка,			# в данный момент нет,			# а значит рисовать ее не нужно			# 			@loaded = false			@needAnimation = false			# 			# создаем элемент			# 			@image = document.createElement "img"			# 			# Событие при загрузке картинки			# 			@image.onload = @_imageOnLoad			# 			# Здесь будем хранить src картинки как строку.			# При вызове src картика загружается, а адрес устанавливается в loadedFrom			# При присвоении loadedFrom картинка не загружается			# Это просто строка для хранения адреса картинки			# 			@loadedFrom = ""			# 			# нужно ли загружать картинку			# 			if options.src?								@src options.src			# 			# или она уже загружена			# 			else 				@from options.from		# 		# Метод для загрузки картики		# 		src: (value) ->			@loaded = false			@needAnimation = false			@loadedFrom = value			# загружаем			@image.src = value		# 		# Создание картинки из уже созданной и загруженной		# 			# 	image: Image		# 	src: String // не обязательно		# 		from: (from, src) ->			# 			# если картинки нет, то нет смысла продолжать			# 			return unless from?			# 			# а вот и картинка			# 			@image = from			# 			# Запоминаем src			# 			@loadedFrom = src or ""			# 			# запоминаем реальные размеры			# 			@setRealSize [@image.width, @image.height]			# 			# если нужно меняем размеры			# иначе потом будем масштабировать			# 			@setSize @realSize if @size[0] <= 0 or @size[1] <= 0			# можно рисовать			@loaded = true			@needAnimation = true		animate: () ->			# 			# если картинка не загружена, то рисовать ее не будем			# 			return unless @loaded			# 			# действия по умолчанию для DisplayObject			# 			super()			# 			# рисуем в реальном размере?			# 			if @size[0] == @realSize[0] and @size[1] == @realSize[1]				@context.drawImage @image, @_deltaX, @_deltaY			else				# 				# тут масштабируем картинку				# 				@context.drawImage @image, @_deltaX, @_deltaY, @size[0], @size[1]			@context.restore()			@needAnimation = false		_imageOnLoad: (e) =>			# 			# запоминаем реальные размеры			# 			@setRealSize [@image.width, @image.height]			# 			# если нужно меняем размеры			# иначе потом будем масштабировать			# 			@setSize @realSize if @size[0] <= 0 or @size[1] <= 0			@loaded = true			@needAnimation = true			# 			# если у картинки есть свойство onload, то вызываем его и			# сообщаем реальные размеры картинки			# 			@onload @realSize if @onload?
 
-				# создаем элемент
-				@_image = document.createElement "img"
-				# картинка не загружена
-				@needAnimation = false
-				@_loaded = false
-				# загружаем картинку
-				@setSrc options.src
+	# 	# Класс для вывода текстовой информации	# 	# свойства:	# 	#  fontHeight: int - высота текста с текущим шрифтом	#  textWidth: int - ширина текущего текста	#  font: String - текущий шрифт	#  fillStyle: String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна	#  strokeStyle: String/Boolean - обводка шрифта или false, если обводка не нужна	#  strokeWidth: int - ширина обводки	#  text: String - отображаемый текст	#  	# методы:	# 	#  setFont()	#  setFillStyle()	#  setStrokeStyle()	#  setStrokeWidth()	#  setText()	#  animate() - попытка нарисовать объект	# 	class Text extends DisplayObject		constructor: (options) ->			super options			# 			# высота текста с текущим шрифтом,			# вычисляется автоматичекски при установке шрифта			# 			@fontHeight = 0			# 			# ширина текущего текста			# вычисляется автоматически при установке текста			# 			@textWidth = 0			_font = _fillStyle = _strokeStyle = _strokeWidth = _text = ""			# 			# шрифт надписи, строка			# 			@setFont options.font			# 			# текущая заливка, градиент или false, если заливка не нужна			# 			@setFillStyle options.fillStyle			# 			# обводка шрифта или false, если обводка не нужна			# 			@setStrokeStyle options.strokeStyle			# 			# ширина обводки			# 			@setStrokeWidth options.strokeWidth			# 			# текущий текст надписи			# 			@setText options.text		setFont: (value) ->			@font = value or "12px Arial"			# 			# устанавливаем реальную высоту шрифта в пикселях			# 			span = document.createElement "span"			span.appendChild document.createTextNode("height")			span.style.cssText = "font: " + @font + "; white-space: nowrap; display: inline;"			document.body.appendChild span			@fontHeight = span.offsetHeight			document.body.removeChild span			@needAnimation = true			@font		setFillStyle: (value) ->			@fillStyle = value or false			@needAnimation = true			@fillStyle		setStrokeStyle: (value) ->			@strokeStyle = value or false			@needAnimation = true			@strokeStyle		setStrokeWidth: (value) ->			@strokeWidth = @int(value) or 1			@needAnimation = true			@strokeWidth		setText: (value) ->			@text = value or ""			# 			# определяем ширину текста			# используя для этого ссылку на контекст			# 			@context.save()			@context.font = @font			@textWidth = @context.measureText(@text).width			@context.restore()			@needAnimation = true			@text		animate: () ->			super()			# 			# установим шрифт контекста			# 			@context.font = @font			# 			# по умолчанию позиционируем текст по верхнему краю			# 			@context.textBaseline = "top"						# 			# нужна ли заливка			# 			if @fillStyle				# а может зальем текст градиентом?				if Array.isArray @fillStyle					# 					# создаем градиент по нужным точкам					# 					gradient = @context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight					# 					# добавляем цвета					# 					@fillStyle.forEach (color) ->												# сначала размер, потом цвет						gradient.addColorStop color[0], color[1]					# 					# заливка градиентом					# 					@context.fillStyle = gradient				# 				# ну или просто цветом				# 				else @context.fillStyle = @fillStyle				# 				# выводим залитый текст				# 				@context.fillText @text, @_deltaX, @_deltaY			# 			# что насчет обводки?			# 			if @strokeStyle				@context.strokeStyle = @strokeStyle				@context.lineWidth = @strokeWidth				@context.strokeText @text, @_deltaX, @_deltaY			@context.restore()			@needAnimation = false
 
-			# картинка уже есть
-			else @from options.from
+	# 	# Изображение, которое замостит указанную область	# 	# свойства:	#  	#  rect:Array - прямоугольник для замастивания	#  	# методы:	# 	#  setRect()	#  animate() - попытка нарисовать объект 	# 	class TilingImage extends Image		constructor: (options) ->			super options			# 			# область замостивания по умолчанию равна размеру контекста			# 			# массив вида [int, int, int, int]			# 			@setRect options.rect		# 		# Установка области		# 		setRect: (value) ->			@rect = value or [0, 0, @parent.size[0], @parent.size[1]]			@needAnimation = true			@rect		animate: () ->			return unless @loaded			# 			# Начало отрисовки			# 			@context.beginPath()			# 			# создаем паттерн			# 			@context.fillStyle = @context.createPattern @image, "repeat"			# 			# рисуем прямоугольник			# 			@context.rect @rect[0], @rect[1], @rect[2], @rect[3]			# 			# заливаем паттерном			# 			@context.fill()			@context.restore()			@needAnimation = false
 
-		# загрузка картинки
-		setSrc: (src) ->
+	class Scene extends DisplayObject		# 		# Класс сцены, на который добавляются все дочерние объекты		# Фактически представляет собой canvas		# 		# свойства:		# 		#  stage: Element - родительский элемент для добавления canvas		#  canvas: Element - canvas для рисования, создается автоматически		#  context: context2d - контекст для рисования, создается автоматически		#  zIndex: int - индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными		#  		# методы:		# 		#  add(Object): DisplayObject - добавление дочернего объекта		#  animate() - попытка нарисовать объект		#  		# установка свойств:		# 		#  setZIndex()		#  setPosition()		#  setSize()		#  setCenter()		#  setRotation()		#  setAlpha()		# 		constructor: (options) ->			# 			# элемент для добавления канваса			# всегда должен быть			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ			# 			@stage = options.stage or document.body						# 			# создаем канвас			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ			# 			@canvas = document.createElement "canvas"			@canvas.style.position = "absolute"			@stage.appendChild @canvas			# 			# контекст			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ			# 			@context = @canvas.getContext "2d"			# 			# создаем DisplayObject			# 			super options			# 			# тип объекта			# 			@type = "scene"			# 			# индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными			# целое число >= 0			# 			@setZIndex options.zIndex			# 			# анимация пока не нужна (сцена пуста)			# 			@needAnimation = false		# 		# создание и добавление дочерних объектов в список анимации		# 		add: (options) ->			# 			# нет типа - нечего создавать			# 			return unless options.type?			# 			# если нужно, задаем значения по умолчанию			# 			options.visible = @visible unless options.visible?			options.shadow = @shadow unless options.shadow?			# 			# передаем себя, как родителя			# 			options.parent = @			# 			# создание объекта			# 			switch options.type				when "image" then result = new Image options				when "text" then result = new Text options				when "graph" then result = new Graph options				when "tile" then result = new TilingImage options			# 			# добавляем в список дочерних объектов			# 			@childrens.push result			# 			# возвращаем результат			# 			return result		# 		# анимация сцены		# 		animate: () ->			# 			# очистка контекста			# 			@context.clearRect 0, 0, @size[0], @size[1]			# 			# установка маски			# 			if @mask				@context.beginPath()				@context.rect @mask[0], @mask[1], @mask[2], @mask[3]				@context.clip()			# 			# анимация			# 			@childrens.forEach (child) -> child.animate()			# 			# анимация больше не нужна			# 			@needAnimation = false		# 		# Установка zIndex		# 		setZIndex: (value) ->			@zIndex = @int value			@canvas.style.zIndex = @zIndex			@zIndex		# 		# Далее функции, перегружающие свойсва экранного объекта,		# т.к. нам нужно в этом случае двигать, поворачивать и т.д. сам канвас		# 		setPosition: (value) ->			super value			# 			# двигаем канвас по экрану			# 			@canvas.style.left = @position[0] + "px"			@canvas.style.top = @position[1] + "px"			@position		setSize: (value) ->			super value			# 			# меняем размер канваса			# 			@canvas.width = @size[0]			@canvas.height = @size[1]			@size		setCenter: (value) ->			super value			# 			# сдвигаем начало координат в центр			# 			@context.translate @center[0], @center[1]			@center		setRotation: (value) ->			super value			# 			# поворот всего контекста на угол			# 			@context.rotate @deg2rad(@rotation)			@rotation		setAlpha: (value) ->			super value			@context.globalAlpha = @alpha			@alpha
 
-			# не загружена
-			@_loaded = false
-
-			@_image.onload = () => 
-
-				# запоминаем реальные размеры
-				@_realSizes = [@_image.width, @_image.height]
-
-				# если нужно меняем размеры
-				# иначе потом будем масштабировать
-				@_sizes = @_realSizes if (@_sizes[0] <= 0) or (@_sizes[1] <= 0)
-
-				@needAnimation = true
-
-				@_loaded = true
-
-				# если у картинки есть свойство onload, то вызываем его и
-				# сообщаем реальные размеры картинки
-				@onload @_realSizes if @onload?
-
-			@_image.src = src
-
-		# 
-		# options.from = {
-		# 
-		# 	image: Image
-		# 	src: String
-		# 	sizes: [Number, Number]
-		# 	
-		# }
-		# 
-		from: (from) ->
-
-			@_image = from.image
-			# получаем ее путь
-			@_src = from.src
-			# размеры
-			@_realSizes = from.sizes
-			# если нужно меняем размеры
-			# иначе потом будем масштабировать
-			@_sizes = @_realSizes if (@_sizes[0] <= 0) or (@_sizes[1] <= 0)
-			# можно рисовать
-			@_loaded = true
-			@needAnimation = true
-
-		# возвращаем размер
-		getSizes: () -> @_sizes
-		# реальный размер картинки
-		getRealSizes: () -> @_realSizes
-
-		animate: (context = @_context) ->
-
-			return unless @_loaded
-
-			super context
-
-			# в реальном размере
-			if (@_sizes[0] == @_realSizes[0]) and (@_sizes[1] == @_realSizes[1])
-
-				context.drawImage @_image, @_deltaX, @_deltaY
-
-			else
-
-				# в масштабе
-				context.drawImage @_image, @_deltaX, @_deltaY, @_sizes[0], @_sizes[1]
-
-			context.restore()
-
-			@needAnimation = false
+	# 	# Движок для Canvas	# 	class CanvasEngine extends AbstractObject		# 		# Главный класс, через него осуществляется взаимодействие с движком		# 		# свойства:		# 		#  scene: Scene - хранит имя активной сцены, возвращает сцену		#  		# методы:		# 		#  add(options): DisplayObject - метод для добавления новых объектов / сцен		#  remove(childName): Boolean - удаляем сцену		#  onTop(childName): Scene/Boolean - поднимаем сцену на верх отображения		#  start() - запускаем цикл анимации		#  stop() - останавливаем цикл анимации		#  addEvent(func) - добавить функцию, выполняемую каждый раз перед анимацией		#  removeEvent(func) - удалить функцию из цикла анимации		#  fullscreen(Boolean): Boolean - включить/выключить полноэкранный режим		#  isFullscreen(): Boolean - определяет, включен ли полноэкранный режим		#  canvasSupport(): Boolean - проверка, поддерживает ли браузер canvas и context		# 		constructor: (options) ->			# 			# проверка поддержки канвас и контекст			# 			unless @canvasSupport()				console.log "your browser not support canvas and/or context"				return false			# 			# базовые свойства и методы			# 			super options			# 			# если размеры движка не заданы, то пытаемся установить их равными			# размеру контейнера			# 			if @size[0] == 0 and @size[1] == 0				@setSize [@int(@parent.clientWidth), @int(@parent.clientHeight)]			# 			# массив функций для выполнения в цикле перед анимацией			# 			@_beforeAnimate = []			# 			# Свойство хранит имя активной сцены в виде строки			# 			@_scene = "default"			# 			# создаем сцену по умолчанию			#			@add {				type: "scene"				name: "default"			}			# 			# запуск анимации			# 			@start()		# 		# Глобальная функция для добавления всего, что угодно		# 		add: (options) ->			# 			# создаем пустой объект, если необходимо			# 			options = {} unless options?			# 			# тип добавляемого объекта,			# по умолчанию - сцена			# 			type = options.type or "scene"			# 			# добавить сцену?			# 			if type == "scene"				@_createScene options			# 			# добавление всего остального, кроме сцен			# 			else				# 				# на какую сцену добавить объект?				# 				scene = @get options.scene				# 				# если в опциях не указана сцена, то добавляем на активную сцену				# 				scene = @getActive() unless scene				# 				# если в списке нет ниодной сцены, создадим сцену по умолчанию				# 				unless scene					scene = @add {						type: "scene"						name: "default"					}				# 				# добавляем объект на нужную сцену				# 				scene.add options		# 		# удаляем сцену по ее имени		# отдельная функция, т.к. тут нужно удалить канвас с элемента		# 		remove: (childName) ->			index = @index childName			if index == -1 then return false			@parent.removeChild @childrens[index].canvas			@childrens.splice index, 1			return true		# 		# переносим сцену на верх отображения		# для чего делаем ее zIndex на 1 больше максимального из существующих		# 		onTop: (childName) ->			maxZ = 0			result = false			@childrens.forEach (child) ->				maxZ = child.zIndex if child.zIndex > maxZ				result = child if childName == child.name			result.setZIndex maxZ + 1 if result			return result		# 		# Возвращает активную сцену		# 		getActive: () ->			result = @get @_scene			result = @childrens[0] unless result			result = false unless result			result		# 		# Устанавливает активную сцену по ее имени		# 		setActive: (sceneName) ->			@_scene = sceneName or "default"			@getActive()		# 		# запуск анимации		# 		start: () -> @_render = requestAnimationFrame @_animate		# 		# остановка анимации		# 		stop: () -> cancelAnimationFrame @_render		# 		# добавить функцию для выполнения в цикле		# функции выполняются в порядке добавления		# ПЕРЕД аниамацией		# 		addEvent: (func) -> @_beforeAnimate.push func		# 		# удаление функции из массива		# эта функция больше не будет выполняться перед анимацией		# 		removeEvent: (func) ->			@_beforeAnimate.forEach (item, i) => @_beforeAnimate.splice i, 1 if item == func		# 		# установить / снять полноэкранный режим		# для элемента parent		# 		fullscreen: (value = true) ->			if value				if @parent.requestFullScreen? then @parent.requestFullScreen()				else if @parent.webkitRequestFullScreen? then @parent.webkitRequestFullScreen()				else if @parent.mozRequestFullScreen? then @parent.mozRequestFullScreen()				else return false			else				if document.cancelFullScreen? then document.cancelFullScreen()				else if document.webkitCancelFullScreen? then document.webkitCancelFullScreen()				else if document.mozCancelFullScreen? then document.mozCancelFullScreen()				else if document.exitFullScreen? then document.exitFullScreen()				else return false			return true		# проверка, находится ли документ в полноэкранном режиме		isFullscreen: () -> 			element = document.fullscreenElement or document.webkitFullscreenElement or document.mozFullscreenElement			element?		# 		# проверка, поддерживает ли браузер canvas и context		# 		canvasSupport: () -> document.createElement("canvas").getContext?		# 		# создание сцены с нужными опциями		# 		_createScene: (options) ->			# 			# если нужно, задаем значения по умолчанию			# 			options.visible = @visible unless options.visible?			options.position = @position unless options.position?			options.size = @size unless options.size?			options.center = @center unless options.center?			options.rotation = @rotation unless options.rotation?			options.alpha = @alpha unless options.alpha?			options.mask = @mask unless options.mask?			options.shadow = @shadow unless options.shadow?			# 			# передаем себя, как родителя			# 			options.parent = @			# 			# передаем родителя, как элемент для создания канваса			# 			options.stage = @parent			# 			# создаем сцену			# 			scene = new Scene options			# 			# добавляем в список дочерних объектов			# 			@childrens.push scene			# 			# делаем новую сцену активной			# 			@scene = scene.name			return scene		# 		# цикл анимации, запускается автоматически,		# не нужно это делать вручную,		# для этого есть методы start() и stop()		# 		_animate: () =>			# 			# выполняем все функции в массиве			# 			@_beforeAnimate.forEach (func) -> func()			# 			# АНИМАЦИЯ ТУТ			# 			# а может не надо?			@needAnimation = false						# перебираем сцены			@childrens.forEach (child) =>				# для каждой сцены проверяем дочерние элементы				needAnimation = child.needAnimation or child.childrens.some (childOfChild) ->					# нужно ли рисовать этот дочерний элемент сцены					childOfChild.needAnimation				# собственно анимация				child.animate() if needAnimation				# сохраняем значение				@needAnimation = @needAnimation or needAnimation			# 			# продолжаем анимацию			# 			@_render = requestAnimationFrame @_animate
 
 	#
+	# Возвращаем результат
 	#
-	# TilingImage class
-	#
-	#
-
-	class TilingImage extends Image
-
-		# 
-		# Изображение, которое замостит указанную область
-		# 
-		constructor: (options) ->
-
-			super options
-
-			# область замостивания по умолчанию равна размеру контекста
-			@_rect = options.rect or [0, 0, options.parent.sizes[0], options.parent.sizes[1]]
-
-		# установка области
-		setRect: (rect) ->
-
-			@_rect = rect
-			@needAnimation = true
-
-		animate: (context = @_context) ->
-
-			return unless @_loaded
-
-			super context
-
-			# создаем паттерн
-			context.fillStyle = context.createPattern @_image, "repeat"
-			# рисуем прямоугольник
-			context.rect @_rect[0], @_rect[1], @_rect[2], @_rect[3]
-			# заливаем паттерном
-			context.fill()
-
-			context.restore()
-
-			@needAnimation = false
-
-	#
-	#
-	# Scene class
-	#
-	#
-
-	class Scene extends base
-
-		# 
-		# Сцена
-		# 
-		constructor: (options) ->
-
-			super options
-
-			# имя
-			@name = options.name
-
-			# позиция родителя для расчетов
-			@_parentPosition = options.parentPosition
-
-			# имя сцены FPS является зарезервированным
-			# не желательно использовать это имя для своих сцен
-			# во избежание проблем
-
-			# канвас
-			@canvas = document.createElement "canvas"
-			@canvas.style.position = "absolute"
-			# z индекс
-			@setZ options.zIndex
-
-			# контекст
-			@context = @canvas.getContext "2d"
-			
-			# установка опций
-			@setTransform options
-			# маска отключена
-			@_mask = false
-			# анимация пока не нужна
-			@_needAnimation = false
-			# список объектов для анимации
-			@objects = []
-
-		# сдвигаем все объекты на сцене на нужную величину по осям
-		shift: (deltaX = 0, deltaY = 0) ->
-
-			@objects.forEach (_object) -> _object.shift deltaX, deltaY
-
-		# установка z-индекса
-		setZ: (value) ->
-
-			@_zIndex = @_int value
-			@canvas.style.zIndex = @_zIndex
-
-		# получить z-индекс
-		getZ: () -> @_zIndex
-
-		# добавление объектов в список анимации
-		add: (options) ->
-
-			return unless options.type?
-
-			# передаем некоторые свойства родителя
-			options.parent = {}
-			# контекст нужен для рисования
-			options.parent.context = @context
-			# а вот позицию и размеры можно передать на всякий случай
-			options.parent.position = [@_position[0] + @_parentPosition[0], @_position[1] + @_parentPosition[1]]
-			options.parent.sizes = @_sizes
-
-			switch options.type
-
-				when "image" then result = new Image options
-				when "text" then result = new Text options
-				when "graph" then result = new Graph options
-				when "tile" then result = new TilingImage options
-
-			@objects.push result
-
-			# передаем в объект метод
-			# для получения ссылки
-			# на эту самую сцену
-			result.getScene = () => @
-
-			return result
-
-		# поиск объекта по его имени
-		get: (objectName) ->
-
-			answer = false
-
-			# перебор всех объектов, пока не встретим нужный
-			@objects.some (_object) -> 
-
-				flag = _object.name == objectName
-				answer = _object if flag
-				return flag
-
-			return answer
-
-		# удаляем объект по его имени
-		remove: (objectName) ->
-
-			index = -1
-
-			# перебор всех объектов, пока не встретим нужный
-			@objects.some (_object, i) -> 
-
-				flag = _object.name == objectName
-				index = i if flag
-				return flag
-
-			if index > -1
-
-				@objects.splice index, 1
-				return true
-
-			return false
-
-		# добавляем внешний объект в список отображения
-		addChild: (_object) ->
-
-			@objects.push _object
-			@_needAnimation = true
-
-		# удалить внешний объект из списка отображения
-		removeChild: (_object) ->
-
-			index = -1
-
-			# перебор всех объектов, пока не встретим нужный
-			@objects.some (_object2, i) -> 
-
-				flag = _object2 == _object
-				index = i if flag
-				return flag
-
-			if index > -1
-
-				@objects.splice index, 1
-				return true
-
-			return false
-
-		# нужна ли анимация
-		needAnimation: () ->
-
-			@_needAnimation or @objects.some (_object) -> _object.needAnimation
-
-		# проверяем, пуста ли точка с данными координатами
-		# ВНИМАНИЕ!
-		# использовать этот метод ЛОКАЛЬНО нужно осторожно, так как
-		# в браузерах на основе chrome будет возникать ошибка безопасности
-		# (как будто пытаешься загрузить изображение с другого хоста).
-		# В firefox работает и локально без проблем.
-		# При загрузке кода на сервер работает во всех браузерах.
-		testPoint: (pointX, pointY) ->
-
-			# получаем координаты точки на канвасе, относительно самого канваса
-			# т.е. без учета родителей,
-			# считая началом координат левый верхний угол канваса
-			offsetX = pointX - @_position[0] - @_parentPosition[0]
-			offsetY = pointY - @_position[1] - @_parentPosition[1]
-
-			# данные пикселя
-			imageData = @context.getImageData offsetX, offsetY, 1, 1
-			# цвет пикселя
-			pixelData = imageData.data
-
-			# проверяем нужный метод?
-			pixelData.every = Array.prototype.every if not pixelData.every?
-
-			# проверяем все цвета, если 0, значит мимо
-			return not pixelData.every (value) -> value == 0
-
-
-		# находится ли точка внутри объекта по его позиции / размерам
-		testRect: (pointX, pointY) ->
-
-			rect = {
-
-				left: @_position[0] + @_parentPosition[0]
-				top: @_position[1] + @_parentPosition[1]
-
-			}
-
-			rect.right = rect.left + @_sizes[0]
-			rect.bottom = rect.top + @_sizes[1]
-
-			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
-
-		# получить размеры сцены
-		getSizes: () -> @_sizes
-
-		# установка прямоугольной маски
-		# ВНИМАНИЕ!
-		# В браузере firefox есть баг (на 25.04.17), а именно:
-		# при попытке нарисовать на канве изображение, используя одновременно
-		# маску и тень (setMask and setShadow в данном случае), получается
-		# странная хрень, а точнее маска НЕ работает в данном случае.
-		# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
-		setMask: (x, y, width, height) ->
-
-			if arguments.length < 4
-
-				# если меньше четырех аргументов,
-				# просто удаляем маску
-				@_mask = false
-
-			else
-
-				@_mask = {
-
-					x: @_int x
-					y: @_int y
-					width: @_int width
-					height: @_int height
-
-				}
-
-			@_needAnimation = true
-
-		# установка опций
-		setTransform: (options) ->
-
-			@setSizes options.sizes
-			@setPosition options.position
-			@setCenter options.center
-			@setRotation options.rotation
-			@setAlpha options.alpha
-
-		# размер
-		setSizes: (sizes) ->
-
-			@_sizes = @_point sizes if sizes?
-
-			@canvas.width = @_sizes[0]
-			@canvas.height = @_sizes[1]
-
-			@_needAnimation = true
-
-		# позиция
-		setPosition: (position) ->
-
-			@_position = @_point position if position?
-
-			@canvas.style.left = @_position[0] + "px"
-			@canvas.style.top = @_position[1] + "px"
-
-			@_needAnimation = true
-
-		# центр
-		setCenter: (center) ->
-
-			@_center = @_point center if center?
-
-			@context.translate @_center[0], @_center[1]
-
-			@_needAnimation = true
-
-		# поворот
-		setRotation: (rotation) ->
-
-			@_rotation = @_value rotation if rotation?
-
-			@context.rotation = @_rotation * Math.PI / 180
-
-			@_needAnimation = true
-
-		# прозрачность
-		setAlpha: (alpha) ->
-
-			@_alpha = @_value alpha if alpha?
-
-			@context.globalAlpha = @_alpha
-			@_needAnimation = true
-
-		# анимация сцены
-		animate: () ->
-
-			# очистка контекста
-			@context.clearRect 0, 0, @canvas.width, @canvas.height
-
-			# установка маски
-			if @_mask
-
-				@context.beginPath()
-				@context.rect @_mask.x, @_mask.y, @_mask.width, @_mask.height
-				@context.clip()
-
-			# анимация
-			@objects.forEach (_object) => _object.animate()
-
-			# анимация больше не нужна
-			@_needAnimation = false
-
-	#
-	#
-	# Scenes class
-	#
-	#
-
-	# 
-	# Управление сценами
-	# 
-	# Все сцены добавляются на глобальное поле stage
-	# Сцена не может содержать в себе другую сцену
-	# 
-	class Scenes
-
-		constructor: (stage) ->
-
-			# массив сцен
-			@_scenes = []
-			# глобальный объект / родитель сцен
-			@_stage = stage
-			# имя активной сцены
-			@_activeSceneName = ""
-
-		# создание сцены
-		create: (options) ->
-
-			# имя сцены FPS является зарезервированным
-			# не желательно использовать это имя для своих сцен
-			# во избежание проблем
-
-			# получаем имя сцены
-			sceneName = options.name or "default"
-			# пробуем найти, нет ли уже такой сцены
-			scene = @get sceneName
-			# если нет
-			unless scene
-				
-				# вычисляем позицию родителя и передаем ее в сцену
-				stagePosition = [@_stage.offsetLeft, @_stage.offsetTop]
-				options.parentPosition = stagePosition
-
-				# создаем
-				scene = new Scene options
-				@_stage.appendChild scene.canvas
-				@_scenes.push scene
-
-			# если нужно, устанавливаем сцену активной
-			setActive = if options.setActive? then options.setActive else true
-			@_activeSceneName = sceneName if setActive
-
-			return scene
-
-		# получаем имя активной сцены
-		active: () -> @_activeSceneName
-
-		# устанавливаем активную сцену по имени
-		@.prototype.active.set = (sceneName) ->
-
-			# ищем сцену
-			scene = @get sceneName
-			# если она существует, устанавливаем ее имя в активное
-			@_activeSceneName = sceneName if scene
-			# возвращаем результат
-			return scene
-
-		# возвращаем активную сцену
-		@.prototype.active.get = () -> @get @_activeSceneName
-
-		# ищем сцену по имени
-		get: (sceneName) ->
-
-			answer = false
-
-			# перебор всех сцен, пока не встретим нужную
-			@_scenes.some (scene) -> 
-
-				flag = scene.name == sceneName
-				answer = scene if flag
-				return flag
-
-			return answer
-
-		# удаление сцены по имени
-		remove: (sceneName) ->
-
-			# ищем индекс сцены
-			index = @_index sceneName
-			# если такая сцена есть
-			if index > -1
-
-				# удаляем канвас с экрана
-				@_stage.removeChild @_scenes[index].canvas
-				# удаляем сцену из массива сцен
-				@_scenes.splice index, 1
-				return true
-
-			return false
-
-		# переименовать сцену
-		rename: (sceneName, newName) ->
-
-			# ищем сцену с нужным именем
-			scene = @get sceneName
-
-			# если она существует, меняем ей имя
-			scene.name = newName if scene
-
-			return scene
-
-		# поднимаем сцену на верх отображения
-		onTop: (sceneName) ->
-
-			maxZ = 0
-			result = false
-
-			@_scenes.forEach (scene) ->
-
-				maxZ = scene.getZ() if scene.getZ() > maxZ
-				result = scene if sceneName == scene.name
-
-			result.setZ maxZ + 1 if result
-
-			return result
-
-		# нужна ли анимация хоть одной сцены
-		needAnimation: () ->
-
-			@_scenes.some (scene) -> scene.needAnimation()
-
-		# анимация всех сцен, если нужно
-		animate: () ->
-
-			@_scenes.forEach (scene) -> scene.animate() if scene.needAnimation()
-
-		# получить индекс сцены по ее имени
-		_index: (sceneName) ->
-
-			index = -1
-
-			# перебор всех сцен, пока не встретим нужную
-			@_scenes.some (scene, i) -> 
-
-				flag = scene.name == sceneName
-				index = i if flag
-				return flag
-
-			return index
-
-	#
-	#
-	# FPS class
-	#
-	#
-
-	class FPS
-
-		# 
-		# Служебный класс для рисования таблички
-		# с отображением
-		# FPS - Frame Per Seconds
-		# UPS - Update Per Seconds
-		# 
-		# UPS показывает сколько реально раз происходила перерисовка чего либо
-		# 
-		constructor: (options) ->
-
-			@_scene = options.scene
-			
-			# граф для прорисовки
-			@_graph = @_scene.add { type: "graph" }
-
-			# массив значений
-			@_values = []
-
-			# зеленая надпись
-			@_caption = @_scene.add {
-
-				type: "text"
-				fillStyle: "#00FF00"
-				font: "10px Arial"
-				position: [3, 1]
-
-			}
-
-			# красная надпись
-			@_caption2 = @_scene.add {
-
-				type: "text"
-				fillStyle: "#FF0000"
-				font: "10px Arial"
-				position: [48, 1]
-
-			}
-
-			# запускаем
-			@start()
-			# рисуем
-			@_onTimer()
-
-		start: () ->
-
-			@_counter = @_updateCounter = @_FPSValue = 0
-			@_interval = setInterval @_onTimer, 1000
-
-		stop: () ->
-
-			clearInterval @_interval
-			@_counter = @_updateCounter = @_FPSValue = 0
-
-		_onTimer: () =>
-
-			@_FPSValue = @_counter
-			@_counter = 0
-			@_updateValue = @_updateCounter
-			@_updateCounter = 0
-			# записываем значения в массив
-			@_values.push [@_FPSValue, @_updateValue]
-			# лишние выкидываем
-			@_values.shift() if @_values.length == 84
-
-			# начинаем рисовать
-			@_graph.clear()
-			@_graph.fillStyle "#000"
-			@_graph.rect 0, 0, 90, 40
-			@_graph.fill()
-
-			for i in [0 ... @_values.length]
-
-				x = 87 - @_values.length + i
-				fps = @_values[i][0]
-				ups = @_values[i][1]
-
-				@_graph.strokeStyle "#00FF00"
-				@_graph.line x, 37, x, 37 - 23 * fps / 60
-				@_graph.strokeStyle "#FF0000"
-				@_graph.line x, 37, x, 37 - 23 * ups / 60
-
-			@_caption.setText "FPS: " + @_FPSValue
-			@_caption2.setText "UPS: " + @_updateValue
-
-		# эту функцию нужно вызывать в цикле анимации
-		# для подсчета значений
-		update: (needAnimation) ->
-
-			@_counter++
-			@_updateCounter++ if needAnimation
-
-	#
-	#
-	# CanvasEngine class
-	#
-	#
-
-	# 
-	# Движок для Canvas
-	# 
-	class CanvasEngine extends base
-
-		# 
-		# options = {
-		# 
-		# 	parent: DomElement
-		# 	rotation: number
-		# 	alpha: number
-		# 	
-		# 	sizes: Array / Object
-		# 	center: Array / Object
-		# 	
-		# 	showFPS: Boolean
-		# 	
-		# }
-		# 
-		constructor: (options) ->
-
-			# проверка поддержки канвас и котекст
-			unless @_canvasSupport()
-
-				console.log "your browser not support canvas and/or context"
-				return false
-
-			# базовые свойства и методы
-			super options
-			# родитель
-			@_parent = options.parent or document.body
-			# менеджер сцен
-			@scenes = new Scenes(@_parent)
-			# массив функций для выполнения в цикле перед анимацией
-			@_beforeAnimate = []
-
-			# нужно ли показывать фпс
-			@_showFPS = if options.showFPS? then options.showFPS else true
-			# создаем счетчик, если нужно
-			if @_showFPS
-
-				# сцена для фпс
-				scene = @scenes.create {
-
-					name: "FPS"
-					sizes: [90, 40]
-					position: [@_sizes[0] - 95, 5]
-					# чтобы сцена была выше всех
-					zIndex: 99999
-					setActive: false
-
-				}
-				# счетчик
-				@_FPS = new FPS { scene: scene }
-
-			# запуск анимации
-			@start()
-
-		# запуск анимации
-		start: () -> @_render = requestAnimationFrame @_animate
-
-		# остановка анимации
-		stop: () -> cancelAnimationFrame @_render
-
-		# добавить функцию для выполнения в цикле
-		# функции выполняются в порядке добавления
-		# ПЕРЕД аниамацией
-		addEvent: (handler) -> @_beforeAnimate.push handler
-
-		# удаление функции из массива
-		removeEvent: (handler) ->
-
-			@_beforeAnimate.forEach (item, i) => @_beforeAnimate.splice i, 1 if item == handler
-
-		# 
-		# Глобальная функция для добавления всего, что угодно
-		# 
-		add: (options) ->
-
-			# имя сцены FPS является зарезервированным
-			# не желательно использовать это имя для своих сцен
-			# во избежание проблем
-
-			# тип добавляемого объекта,
-			# по умолчанию - сцена
-			type = options.type or "scene"
-
-			# добавить сцену?
-			if type == "scene"
-
-				# размеры сцены по умолчанию равны размерам движка
-				options.sizes = @_sizes unless options.sizes?
-				options.position = @_position unless options.position?
-
-				@scenes.create options
-
-			else
-
-				# на какую сцену добавить объект?
-				sceneName = options.scene or @scenes.active() or "default"
-				# если такой сцены нет, то создадим ее
-				scene = @scenes.create {
-
-					name: sceneName
-					sizes: @_sizes
-					position: @_position
-
-				}
-
-				# добавляем объект на нужную сцену
-				scene.add options
-
-		# установить / снять полноэкранный режим
-		# для элемента parent
-		fullscreen: (value = true) ->
-
-			if value
-
-				if @_parent.requestFullScreen? then @_parent.requestFullScreen()
-				else if @_parent.webkitRequestFullScreen? then @_parent.webkitRequestFullScreen()
-				else if @_parent.mozRequestFullScreen? then @_parent.mozRequestFullScreen()
-				else return false
-
-			else
-
-				if document.cancelFullScreen? then document.cancelFullScreen()
-				else if document.webkitCancelFullScreen? then document.webkitCancelFullScreen()
-				else if document.mozCancelFullScreen? then document.mozCancelFullScreen()
-				else if document.exitFullScreen? then document.exitFullScreen()
-				else return false
-
-			return true
-
-		# проверка, находится ли документ в полноэкранном режиме
-		isFullscreen: () -> 
-
-			element = document.fullscreenElement or document.webkitFullscreenElement or document.mozFullscreenElement
-			element?
-
-		# проверка, поддерживает ли браузер canvas и context
-		_canvasSupport: () -> document.createElement("canvas").getContext?
-
-		# цикл анимации
-		_animate: () =>
-
-			# выполняем все функции в массиве
-			@_beforeAnimate.forEach (handler) ->
-
-				handler() if typeof(handler) == "function"
-
-			# проверка, нужна ли анимация
-			needAnimation = @scenes.needAnimation()
-
-			# если анимация нужна, делаем ее
-			@scenes.animate() if needAnimation
-
-			# обновляем фпс
-			@_FPS.update needAnimation if @_showFPS
-
-			# продолжаем анимацию
-			@_render = requestAnimationFrame @_animate
-
-	# 
-	# возвращаем значение
-	# 
-
 	return CanvasEngine
