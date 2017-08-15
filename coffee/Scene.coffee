@@ -14,6 +14,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 		#  canvas: Element - canvas для рисования, создается автоматически
 		#  context: context2d - контекст для рисования, создается автоматически
 		#  zIndex: int - индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
+		#  needAnimation: Boolean - нужно ли анимировать данный объект с точки зрения движка
 		#  
 		# методы:
 		# 
@@ -53,9 +54,21 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			@context = @canvas.getContext "2d"
 
 			# 
+			# Буфер для рисования
+			# 
+			@_buffer = document.createElement "canvas"
+			@_bufferContext = @_buffer.getContext "2d"
+
+			# 
 			# создаем DisplayObject
 			# 
 			super options
+
+			@move @position
+			@resize @size
+			@focus @center
+			@rotate @rotation
+			@opasity @alpha
 
 			# 
 			# тип объекта
@@ -66,10 +79,25 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
 			# целое число >= 0
 			# 
-			@setZIndex options.zIndex
+			@float options.zIndex
 
 			# 
-			# анимация пока не нужна (сцена пуста)
+			# прямоугольная маска, применимо к Scene
+			# если маска дейтсвует, то на сцене будет отображаться только объекты внутри маски
+			# массив [int, int, int, int] или false
+			# 
+			# ВНИМАНИЕ!
+			# В браузере firefox есть баг (на 25.04.17), а именно:
+			# при попытке нарисовать на канве изображение, используя одновременно
+			# маску и тень (mask и shadow в данном случае), получается
+			# странная хрень, а точнее маска НЕ работает в данном случае
+			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
+			# 
+			@masking options.mask
+
+			# 
+			# нужно ли анимировать данный объект с точки зрения движка
+			# не нужно в ручную менять это свойство, для этого есть visible
 			# 
 			@needAnimation = false
 
@@ -115,38 +143,19 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			return result
 
 		# 
-		# анимация сцены
+		# Установка прямоугольной маски для рисования
 		# 
-		animate: () ->
+		masking: (value) ->
 
-			# 
-			# очистка контекста
-			# 
-			@context.clearRect 0, 0, @size[0], @size[1]
+			if (not value?) or (not value) then @mask = false else @mask = value
 
-			# 
-			# установка маски
-			# 
-			if @mask
-
-				@context.beginPath()
-				@context.rect @mask[0], @mask[1], @mask[2], @mask[3]
-				@context.clip()
-
-			# 
-			# анимация
-			# 
-			@childrens.forEach (child) -> child.animate()
-
-			# 
-			# анимация больше не нужна
-			# 
-			@needAnimation = false
+			@needAnimation = true
+			@mask
 
 		# 
 		# Установка zIndex
 		# 
-		setZIndex: (value) ->
+		float: (value) ->
 
 			@zIndex = @int value
 			@canvas.style.zIndex = @zIndex
@@ -157,9 +166,9 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 		# т.к. нам нужно в этом случае двигать, поворачивать и т.д. сам канвас
 		# 
 
-		setPosition: (value) ->
+		move: (value1, value2) ->
 
-			super value
+			super value1, value2
 
 			# 
 			# двигаем канвас по экрану
@@ -168,28 +177,31 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			@canvas.style.top = @position[1] + "px"
 			@position
 
-		setSize: (value) ->
+		resize: (value1, value2) ->
 
-			super value
+			super value1, value2
 
 			# 
 			# меняем размер канваса
 			# 
 			@canvas.width = @size[0]
 			@canvas.height = @size[1]
+			@_buffer.width = @size[0]
+			@_buffer.height = @size[1]
 			@size
 
-		setCenter: (value) ->
+		focus: (value1, value2) ->
 
-			super value
+			super value1, value2
 
 			# 
 			# сдвигаем начало координат в центр
 			# 
 			@context.translate @center[0], @center[1]
+			@_bufferContext.translate @center[0], @center[1]
 			@center
 
-		setRotation: (value) ->
+		rotate: (value) ->
 
 			super value
 
@@ -197,11 +209,67 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# поворот всего контекста на угол
 			# 
 			@context.rotate @deg2rad(@rotation)
+			@_bufferContext.rotate @deg2rad(@rotation)
 			@rotation
 
-		setAlpha: (value) ->
+		opasity: (value) ->
 
 			super value
 
 			@context.globalAlpha = @alpha
+			@_bufferContext.globalAlpha = @alpha
 			@alpha
+
+		# 
+		# анимация сцены
+		# 
+		animate: () ->
+
+			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			return unless @visible
+
+			# 
+			# может не надо?
+			# 
+			return unless @needAnimation
+
+			# 
+			# очистка контекста
+			# 
+			# @_bufferContext.clearRect 0, 0, @size[0], @size[1]
+			@context.clearRect 0, 0, @size[0], @size[1]
+
+			# 
+			# установка маски
+			# 
+			if @mask
+
+				@_bufferContext.beginPath()
+				@_bufferContext.rect @mask[0], @mask[1], @mask[2], @mask[3]
+				@_bufferContext.clip()
+
+			# 
+			# анимация в буфер
+			# 
+			@childrens.forEach (child) => 
+
+				# @_bufferContext.save()
+				@context.save()
+				# child.animate @_bufferContext
+				child.animate @context
+				# @_bufferContext.restore()
+				@context.restore()
+
+			# 
+			# рисуем на основной канвас
+			# 
+			# @context.clearRect 0, 0, @size[0], @size[1]
+			# @context.drawImage @_buffer, 0, 0
+
+			# 
+			# анимация больше не нужна
+			# 
+			@needAnimation = false

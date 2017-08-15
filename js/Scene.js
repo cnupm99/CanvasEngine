@@ -15,9 +15,17 @@
         this.canvas.style.position = "absolute";
         this.stage.appendChild(this.canvas);
         this.context = this.canvas.getContext("2d");
+        this._buffer = document.createElement("canvas");
+        this._bufferContext = this._buffer.getContext("2d");
         Scene.__super__.constructor.call(this, options);
+        this.move(this.position);
+        this.resize(this.size);
+        this.focus(this.center);
+        this.rotate(this.rotation);
+        this.opasity(this.alpha);
         this.type = "scene";
-        this.setZIndex(options.zIndex);
+        this.float(options.zIndex);
+        this.masking(options.mask);
         this.needAnimation = false;
       }
 
@@ -50,55 +58,80 @@
         return result;
       };
 
-      Scene.prototype.animate = function() {
-        this.context.clearRect(0, 0, this.size[0], this.size[1]);
-        if (this.mask) {
-          this.context.beginPath();
-          this.context.rect(this.mask[0], this.mask[1], this.mask[2], this.mask[3]);
-          this.context.clip();
+      Scene.prototype.masking = function(value) {
+        if ((value == null) || (!value)) {
+          this.mask = false;
+        } else {
+          this.mask = value;
         }
-        this.childrens.forEach(function(child) {
-          return child.animate();
-        });
-        return this.needAnimation = false;
+        this.needAnimation = true;
+        return this.mask;
       };
 
-      Scene.prototype.setZIndex = function(value) {
+      Scene.prototype.float = function(value) {
         this.zIndex = this.int(value);
         this.canvas.style.zIndex = this.zIndex;
         return this.zIndex;
       };
 
-      Scene.prototype.setPosition = function(value) {
-        Scene.__super__.setPosition.call(this, value);
+      Scene.prototype.move = function(value1, value2) {
+        Scene.__super__.move.call(this, value1, value2);
         this.canvas.style.left = this.position[0] + "px";
         this.canvas.style.top = this.position[1] + "px";
         return this.position;
       };
 
-      Scene.prototype.setSize = function(value) {
-        Scene.__super__.setSize.call(this, value);
+      Scene.prototype.resize = function(value1, value2) {
+        Scene.__super__.resize.call(this, value1, value2);
         this.canvas.width = this.size[0];
         this.canvas.height = this.size[1];
+        this._buffer.width = this.size[0];
+        this._buffer.height = this.size[1];
         return this.size;
       };
 
-      Scene.prototype.setCenter = function(value) {
-        Scene.__super__.setCenter.call(this, value);
+      Scene.prototype.focus = function(value1, value2) {
+        Scene.__super__.focus.call(this, value1, value2);
         this.context.translate(this.center[0], this.center[1]);
+        this._bufferContext.translate(this.center[0], this.center[1]);
         return this.center;
       };
 
-      Scene.prototype.setRotation = function(value) {
-        Scene.__super__.setRotation.call(this, value);
+      Scene.prototype.rotate = function(value) {
+        Scene.__super__.rotate.call(this, value);
         this.context.rotate(this.deg2rad(this.rotation));
+        this._bufferContext.rotate(this.deg2rad(this.rotation));
         return this.rotation;
       };
 
-      Scene.prototype.setAlpha = function(value) {
-        Scene.__super__.setAlpha.call(this, value);
+      Scene.prototype.opasity = function(value) {
+        Scene.__super__.opasity.call(this, value);
         this.context.globalAlpha = this.alpha;
+        this._bufferContext.globalAlpha = this.alpha;
         return this.alpha;
+      };
+
+      Scene.prototype.animate = function() {
+        if (!this.visible) {
+          return;
+        }
+        if (!this.needAnimation) {
+          return;
+        }
+        this.context.clearRect(0, 0, this.size[0], this.size[1]);
+        if (this.mask) {
+          this._bufferContext.beginPath();
+          this._bufferContext.rect(this.mask[0], this.mask[1], this.mask[2], this.mask[3]);
+          this._bufferContext.clip();
+        }
+        this.childrens.forEach((function(_this) {
+          return function(child) {
+            _this.context.save();
+            child.animate(_this.context);
+            return _this.context.restore();
+          };
+        })(this));
+        return this.needAnimation = false;
       };
 
       return Scene;

@@ -49,7 +49,7 @@ requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
 
 		scene.childrens.forEach(function(child){
 
-			child.setRotation(child.rotation + 1);
+			child.rotateOn(1);
 
 		});
 

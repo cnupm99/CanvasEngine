@@ -98,8 +98,8 @@ define () ->
 				@_graph.strokeStyle "#FFFF00"
 				@_graph.line x, 42, x, 42 - 26 * ups / 60
 
-			@_caption.setText "FPS: " + @_FPSValue
-			@_caption2.setText "UPS: " + @_updateValue
+			@_caption.write "FPS: " + @_FPSValue
+			@_caption2.write "UPS: " + @_updateValue
 
 		# эту функцию нужно вызывать в цикле анимации
 		# для подсчета значений

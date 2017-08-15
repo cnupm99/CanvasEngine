@@ -43,7 +43,6 @@ define ["DisplayObject"], (DisplayObject) ->
 			# а значит рисовать ее не нужно
 			# 
 			@loaded = false
-			@needAnimation = false
 
 			# 
 			# создаем элемент
@@ -83,7 +82,6 @@ define ["DisplayObject"], (DisplayObject) ->
 		src: (value) ->
 
 			@loaded = false
-			@needAnimation = false
 			@loadedFrom = value
 
 			# загружаем
@@ -115,19 +113,19 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# запоминаем реальные размеры
 			# 
-			@setRealSize [@image.width, @image.height]
+			@upsize [@image.width, @image.height]
 
 			# 
 			# если нужно меняем размеры
 			# иначе потом будем масштабировать
 			# 
-			@setSize @realSize if @size[0] <= 0 or @size[1] <= 0
+			@resize @realSize if @size[0] <= 0 or @size[1] <= 0
 
 			# можно рисовать
 			@loaded = true
-			@needAnimation = true
+			@parent.needAnimation = true
 
-		animate: () ->
+		animate: (context) ->
 
 			# 
 			# если картинка не загружена, то рисовать ее не будем
@@ -137,41 +135,37 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# действия по умолчанию для DisplayObject
 			# 
-			super()
+			super context
 
 			# 
 			# рисуем в реальном размере?
 			# 
 			if @size[0] == @realSize[0] and @size[1] == @realSize[1]
 
-				@context.drawImage @image, @_deltaX, @_deltaY
+				context.drawImage @image, @_deltaX, @_deltaY
 
 			else
 
 				# 
 				# тут масштабируем картинку
 				# 
-				@context.drawImage @image, @_deltaX, @_deltaY, @size[0], @size[1]
-
-			@context.restore()
-
-			@needAnimation = false
+				context.drawImage @image, @_deltaX, @_deltaY, @size[0], @size[1]
 
 		_imageOnLoad: (e) =>
 
 			# 
 			# запоминаем реальные размеры
 			# 
-			@setRealSize [@image.width, @image.height]
+			@upsize [@image.width, @image.height]
 
 			# 
 			# если нужно меняем размеры
 			# иначе потом будем масштабировать
 			# 
-			@setSize @realSize if @size[0] <= 0 or @size[1] <= 0
+			@resize @realSize if @size[0] <= 0 or @size[1] <= 0
 
 			@loaded = true
-			@needAnimation = true
+			@parent.needAnimation = true
 
 			# 
 			# если у картинки есть свойство onload, то вызываем его и

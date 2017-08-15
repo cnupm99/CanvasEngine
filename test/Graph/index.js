@@ -42,12 +42,12 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	});
 
 	graph2.linearGradient(0, 300, 100, 400, [[0, "#CCC"], [1, "#555"]]);
-	graph2.shadow = {
+	graph2.shade({
 		
 		color: "#888800",
 		blur: 30
 
-	};
+	});
 	graph2.rect(0, 300, 100, 100, 10);
 	graph2.fill();
 	graph2.log();

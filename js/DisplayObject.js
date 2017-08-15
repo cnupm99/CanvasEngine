@@ -13,17 +13,199 @@
         DisplayObject.__super__.constructor.call(this, options);
         this.name = options.name || "";
         this.type = "DisplayObject";
-        if (this.context == null) {
-          this.context = this.parent.context;
-        }
+        this._setProperties(options);
       }
 
+      DisplayObject.prototype.set = function(options) {
+        if (options == null) {
+          return;
+        }
+        if (options.visible != null) {
+          this.visible = options.visible;
+        }
+        if (options.position != null) {
+          this.position = this.pixel(options.position);
+        }
+        if (options.size != null) {
+          this.size = this.pixel(options.size);
+        }
+        if (options.realSize != null) {
+          this.realSize = this.pixel(options.realSize);
+        }
+        if (options.center != null) {
+          this.focus(options.center);
+        }
+        if (options.anchor != null) {
+          this.attach(options.anchor);
+        }
+        if (options.scale != null) {
+          this.scale = this.point(options.scale);
+        }
+        if (options.rotation != null) {
+          this.rotation = this.number(options.rotation);
+        }
+        if (options.alpha != null) {
+          this.opasity(options.alpha);
+        }
+        if (options.shadow != null) {
+          this.shade(options.shadow);
+        }
+        return this.parent.needAnimation = true;
+      };
+
+      DisplayObject.prototype.show = function() {
+        if (this.visible) {
+          return;
+        }
+        this.visible = true;
+        this.parent.needAnimation = true;
+        return true;
+      };
+
+      DisplayObject.prototype.hide = function() {
+        if (!this.visible) {
+          return;
+        }
+        this.visible = false;
+        this.parent.needAnimation = true;
+        return false;
+      };
+
+      DisplayObject.prototype.move = function(value1, value2) {
+        var position;
+        position = this.pixel(value1, value2);
+        if (position[0] === this.position[0] && position[1] === this.position[1]) {
+          return;
+        }
+        this.position = position;
+        this.parent.needAnimation = true;
+        return this.position;
+      };
+
+      DisplayObject.prototype.shift = function(value1, value2) {
+        return this.move([value1 + this.position[0], value2 + this.position[1]]);
+      };
+
+      DisplayObject.prototype.resize = function(value1, value2) {
+        var size;
+        size = this.pixel(value1, value2);
+        if (size[0] === this.size[0] && size[1] === this.size[1]) {
+          return;
+        }
+        this.size = size;
+        this.attach(this.anchor);
+        this.parent.needAnimation = true;
+        return this.size;
+      };
+
+      DisplayObject.prototype.upsize = function(value1, value2) {
+        var size;
+        size = this.pixel(value1, value2);
+        if (size[0] === this.realSize[0] && size[1] === this.realSize[1]) {
+          return;
+        }
+        this.realSize = size;
+        this.attach(this.anchor);
+        return this.realSize;
+      };
+
+      DisplayObject.prototype.focus = function(value1, value2) {
+        var anchorX, anchorY, center, size;
+        center = this.pixel(value1, value2);
+        if (center[0] === this.center[0] && center[1] === this.center[1]) {
+          return;
+        }
+        this.center = center;
+        size = this.size[0] === 0 && this.size[1] === 0 ? this.realSize : this.size;
+        anchorX = size[0] === 0 ? 0 : this.center[0] / size[0];
+        anchorY = size[1] === 0 ? 0 : this.center[1] / size[1];
+        this.anchor = [anchorX, anchorY];
+        this.parent.needAnimation = true;
+        return this.center;
+      };
+
+      DisplayObject.prototype.attach = function(value1, value2) {
+        var size;
+        this.anchor = this.point(value1, value2);
+        size = this.size[0] === 0 && this.size[1] === 0 ? this.realSize : this.size;
+        this.center = [this.int(size[0] * this.anchor[0]), this.int(size[1] * this.anchor[1])];
+        this.parent.needAnimation = true;
+        return this.anchor;
+      };
+
+      DisplayObject.prototype.scaling = function(value1, value2) {
+        var scale;
+        scale = value1 != null ? this.point(value1, value2) : [1, 1];
+        if (scale[0] === this.scale[0] && scale[1] === this.scale[1]) {
+          return;
+        }
+        this.scale = scale;
+        this.parent.needAnimation = true;
+        return this.scale;
+      };
+
+      DisplayObject.prototype.rotate = function(value) {
+        var rotation;
+        rotation = this.int(value);
+        if (rotation < 0) {
+          rotation = 360 + rotation;
+        }
+        if (rotation >= 360) {
+          rotation = rotation % 360;
+        }
+        if (rotation === this.rotation) {
+          return;
+        }
+        this.rotation = rotation;
+        this._rotation = this.rotation * this._PIDIV180;
+        this.parent.needAnimation = true;
+        return this.rotation;
+      };
+
+      DisplayObject.prototype.rotateOn = function(value) {
+        return this.rotate(this.rotation + this.int(value));
+      };
+
+      DisplayObject.prototype.opasity = function(value) {
+        var alpha;
+        alpha = value ? this.number(value) : 1;
+        if (alpha < 0) {
+          alpha = 0;
+        }
+        if (alpha > 1) {
+          alpha = 1;
+        }
+        if (alpha === this.alpha) {
+          return;
+        }
+        this.alpha = alpha;
+        this.parent.needAnimation = true;
+        return this.alpha;
+      };
+
+      DisplayObject.prototype.shade = function(value) {
+        if ((value == null) || (!value)) {
+          this.shadow = false;
+        } else {
+          this.shadow = {
+            color: value.color || "#000",
+            blur: value.blur || 3,
+            offsetX: this.int(value.offsetX),
+            offsetY: this.int(value.offsetY),
+            offset: this.int(value.offset)
+          };
+        }
+        this.parent.needAnimation = true;
+        return this.shadow;
+      };
+
       DisplayObject.prototype.testPoint = function(pointX, pointY) {
-        var imageData, offsetX, offsetY, pixelData, rect;
+        var context, imageData, offsetX, offsetY, pixelData, rect;
         rect = this.canvas != null ? this.canvas.getBoundingClientRect() : this.parent.canvas.getBoundingClientRect();
         offsetX = pointX - rect.left;
         offsetY = pointY - rect.top;
-        imageData = this.context.getImageData(offsetX, offsetY, 1, 1);
+        context = this.context || this.parent.context;
+        imageData = context.getImageData(offsetX, offsetY, 1, 1);
         pixelData = imageData.data;
         if (pixelData.every == null) {
           pixelData.every = Array.prototype.every;
@@ -49,30 +231,46 @@
         return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
       };
 
-      DisplayObject.prototype.animate = function() {
-        if (!this.visible) {
-          this.needAnimation = false;
-          return;
-        }
-        this.context.save();
+      DisplayObject.prototype.animate = function(context) {
         this._deltaX = this.position[0];
         this._deltaY = this.position[1];
         if (this.shadow) {
-          this.context.shadowColor = this.shadow.color;
-          this.context.shadowBlur = this.shadow.blur;
-          this.context.shadowOffsetX = Math.max(this.shadow.offsetX, this.shadow.offset);
-          this.context.shadowOffsetY = Math.max(this.shadow.offsetY, this.shadow.offset);
+          context.shadowColor = this.shadow.color;
+          context.shadowBlur = this.shadow.blur;
+          context.shadowOffsetX = Math.max(this.shadow.offsetX, this.shadow.offset);
+          context.shadowOffsetY = Math.max(this.shadow.offsetY, this.shadow.offset);
         }
         if (this.scale[0] !== 1 || this.scale[1] !== 1) {
-          this.context.scale(this.scale[0], this.scale[1]);
+          context.scale(this.scale[0], this.scale[1]);
+        }
+        if (this.alpha !== 1) {
+          context.globalAlpha = this.alpha;
         }
         if (this.rotation !== 0) {
-          this.context.translate(this.center[0] + this.position[0], this.center[1] + this.position[1]);
-          this.context.rotate(this.deg2rad(this.rotation));
+          context.translate(this.center[0] + this.position[0], this.center[1] + this.position[1]);
+          context.rotate(this._rotation);
           this._deltaX = -this.center[0];
-          this._deltaY = -this.center[1];
+          return this._deltaY = -this.center[1];
         }
-        return this.needAnimation = false;
+      };
+
+      DisplayObject.prototype._setProperties = function(options) {
+        this.visible = options.visible != null ? options.visible : true;
+        this.position = this.pixel(options.position);
+        this.realSize = [0, 0];
+        this.size = this.pixel(options.size);
+        if ((options.center != null) || (options.anchor == null)) {
+          this.center = [0, 0];
+          this.focus(options.center);
+        }
+        if ((options.anchor != null) && (options.center == null)) {
+          this.anchor = [0, 0];
+          this.attach(options.anchor);
+        }
+        this.scale = options.scale ? this.point(options.scale) : [1, 1];
+        this.rotation = this.int(options.rotation);
+        this.alpha = options.alpha || 1;
+        return this.shadow = options.shadow || false;
       };
 
       return DisplayObject;

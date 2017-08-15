@@ -25,7 +25,7 @@ requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
 
 	});
 
-	var count = 1000;
+	var count = 3000;
 
 	for(var i = 0; i < count; i++) {
 
@@ -50,9 +50,12 @@ requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
 
 		scene.childrens.forEach(function(child){
 			
-			child.setRotation(child.rotation + 1);
+			child.rotation++;
+			child._rotation = child.rotation * child._PIDIV180
 
 		});
+
+		scene.needAnimation = true;
 
 	});
 

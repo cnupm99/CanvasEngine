@@ -12,12 +12,11 @@
       function Graph(options) {
         Graph.__super__.constructor.call(this, options);
         this._commands = [];
-        this.needAnimation = false;
       }
 
       Graph.prototype.clear = function() {
         this._commands = [];
-        return this.needAnimation = true;
+        return this.parent.needAnimation = true;
       };
 
       Graph.prototype.strokeStyle = function(style) {
@@ -76,7 +75,7 @@
           "command": "lineTo",
           "point": this.pixel(toX, toY)
         });
-        return this.needAnimation = true;
+        return this.parent.needAnimation = true;
       };
 
       Graph.prototype.line = function(fromX, fromY, toX, toY) {
@@ -85,7 +84,7 @@
           "from": this.pixel(fromX, fromY),
           "to": this.pixel(toX, toY)
         });
-        return this.needAnimation = true;
+        return this.parent.needAnimation = true;
       };
 
       Graph.prototype.rect = function(fromX, fromY, width, height, radius) {
@@ -98,7 +97,7 @@
           "size": this.pixel(width, height),
           "radius": this.int(radius)
         });
-        return this.needAnimation = true;
+        return this.parent.needAnimation = true;
       };
 
       Graph.prototype.polyline = function(points, stroke) {
@@ -117,7 +116,7 @@
         if (stroke) {
           this.stroke();
         }
-        return this.needAnimation = true;
+        return this.parent.needAnimation = true;
       };
 
       Graph.prototype.polygon = function(points) {
@@ -131,67 +130,65 @@
         this._commands.push({
           "command": "fill"
         });
-        return this.needAnimation = true;
+        return this.parent.needAnimation = true;
       };
 
       Graph.prototype.stroke = function() {
         this._commands.push({
           "command": "stroke"
         });
-        return this.needAnimation = true;
+        return this.parent.needAnimation = true;
       };
 
-      Graph.prototype.animate = function() {
-        Graph.__super__.animate.call(this);
-        this.context.lineCap = "round";
-        this._commands.forEach((function(_this) {
+      Graph.prototype.animate = function(context) {
+        Graph.__super__.animate.call(this, context);
+        context.lineCap = "round";
+        return this._commands.forEach((function(_this) {
           return function(command) {
             var gradient;
             switch (command.command) {
               case "beginPath":
-                return _this.context.beginPath();
+                return context.beginPath();
               case "stroke":
-                return _this.context.stroke();
+                return context.stroke();
               case "fill":
-                return _this.context.fill();
+                return context.fill();
               case "setDash":
-                return _this.context.setLineDash(command.dash);
+                return context.setLineDash(command.dash);
               case "dashOffset":
-                return _this.context.lineDashOffset = command.offset;
+                return context.lineDashOffset = command.offset;
               case "moveTo":
-                return _this.context.moveTo(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY);
+                return context.moveTo(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY);
               case "lineTo":
-                return _this.context.lineTo(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY);
+                return context.lineTo(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY);
               case "line":
-                _this.context.beginPath();
-                _this.context.moveTo(command.from[0] + _this._deltaX, command.from[1] + _this._deltaY);
-                _this.context.lineTo(command.to[0] + _this._deltaX, command.to[1] + _this._deltaY);
-                return _this.context.stroke();
+                context.beginPath();
+                context.moveTo(command.from[0] + _this._deltaX, command.from[1] + _this._deltaY);
+                context.lineTo(command.to[0] + _this._deltaX, command.to[1] + _this._deltaY);
+                return context.stroke();
               case "strokeStyle":
-                return _this.context.strokeStyle = command.style;
+                return context.strokeStyle = command.style;
               case "fillStyle":
-                return _this.context.fillStyle = command.style;
+                return context.fillStyle = command.style;
               case "lineWidth":
-                return _this.context.lineWidth = command.width;
+                return context.lineWidth = command.width;
               case "rect":
-                _this.context.beginPath();
+                context.beginPath();
                 if (command.radius === 0) {
-                  return _this.context.rect(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.size[0], command.size[1]);
+                  return context.rect(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.size[0], command.size[1]);
                 } else {
-                  return _this._drawRoundedRect(_this.context, command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.size[0], command.size[1], command.radius);
+                  return _this._drawRoundedRect(context, command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.size[0], command.size[1], command.radius);
                 }
                 break;
               case "gradient":
-                gradient = _this.context.createLinearGradient(command.point1[0] + _this._deltaX, command.point1[1] + _this._deltaY, command.point2[0] + _this._deltaX, command.point2[1] + _this._deltaY);
+                gradient = context.createLinearGradient(command.point1[0] + _this._deltaX, command.point1[1] + _this._deltaY, command.point2[0] + _this._deltaX, command.point2[1] + _this._deltaY);
                 command.colors.forEach(function(color) {
                   return gradient.addColorStop(color[0], color[1]);
                 });
-                return _this.context.fillStyle = gradient;
+                return context.fillStyle = gradient;
             }
           };
         })(this));
-        this.context.restore();
-        return this.needAnimation = false;
       };
 
       Graph.prototype.log = function() {

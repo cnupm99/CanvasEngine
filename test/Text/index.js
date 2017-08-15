@@ -26,6 +26,6 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	});
 
-	text.position = [(CE.size[0] - text.textWidth) / 2, 200];
+	text.move([(CE.size[0] - text.textWidth) / 2, 200]);
 
 });

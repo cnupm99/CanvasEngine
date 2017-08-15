@@ -77,8 +77,8 @@
           this._graph.strokeStyle("#FFFF00");
           this._graph.line(x, 42, x, 42 - 26 * ups / 60);
         }
-        this._caption.setText("FPS: " + this._FPSValue);
-        return this._caption2.setText("UPS: " + this._updateValue);
+        this._caption.write("FPS: " + this._FPSValue);
+        return this._caption2.write("UPS: " + this._updateValue);
       };
 
       FPS.prototype._update = function() {

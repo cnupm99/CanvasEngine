@@ -16,7 +16,6 @@
         this.type = "image";
         this.onload = options.onload;
         this.loaded = false;
-        this.needAnimation = false;
         this.image = document.createElement("img");
         this.image.onload = this._imageOnLoad;
         this.loadedFrom = "";
@@ -29,7 +28,6 @@
 
       Image.prototype.src = function(value) {
         this.loaded = false;
-        this.needAnimation = false;
         this.loadedFrom = value;
         return this.image.src = value;
       };
@@ -40,35 +38,33 @@
         }
         this.image = from;
         this.loadedFrom = src || "";
-        this.setRealSize([this.image.width, this.image.height]);
+        this.upsize([this.image.width, this.image.height]);
         if (this.size[0] <= 0 || this.size[1] <= 0) {
-          this.setSize(this.realSize);
+          this.resize(this.realSize);
         }
         this.loaded = true;
-        return this.needAnimation = true;
+        return this.parent.needAnimation = true;
       };
 
-      Image.prototype.animate = function() {
+      Image.prototype.animate = function(context) {
         if (!this.loaded) {
           return;
         }
-        Image.__super__.animate.call(this);
+        Image.__super__.animate.call(this, context);
         if (this.size[0] === this.realSize[0] && this.size[1] === this.realSize[1]) {
-          this.context.drawImage(this.image, this._deltaX, this._deltaY);
+          return context.drawImage(this.image, this._deltaX, this._deltaY);
         } else {
-          this.context.drawImage(this.image, this._deltaX, this._deltaY, this.size[0], this.size[1]);
+          return context.drawImage(this.image, this._deltaX, this._deltaY, this.size[0], this.size[1]);
         }
-        this.context.restore();
-        return this.needAnimation = false;
       };
 
       Image.prototype._imageOnLoad = function(e) {
-        this.setRealSize([this.image.width, this.image.height]);
+        this.upsize([this.image.width, this.image.height]);
         if (this.size[0] <= 0 || this.size[1] <= 0) {
-          this.setSize(this.realSize);
+          this.resize(this.realSize);
         }
         this.loaded = true;
-        this.needAnimation = true;
+        this.parent.needAnimation = true;
         if (this.onload != null) {
           return this.onload(this.realSize);
         }

@@ -25,7 +25,7 @@ define ["Image"], (Image) ->
 			# 
 			# массив вида [int, int, int, int]
 			# 
-			@setRect options.rect
+			@rect = options.rect or [0, 0, @parent.size[0], @parent.size[1]]
 
 		# 
 		# Установка области
@@ -33,33 +33,29 @@ define ["Image"], (Image) ->
 		setRect: (value) ->
 
 			@rect = value or [0, 0, @parent.size[0], @parent.size[1]]
-			@needAnimation = true
+			@parent.needAnimation = true
 			@rect
 
-		animate: () ->
+		animate: (context) ->
 
 			return unless @loaded
 
 			# 
 			# Начало отрисовки
 			# 
-			@context.beginPath()
+			context.beginPath()
 
 			# 
 			# создаем паттерн
 			# 
-			@context.fillStyle = @context.createPattern @image, "repeat"
+			context.fillStyle = context.createPattern @image, "repeat"
 
 			# 
 			# рисуем прямоугольник
 			# 
-			@context.rect @rect[0], @rect[1], @rect[2], @rect[3]
+			context.rect @rect[0], @rect[1], @rect[2], @rect[3]
 
 			# 
 			# заливаем паттерном
 			# 
-			@context.fill()
-
-			@context.restore()
-
-			@needAnimation = false
+			context.fill()

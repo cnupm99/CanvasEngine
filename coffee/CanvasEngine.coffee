@@ -1,11 +1,11 @@
 "use strict";
 
-define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
+define ["DisplayObject", "Scene"], (DisplayObject, Scene) ->
 
 	# 
 	# Движок для Canvas
 	# 
-	class CanvasEngine extends AbstractObject
+	class CanvasEngine extends DisplayObject
 
 		# 
 		# Главный класс, через него осуществляется взаимодействие с движком
@@ -48,7 +48,7 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 			# 
 			if @size[0] == 0 and @size[1] == 0
 
-				@setSize [@int(@parent.clientWidth), @int(@parent.clientHeight)]
+				@size = [@int(@parent.clientWidth), @int(@parent.clientHeight)]
 
 			# 
 			# массив функций для выполнения в цикле перед анимацией
@@ -156,7 +156,7 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 				maxZ = child.zIndex if child.zIndex > maxZ
 				result = child if childName == child.name
 
-			result.setZIndex maxZ + 1 if result
+			result.float maxZ + 1 if result
 
 			return result
 
@@ -303,17 +303,11 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 			# перебираем сцены
 			@childrens.forEach (child) =>
 
-				# для каждой сцены проверяем дочерние элементы
-				needAnimation = child.needAnimation or child.childrens.some (childOfChild) ->
-
-					# нужно ли рисовать этот дочерний элемент сцены
-					childOfChild.needAnimation
+				# сохраняем значение
+				@needAnimation = @needAnimation or child.needAnimation
 
 				# собственно анимация
-				child.animate() if needAnimation
-
-				# сохраняем значение
-				@needAnimation = @needAnimation or needAnimation
+				child.animate() if child.needAnimation
 
 			# 
 			# продолжаем анимацию

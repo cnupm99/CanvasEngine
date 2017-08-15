@@ -42,8 +42,6 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			@textWidth = 0
 
-			_font = _fillStyle = _strokeStyle = _strokeWidth = _text = ""
-
 			# 
 			# шрифт надписи, строка
 			# 
@@ -52,26 +50,28 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# текущая заливка, градиент или false, если заливка не нужна
 			# 
-			@setFillStyle options.fillStyle
+			@fillStyle = options.fillStyle or false
 
 			# 
 			# обводка шрифта или false, если обводка не нужна
 			# 
-			@setStrokeStyle options.strokeStyle
+			@strokeStyle = options.strokeStyle or false
 
 			# 
 			# ширина обводки
 			# 
-			@setStrokeWidth options.strokeWidth
+			@strokeWidth = if options.strokeWidth? then @int options.strokeWidth else 1
 
 			# 
 			# текущий текст надписи
 			# 
-			@setText options.text
+			@write options.text
 
 		setFont: (value) ->
 
-			@font = value or "12px Arial"
+			font = value or "12px Arial"
+			return if font == @font
+			@font = font
 
 			# 
 			# устанавливаем реальную высоту шрифта в пикселях
@@ -83,56 +83,65 @@ define ["DisplayObject"], (DisplayObject) ->
 			@fontHeight = span.offsetHeight
 			document.body.removeChild span
 
-			@needAnimation = true
+			@parent.needAnimation = true
 			@font
 
 		setFillStyle: (value) ->
 
-			@fillStyle = value or false
-			@needAnimation = true
+			fillStyle = value or false
+			return if fillStyle == @fillStyle
+			@fillStyle = fillStyle
+			@parent.needAnimation = true
 			@fillStyle
 
 		setStrokeStyle: (value) ->
 
-			@strokeStyle = value or false
-			@needAnimation = true
+			strokeStyle = value or false
+			return if strokeStyle == @strokeStyle
+			@strokeStyle = strokeStyle
+			@parent.needAnimation = true
 			@strokeStyle
 
 		setStrokeWidth: (value) ->
 
-			@strokeWidth = @int(value) or 1
-			@needAnimation = true
+			strokeWidth = if value? then @int value else 1
+			return if strokeWidth == @strokeWidth
+			@strokeWidth = strokeWidth
+			@parent.needAnimation = true
 			@strokeWidth
 
-		setText: (value) ->
+		write: (value) ->
 
-			@text = value or ""
+			text = value or ""
+			return if text == @text
+			@text = text
 
 			# 
 			# определяем ширину текста
 			# используя для этого ссылку на контекст
 			# 
-			@context.save()
-			@context.font = @font
-			@textWidth = @context.measureText(@text).width
-			@context.restore()
+			context = @parent.context
+			context.save()
+			context.font = @font
+			@textWidth = context.measureText(@text).width
+			context.restore()
 
-			@needAnimation = true
+			@parent.needAnimation = true
 			@text
 
-		animate: () ->
+		animate: (context) ->
 
-			super()
+			super context
 
 			# 
 			# установим шрифт контекста
 			# 
-			@context.font = @font
+			context.font = @font
 
 			# 
 			# по умолчанию позиционируем текст по верхнему краю
 			# 
-			@context.textBaseline = "top"
+			context.textBaseline = "top"
 			
 			# 
 			# нужна ли заливка
@@ -145,7 +154,7 @@ define ["DisplayObject"], (DisplayObject) ->
 					# 
 					# создаем градиент по нужным точкам
 					# 
-					gradient = @context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight
+					gradient = context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight
 
 					# 
 					# добавляем цвета
@@ -158,27 +167,23 @@ define ["DisplayObject"], (DisplayObject) ->
 					# 
 					# заливка градиентом
 					# 
-					@context.fillStyle = gradient
+					context.fillStyle = gradient
 
 				# 
 				# ну или просто цветом
 				# 
-				else @context.fillStyle = @fillStyle
+				else context.fillStyle = @fillStyle
 
 				# 
 				# выводим залитый текст
 				# 
-				@context.fillText @text, @_deltaX, @_deltaY
+				context.fillText @text, @_deltaX, @_deltaY
 
 			# 
 			# что насчет обводки?
 			# 
 			if @strokeStyle
 
-				@context.strokeStyle = @strokeStyle
-				@context.lineWidth = @strokeWidth
-				@context.strokeText @text, @_deltaX, @_deltaY
-
-			@context.restore()
-
-			@needAnimation = false
+				context.strokeStyle = @strokeStyle
+				context.lineWidth = @strokeWidth
+				context.strokeText @text, @_deltaX, @_deltaY

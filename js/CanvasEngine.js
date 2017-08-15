@@ -5,7 +5,7 @@
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define(["AbstractObject", "Scene"], function(AbstractObject, Scene) {
+  define(["DisplayObject", "Scene"], function(DisplayObject, Scene) {
     var CanvasEngine;
     return CanvasEngine = (function(superClass) {
       extend(CanvasEngine, superClass);
@@ -18,7 +18,7 @@
         }
         CanvasEngine.__super__.constructor.call(this, options);
         if (this.size[0] === 0 && this.size[1] === 0) {
-          this.setSize([this.int(this.parent.clientWidth), this.int(this.parent.clientHeight)]);
+          this.size = [this.int(this.parent.clientWidth), this.int(this.parent.clientHeight)];
         }
         this._beforeAnimate = [];
         this._scene = "default";
@@ -76,7 +76,7 @@
           }
         });
         if (result) {
-          result.setZIndex(maxZ + 1);
+          result.float(maxZ + 1);
         }
         return result;
       };
@@ -201,14 +201,10 @@
         this.needAnimation = false;
         this.childrens.forEach((function(_this) {
           return function(child) {
-            var needAnimation;
-            needAnimation = child.needAnimation || child.childrens.some(function(childOfChild) {
-              return childOfChild.needAnimation;
-            });
-            if (needAnimation) {
-              child.animate();
+            _this.needAnimation = _this.needAnimation || child.needAnimation;
+            if (child.needAnimation) {
+              return child.animate();
             }
-            return _this.needAnimation = _this.needAnimation || needAnimation;
           };
         })(this));
         return this._render = requestAnimationFrame(this._animate);
@@ -216,7 +212,7 @@
 
       return CanvasEngine;
 
-    })(AbstractObject);
+    })(DisplayObject);
   });
 
 }).call(this);
