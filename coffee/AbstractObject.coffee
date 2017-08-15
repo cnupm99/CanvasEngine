@@ -35,7 +35,7 @@ define () ->
 		#  index(childName): int - возвращает индекс элемента в массиве дочерних по его имени
 		#  shift(deltaX, deltaY):Array - сдвигаем объект на нужное смещение по осям
 		#  point(value1, value2): Array - приведение выражений к виду [x, y]
-		#  pixel(value1, value2): округляет результат point
+		#  pixel(value1, value2): Array - округляет результат pixel
 		#  int(value): int - приведение к целому числу
 		#  number(value): Number - приведение к числу
 		#  deg2rad(value): Number - перевод из градусов в радианы
@@ -316,7 +316,6 @@ define () ->
 					# 
 					color: value.color or "#000"
 					blur: value.blur or 3
-
 					offsetX: @int value.offsetX
 					offsetY: @int value.offsetY
 					offset: @int value.offset
