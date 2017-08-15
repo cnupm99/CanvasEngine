@@ -13,12 +13,8 @@
         DisplayObject.__super__.constructor.call(this, options);
         this.name = options.name || "";
         this.type = "DisplayObject";
-        if (!this.context) {
-          Object.defineProperty(this, "context", {
-            value: this.parent.context,
-            writable: false,
-            configurable: false
-          });
+        if (this.context == null) {
+          this.context = this.parent.context;
         }
       }
 

@@ -48,29 +48,17 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 			# 
 			if @size[0] == 0 and @size[1] == 0
 
-				@size = [@int(@parent.clientWidth), @int(@parent.clientHeight)]
+				@setSize [@int(@parent.clientWidth), @int(@parent.clientHeight)]
 
 			# 
-			# Свойство хранит имя активной сцены в виде строки,
-			# НО при обращении возвращает активную СЦЕНУ, либо если она была удалена,
-			# то первую сцену в списке, либо если список пуст, то false
+			# массив функций для выполнения в цикле перед анимацией
 			# 
-			_scene = "default"
-			Object.defineProperty @, "scene", {
+			@_beforeAnimate = []
 
-				get: () -> 
-
-					result = @get _scene
-					result = @childrens[0] unless result
-					result = false unless result
-					result
-
-				set: (value) -> 
-
-					_scene = "" + value
-					@get _scene
-
-			}
+			# 
+			# Свойство хранит имя активной сцены в виде строки
+			# 
+			@_scene = "default"
 
 			# 
 			# создаем сцену по умолчанию
@@ -81,11 +69,6 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 				name: "default"
 
 			}
-
-			# 
-			# массив функций для выполнения в цикле перед анимацией
-			# 
-			@_beforeAnimate = []
 
 			# 
 			# запуск анимации
@@ -128,7 +111,7 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 				# 
 				# если в опциях не указана сцена, то добавляем на активную сцену
 				# 
-				scene = @scene unless scene
+				scene = @getActive() unless scene
 
 				# 
 				# если в списке нет ниодной сцены, создадим сцену по умолчанию
@@ -173,9 +156,27 @@ define ["AbstractObject", "Scene"], (AbstractObject, Scene) ->
 				maxZ = child.zIndex if child.zIndex > maxZ
 				result = child if childName == child.name
 
-			result.zIndex = maxZ + 1 if result
+			result.setZIndex maxZ + 1 if result
 
 			return result
+
+		# 
+		# Возвращает активную сцену
+		# 
+		getActive: () ->
+
+			result = @get @_scene
+			result = @childrens[0] unless result
+			result = false unless result
+			result
+
+		# 
+		# Устанавливает активную сцену по ее имени
+		# 
+		setActive: (sceneName) ->
+
+			@_scene = sceneName or "default"
+			@getActive()
 
 		# 
 		# запуск анимации

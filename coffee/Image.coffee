@@ -13,10 +13,10 @@ define ["DisplayObject"], (DisplayObject) ->
 		#  loaded: Boolean - загружена ли картинка
 		#  image: Image - объект картинки
 		#  loadedFrom: String - строка с адресом картинки
-		#  src: свойство для загрузки картинки с указанным адресом
 		#  
 		# методы:
 		# 
+		#  src(string): загрузка картинки с указанным адресом
 		#  from(Object) - создание из уже существующей и загруженной картинки
 		#  animate() - попытка нарисовать объект
 		# 
@@ -64,30 +64,11 @@ define ["DisplayObject"], (DisplayObject) ->
 			@loadedFrom = ""
 
 			# 
-			# Свойство для загрузки картики
-			# Возвращает адрес картинки,
-			# но при присвоении загружает ее
-			# 
-			Object.defineProperty @, "src", {
-
-				get: () -> @loadedFrom
-				set: (value) ->
-
-					@loaded = false
-					@needAnimation = false
-					@loadedFrom = value
-
-					# загружаем
-					@image.src = value
-
-			}
-
-			# 
 			# нужно ли загружать картинку
 			# 
 			if options.src?
 				
-				@src = options.src
+				@src options.src
 
 			# 
 			# или она уже загружена
@@ -95,6 +76,18 @@ define ["DisplayObject"], (DisplayObject) ->
 			else 
 
 				@from options.from
+
+		# 
+		# Метод для загрузки картики
+		# 
+		src: (value) ->
+
+			@loaded = false
+			@needAnimation = false
+			@loadedFrom = value
+
+			# загружаем
+			@image.src = value
 
 		# 
 		# Создание картинки из уже созданной и загруженной
@@ -122,13 +115,13 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# запоминаем реальные размеры
 			# 
-			@realSize = [@image.width, @image.height]
+			@setRealSize [@image.width, @image.height]
 
 			# 
 			# если нужно меняем размеры
 			# иначе потом будем масштабировать
 			# 
-			@size = @realSize if @size[0] <= 0 or @size[1] <= 0
+			@setSize @realSize if @size[0] <= 0 or @size[1] <= 0
 
 			# можно рисовать
 			@loaded = true
@@ -169,13 +162,13 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# запоминаем реальные размеры
 			# 
-			@realSize = [@image.width, @image.height]
+			@setRealSize [@image.width, @image.height]
 
 			# 
 			# если нужно меняем размеры
 			# иначе потом будем масштабировать
 			# 
-			@size = @realSize if @size[0] <= 0 or @size[1] <= 0
+			@setSize @realSize if @size[0] <= 0 or @size[1] <= 0
 
 			@loaded = true
 			@needAnimation = true

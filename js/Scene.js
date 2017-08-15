@@ -10,37 +10,14 @@
       extend(Scene, superClass);
 
       function Scene(options) {
-        Object.defineProperty(this, "stage", {
-          value: options.stage || document.body,
-          writable: false,
-          configurable: false
-        });
-        Object.defineProperty(this, "canvas", {
-          value: document.createElement("canvas"),
-          writable: false,
-          configurable: false
-        });
+        this.stage = options.stage || document.body;
+        this.canvas = document.createElement("canvas");
         this.canvas.style.position = "absolute";
         this.stage.appendChild(this.canvas);
-        Object.defineProperty(this, "context", {
-          value: this.canvas.getContext("2d"),
-          writable: false,
-          configurable: false
-        });
+        this.context = this.canvas.getContext("2d");
         Scene.__super__.constructor.call(this, options);
         this.type = "scene";
-        Object.defineProperty(this, "zIndex", {
-          get: function() {
-            return _zIndex;
-          },
-          set: function(value) {
-            var _zIndex;
-            _zIndex = this.int(value);
-            this.canvas.style.zIndex = _zIndex;
-            return _zIndex;
-          }
-        });
-        this.zIndex = this.int(options.zIndex);
+        this.setZIndex(options.zIndex);
         this.needAnimation = false;
       }
 
@@ -86,34 +63,40 @@
         return this.needAnimation = false;
       };
 
-      Scene.prototype._setPosition = function() {
-        Scene.__super__._setPosition.call(this);
+      Scene.prototype.setZIndex = function(value) {
+        this.zIndex = this.int(value);
+        this.canvas.style.zIndex = this.zIndex;
+        return this.zIndex;
+      };
+
+      Scene.prototype.setPosition = function(value) {
+        Scene.__super__.setPosition.call(this, value);
         this.canvas.style.left = this.position[0] + "px";
         this.canvas.style.top = this.position[1] + "px";
         return this.position;
       };
 
-      Scene.prototype._setSize = function() {
-        Scene.__super__._setSize.call(this);
+      Scene.prototype.setSize = function(value) {
+        Scene.__super__.setSize.call(this, value);
         this.canvas.width = this.size[0];
         this.canvas.height = this.size[1];
         return this.size;
       };
 
-      Scene.prototype._setCenter = function() {
-        Scene.__super__._setCenter.call(this);
+      Scene.prototype.setCenter = function(value) {
+        Scene.__super__.setCenter.call(this, value);
         this.context.translate(this.center[0], this.center[1]);
         return this.center;
       };
 
-      Scene.prototype._setRotation = function() {
-        Scene.__super__._setRotation.call(this);
+      Scene.prototype.setRotation = function(value) {
+        Scene.__super__.setRotation.call(this, value);
         this.context.rotate(this.deg2rad(this.rotation));
         return this.rotation;
       };
 
-      Scene.prototype._setAlpha = function() {
-        Scene.__super__._setAlpha.call(this);
+      Scene.prototype.setAlpha = function(value) {
+        Scene.__super__.setAlpha.call(this, value);
         this.context.globalAlpha = this.alpha;
         return this.alpha;
       };

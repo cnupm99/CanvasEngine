@@ -42,16 +42,16 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 		if (image.testRect(e.pageX, e.pageY)) {
 
-			image.shadow = {
+			image.setShadow({
 
 				color: "#000",
 				blur: 3
 
-			};
+			});
 
 		} else {
 
-			image.shadow = false;
+			image.setShadow();
 
 		}
 
@@ -65,16 +65,16 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 		
 		if (image2.testRect(e.pageX, e.pageY) && image2.testPoint(e.pageX, e.pageY)) {
 
-			image2.shadow = {
+			image2.setShadow({
 
 				color: "#000",
 				blur: 3
 
-			};
+			});
 
 		} else {
 
-			image2.shadow = false;
+			image2.setShadow();
 
 		}
 

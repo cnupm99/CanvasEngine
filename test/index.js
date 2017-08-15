@@ -86,14 +86,14 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	// Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
 
 	// добавим картинке тень
-	image.shadow = {
+	image.setShadow({
 
 		blur: 20
 
-	};
+	});
 
 	// добавим на сцену маску
-	scene1.mask = [250, 250, 200, 200];
+	scene1.setMask([250, 250, 200, 200]);
 
 	var shadow = false;
 
@@ -119,10 +119,10 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	// рисуем прямоугольник с тенью и скругленными углами
 	// и градиентом
 	graph2.linearGradient(0, 0, 100, 100, [[0, "#CCC"], [1, "#555"]]);
-	graph2.shadow = {
+	graph2.setShadow({
 		color: "#888800",
 		blur: 30
-	};
+	});
 	graph2.rect(0, 0, 100, 100, 10);
 	graph2.fill()
 

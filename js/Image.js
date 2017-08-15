@@ -20,23 +20,19 @@
         this.image = document.createElement("img");
         this.image.onload = this._imageOnLoad;
         this.loadedFrom = "";
-        Object.defineProperty(this, "src", {
-          get: function() {
-            return this.loadedFrom;
-          },
-          set: function(value) {
-            this.loaded = false;
-            this.needAnimation = false;
-            this.loadedFrom = value;
-            return this.image.src = value;
-          }
-        });
         if (options.src != null) {
-          this.src = options.src;
+          this.src(options.src);
         } else {
           this.from(options.from);
         }
       }
+
+      Image.prototype.src = function(value) {
+        this.loaded = false;
+        this.needAnimation = false;
+        this.loadedFrom = value;
+        return this.image.src = value;
+      };
 
       Image.prototype.from = function(from, src) {
         if (from == null) {
@@ -44,9 +40,9 @@
         }
         this.image = from;
         this.loadedFrom = src || "";
-        this.realSize = [this.image.width, this.image.height];
+        this.setRealSize([this.image.width, this.image.height]);
         if (this.size[0] <= 0 || this.size[1] <= 0) {
-          this.size = this.realSize;
+          this.setSize(this.realSize);
         }
         this.loaded = true;
         return this.needAnimation = true;
@@ -67,9 +63,9 @@
       };
 
       Image.prototype._imageOnLoad = function(e) {
-        this.realSize = [this.image.width, this.image.height];
+        this.setRealSize([this.image.width, this.image.height]);
         if (this.size[0] <= 0 || this.size[1] <= 0) {
-          this.size = this.realSize;
+          this.setSize(this.realSize);
         }
         this.loaded = true;
         this.needAnimation = true;

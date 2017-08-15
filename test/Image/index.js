@@ -28,7 +28,7 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	CE.addEvent(function(){
 
-		image.rotation++;
+		image.setRotation(image.rotation + 1);
 
 		scale += ds;
 		if ((scale > 1.2) || (scale < 0.5)) {
@@ -36,7 +36,7 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 			ds = -ds;
 
 		}
-		image.scale = [scale, scale];
+		image.setScale([scale, scale]);
 
 	});
 
@@ -55,7 +55,7 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	CE.addEvent(function(){
 
-		image2.rotation++;
+		image2.setRotation(image2.rotation + 1);
 
 	});
 

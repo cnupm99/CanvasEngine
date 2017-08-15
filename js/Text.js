@@ -10,11 +10,58 @@
       extend(Text, superClass);
 
       function Text(options) {
+        var _fillStyle, _font, _strokeStyle, _strokeWidth, _text;
         Text.__super__.constructor.call(this, options);
         this.fontHeight = 0;
         this.textWidth = 0;
-        this._setTextProperties(options);
+        _font = _fillStyle = _strokeStyle = _strokeWidth = _text = "";
+        this.setFont(options.font);
+        this.setFillStyle(options.fillStyle);
+        this.setStrokeStyle(options.strokeStyle);
+        this.setStrokeWidth(options.strokeWidth);
+        this.setText(options.text);
       }
+
+      Text.prototype.setFont = function(value) {
+        var span;
+        this.font = value || "12px Arial";
+        span = document.createElement("span");
+        span.appendChild(document.createTextNode("height"));
+        span.style.cssText = "font: " + this.font + "; white-space: nowrap; display: inline;";
+        document.body.appendChild(span);
+        this.fontHeight = span.offsetHeight;
+        document.body.removeChild(span);
+        this.needAnimation = true;
+        return this.font;
+      };
+
+      Text.prototype.setFillStyle = function(value) {
+        this.fillStyle = value || false;
+        this.needAnimation = true;
+        return this.fillStyle;
+      };
+
+      Text.prototype.setStrokeStyle = function(value) {
+        this.strokeStyle = value || false;
+        this.needAnimation = true;
+        return this.strokeStyle;
+      };
+
+      Text.prototype.setStrokeWidth = function(value) {
+        this.strokeWidth = this.int(value) || 1;
+        this.needAnimation = true;
+        return this.strokeWidth;
+      };
+
+      Text.prototype.setText = function(value) {
+        this.text = value || "";
+        this.context.save();
+        this.context.font = this.font;
+        this.textWidth = this.context.measureText(this.text).width;
+        this.context.restore();
+        this.needAnimation = true;
+        return this.text;
+      };
 
       Text.prototype.animate = function() {
         var gradient;
@@ -40,77 +87,6 @@
         }
         this.context.restore();
         return this.needAnimation = false;
-      };
-
-      Text.prototype._setTextProperties = function(options) {
-        var _fillStyle, _font, _strokeStyle, _strokeWidth, _text;
-        _font = _fillStyle = _strokeStyle = _strokeWidth = _text = "";
-        Object.defineProperty(this, "font", {
-          get: function() {
-            return _font;
-          },
-          set: function(value) {
-            var span;
-            _font = value || "12px Arial";
-            span = document.createElement("span");
-            span.appendChild(document.createTextNode("height"));
-            span.style.cssText = "font: " + _font + "; white-space: nowrap; display: inline;";
-            document.body.appendChild(span);
-            this.fontHeight = span.offsetHeight;
-            document.body.removeChild(span);
-            this.needAnimation = true;
-            return _font;
-          }
-        });
-        Object.defineProperty(this, "fillStyle", {
-          get: function() {
-            return _fillStyle;
-          },
-          set: function(value) {
-            _fillStyle = value || false;
-            this.needAnimation = true;
-            return _fillStyle;
-          }
-        });
-        Object.defineProperty(this, "strokeStyle", {
-          get: function() {
-            return _strokeStyle;
-          },
-          set: function(value) {
-            _strokeStyle = value || false;
-            this.needAnimation = true;
-            return _strokeStyle;
-          }
-        });
-        Object.defineProperty(this, "strokeWidth", {
-          get: function() {
-            return _strokeWidth;
-          },
-          set: function(value) {
-            _strokeWidth = this.int(value) || 1;
-            this.needAnimation = true;
-            return _strokeWidth;
-          }
-        });
-        Object.defineProperty(this, "text", {
-          get: function() {
-            return _text;
-          },
-          set: function(value) {
-            _text = value || "";
-            this.context.save();
-            this.context.font = _font;
-            this.textWidth = this.context.measureText(_text).width;
-            this.context.restore();
-            this.needAnimation = true;
-            return _text;
-          }
-        });
-        this.font = options.font;
-        this.fillStyle = options.fillStyle;
-        this.strokeStyle = options.strokeStyle;
-        this.strokeWidth = options.strokeWidth;
-        return this.text = options.text;
       };
 
       return Text;

@@ -10,21 +10,15 @@
       extend(TilingImage, superClass);
 
       function TilingImage(options) {
-        var _rect;
         TilingImage.__super__.constructor.call(this, options);
-        _rect = 0;
-        Object.defineProperty(this, "rect", {
-          get: function() {
-            return _rect;
-          },
-          set: function(value) {
-            _rect = value || [0, 0, this.parent.size[0], this.parent.size[1]];
-            this.needAnimation = true;
-            return _rect;
-          }
-        });
-        this.rect = options.rect;
+        this.setRect(options.rect);
       }
+
+      TilingImage.prototype.setRect = function(value) {
+        this.rect = value || [0, 0, this.parent.size[0], this.parent.size[1]];
+        this.needAnimation = true;
+        return this.rect;
+      };
 
       TilingImage.prototype.animate = function() {
         if (!this.loaded) {
