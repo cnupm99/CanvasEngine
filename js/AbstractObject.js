@@ -8,52 +8,7 @@
         if (options == null) {
           options = {};
         }
-        this.parent = options.parent || document.body;
-        this.childrens = [];
       }
-
-      AbstractObject.prototype.get = function(childName) {
-        var index;
-        index = this.index(childName);
-        if (index === -1) {
-          return false;
-        }
-        return this.childrens[index];
-      };
-
-      AbstractObject.prototype.remove = function(childName) {
-        var index;
-        index = this.index(childName);
-        if (index === -1) {
-          return false;
-        }
-        this.childrens.splice(index, 1);
-        return true;
-      };
-
-      AbstractObject.prototype.rename = function(oldName, newName) {
-        var index;
-        index = this.index(oldName);
-        if (index === -1) {
-          return false;
-        }
-        this.childrens[index].name = newName;
-        return true;
-      };
-
-      AbstractObject.prototype.index = function(childName) {
-        var result;
-        result = -1;
-        this.childrens.some(function(child, index) {
-          var flag;
-          flag = child.name === childName;
-          if (flag) {
-            result = index;
-          }
-          return flag;
-        });
-        return result;
-      };
 
       AbstractObject.prototype.point = function(value1, value2) {
         if (value1 == null) {

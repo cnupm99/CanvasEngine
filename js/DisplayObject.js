@@ -13,6 +13,12 @@
         DisplayObject.__super__.constructor.call(this, options);
         this.name = options.name || "";
         this.type = "DisplayObject";
+        if (!this.canvas) {
+          this.canvas = options.canvas;
+        }
+        if (!this.context) {
+          this.context = options.context;
+        }
         this._setProperties(options);
       }
 
@@ -23,62 +29,56 @@
         if (options.visible != null) {
           this.visible = options.visible;
         }
+        if (this.visible) {
+          this.show();
+        } else {
+          this.hide();
+        }
         if (options.position != null) {
-          this.position = this.pixel(options.position);
+          this.move(options.position);
         }
         if (options.size != null) {
-          this.size = this.pixel(options.size);
+          this.resize(options.size);
         }
         if (options.realSize != null) {
-          this.realSize = this.pixel(options.realSize);
+          this.upsize(options.realSize);
         }
         if (options.center != null) {
-          this.focus(options.center);
+          this.setCenter(options.center);
         }
         if (options.anchor != null) {
-          this.attach(options.anchor);
+          this.setAnchor(options.anchor);
         }
         if (options.scale != null) {
-          this.scale = this.point(options.scale);
+          this.zoom(options.scale);
         }
         if (options.rotation != null) {
-          this.rotation = this.number(options.rotation);
+          this.rotate(options.rotation);
         }
         if (options.alpha != null) {
-          this.opasity(options.alpha);
+          this.setAlpha(options.alpha);
         }
         if (options.shadow != null) {
-          this.shade(options.shadow);
+          this.setShadow(options.shadow);
         }
-        return this.parent.needAnimation = true;
+        return this.needAnimation = true;
       };
 
       DisplayObject.prototype.show = function() {
-        if (this.visible) {
-          return;
-        }
         this.visible = true;
-        this.parent.needAnimation = true;
+        this.needAnimation = true;
         return true;
       };
 
       DisplayObject.prototype.hide = function() {
-        if (!this.visible) {
-          return;
-        }
         this.visible = false;
-        this.parent.needAnimation = true;
+        this.needAnimation = true;
         return false;
       };
 
       DisplayObject.prototype.move = function(value1, value2) {
-        var position;
-        position = this.pixel(value1, value2);
-        if (position[0] === this.position[0] && position[1] === this.position[1]) {
-          return;
-        }
-        this.position = position;
-        this.parent.needAnimation = true;
+        this.position = this.pixel(value1, value2);
+        this.needAnimation = true;
         return this.position;
       };
 
@@ -87,78 +87,54 @@
       };
 
       DisplayObject.prototype.resize = function(value1, value2) {
-        var size;
-        size = this.pixel(value1, value2);
-        if (size[0] === this.size[0] && size[1] === this.size[1]) {
-          return;
-        }
-        this.size = size;
-        this.attach(this.anchor);
-        this.parent.needAnimation = true;
+        this.size = this.pixel(value1, value2);
+        this.setAnchor(this.anchor);
+        this.needAnimation = true;
         return this.size;
       };
 
       DisplayObject.prototype.upsize = function(value1, value2) {
-        var size;
-        size = this.pixel(value1, value2);
-        if (size[0] === this.realSize[0] && size[1] === this.realSize[1]) {
-          return;
-        }
-        this.realSize = size;
-        this.attach(this.anchor);
+        this.realSize = this.pixel(value1, value2);
+        this.setAnchor(this.anchor);
         return this.realSize;
       };
 
-      DisplayObject.prototype.focus = function(value1, value2) {
-        var anchorX, anchorY, center, size;
-        center = this.pixel(value1, value2);
-        if (center[0] === this.center[0] && center[1] === this.center[1]) {
-          return;
-        }
-        this.center = center;
+      DisplayObject.prototype.setCenter = function(value1, value2) {
+        var anchorX, anchorY, size;
+        this.center = this.pixel(value1, value2);
         size = this.size[0] === 0 && this.size[1] === 0 ? this.realSize : this.size;
         anchorX = size[0] === 0 ? 0 : this.center[0] / size[0];
         anchorY = size[1] === 0 ? 0 : this.center[1] / size[1];
         this.anchor = [anchorX, anchorY];
-        this.parent.needAnimation = true;
+        this.needAnimation = true;
         return this.center;
       };
 
-      DisplayObject.prototype.attach = function(value1, value2) {
+      DisplayObject.prototype.setAnchor = function(value1, value2) {
         var size;
         this.anchor = this.point(value1, value2);
         size = this.size[0] === 0 && this.size[1] === 0 ? this.realSize : this.size;
         this.center = [this.int(size[0] * this.anchor[0]), this.int(size[1] * this.anchor[1])];
-        this.parent.needAnimation = true;
+        this.needAnimation = true;
         return this.anchor;
       };
 
-      DisplayObject.prototype.scaling = function(value1, value2) {
-        var scale;
-        scale = value1 != null ? this.point(value1, value2) : [1, 1];
-        if (scale[0] === this.scale[0] && scale[1] === this.scale[1]) {
-          return;
-        }
-        this.scale = scale;
-        this.parent.needAnimation = true;
+      DisplayObject.prototype.zoom = function(value1, value2) {
+        this.scale = value1 != null ? this.point(value1, value2) : [1, 1];
+        this.needAnimation = true;
         return this.scale;
       };
 
       DisplayObject.prototype.rotate = function(value) {
-        var rotation;
-        rotation = this.int(value);
-        if (rotation < 0) {
-          rotation = 360 + rotation;
+        this.rotation = this.int(value);
+        if (this.rotation < 0) {
+          this.rotation = 360 + this.rotation;
         }
-        if (rotation >= 360) {
-          rotation = rotation % 360;
+        if (this.rotation >= 360) {
+          this.rotation = this.rotation % 360;
         }
-        if (rotation === this.rotation) {
-          return;
-        }
-        this.rotation = rotation;
         this._rotation = this.rotation * this._PIDIV180;
-        this.parent.needAnimation = true;
+        this.needAnimation = true;
         return this.rotation;
       };
 
@@ -166,24 +142,19 @@
         return this.rotate(this.rotation + this.int(value));
       };
 
-      DisplayObject.prototype.opasity = function(value) {
-        var alpha;
-        alpha = value ? this.number(value) : 1;
-        if (alpha < 0) {
-          alpha = 0;
+      DisplayObject.prototype.setAlpha = function(value) {
+        this.alpha = value ? this.number(value) : 1;
+        if (this.alpha < 0) {
+          this.alpha = 0;
         }
-        if (alpha > 1) {
-          alpha = 1;
+        if (this.alpha > 1) {
+          this.alpha = 1;
         }
-        if (alpha === this.alpha) {
-          return;
-        }
-        this.alpha = alpha;
-        this.parent.needAnimation = true;
+        this.needAnimation = true;
         return this.alpha;
       };
 
-      DisplayObject.prototype.shade = function(value) {
+      DisplayObject.prototype.setShadow = function(value) {
         if ((value == null) || (!value)) {
           this.shadow = false;
         } else {
@@ -195,17 +166,16 @@
             offset: this.int(value.offset)
           };
         }
-        this.parent.needAnimation = true;
+        this.needAnimation = true;
         return this.shadow;
       };
 
       DisplayObject.prototype.testPoint = function(pointX, pointY) {
-        var context, imageData, offsetX, offsetY, pixelData, rect;
-        rect = this.canvas != null ? this.canvas.getBoundingClientRect() : this.parent.canvas.getBoundingClientRect();
+        var imageData, offsetX, offsetY, pixelData, rect;
+        rect = this.canvas.getBoundingClientRect();
         offsetX = pointX - rect.left;
         offsetY = pointY - rect.top;
-        context = this.context || this.parent.context;
-        imageData = context.getImageData(offsetX, offsetY, 1, 1);
+        imageData = this.context.getImageData(offsetX, offsetY, 1, 1);
         pixelData = imageData.data;
         if (pixelData.every == null) {
           pixelData.every = Array.prototype.every;
@@ -217,38 +187,36 @@
 
       DisplayObject.prototype.testRect = function(pointX, pointY) {
         var rect;
-        if (this.canvas == null) {
-          rect = this.parent.canvas.getBoundingClientRect();
+        rect = this.canvas.getBoundingClientRect();
+        if (this.type !== "scene") {
           rect = {
             left: rect.left + this.position[0],
             top: rect.top + this.position[1],
             right: rect.left + this.position[0] + this.size[0],
             bottom: rect.top + this.position[1] + this.size[1]
           };
-        } else {
-          rect = this.canvas.getBoundingClientRect();
         }
         return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
       };
 
-      DisplayObject.prototype.animate = function(context) {
+      DisplayObject.prototype.animate = function() {
         this._deltaX = this.position[0];
         this._deltaY = this.position[1];
         if (this.shadow) {
-          context.shadowColor = this.shadow.color;
-          context.shadowBlur = this.shadow.blur;
-          context.shadowOffsetX = Math.max(this.shadow.offsetX, this.shadow.offset);
-          context.shadowOffsetY = Math.max(this.shadow.offsetY, this.shadow.offset);
+          this.context.shadowColor = this.shadow.color;
+          this.context.shadowBlur = this.shadow.blur;
+          this.context.shadowOffsetX = Math.max(this.shadow.offsetX, this.shadow.offset);
+          this.context.shadowOffsetY = Math.max(this.shadow.offsetY, this.shadow.offset);
         }
         if (this.scale[0] !== 1 || this.scale[1] !== 1) {
-          context.scale(this.scale[0], this.scale[1]);
+          this.context.scale(this.scale[0], this.scale[1]);
         }
         if (this.alpha !== 1) {
-          context.globalAlpha = this.alpha;
+          this.context.globalAlpha = this.alpha;
         }
         if (this.rotation !== 0) {
-          context.translate(this.center[0] + this.position[0], this.center[1] + this.position[1]);
-          context.rotate(this._rotation);
+          this.context.translate(this.center[0] + this.position[0], this.center[1] + this.position[1]);
+          this.context.rotate(this._rotation);
           this._deltaX = -this.center[0];
           return this._deltaY = -this.center[1];
         }
@@ -256,21 +224,25 @@
 
       DisplayObject.prototype._setProperties = function(options) {
         this.visible = options.visible != null ? options.visible : true;
-        this.position = this.pixel(options.position);
+        if (this.visible) {
+          this.show();
+        } else {
+          this.hide();
+        }
+        this.move(options.position);
         this.realSize = [0, 0];
-        this.size = this.pixel(options.size);
+        this.resize(options.size);
         if ((options.center != null) || (options.anchor == null)) {
-          this.center = [0, 0];
-          this.focus(options.center);
+          this.setCenter(options.center);
         }
         if ((options.anchor != null) && (options.center == null)) {
-          this.anchor = [0, 0];
-          this.attach(options.anchor);
+          this.setAnchor(options.anchor);
         }
-        this.scale = options.scale ? this.point(options.scale) : [1, 1];
-        this.rotation = this.int(options.rotation);
-        this.alpha = options.alpha || 1;
-        return this.shadow = options.shadow || false;
+        this.zoom(options.scale);
+        this.rotate(options.rotation);
+        this.setAlpha(options.alpha);
+        this.setShadow(options.shadow);
+        return this.needAnimation = true;
       };
 
       return DisplayObject;

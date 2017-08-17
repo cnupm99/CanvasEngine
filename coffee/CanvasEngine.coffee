@@ -1,31 +1,33 @@
 "use strict";
 
-define ["DisplayObject", "Scene"], (DisplayObject, Scene) ->
+define ["ContainerObject", "Scene"], (ContainerObject, Scene) ->
 
 	# 
 	# Движок для Canvas
 	# 
-	class CanvasEngine extends DisplayObject
+	class CanvasEngine extends ContainerObject
 
 		# 
 		# Главный класс, через него осуществляется взаимодействие с движком
 		# 
 		# свойства:
 		# 
-		#  scene: Scene - хранит имя активной сцены, возвращает сцену
+		#  parent:Element - элемент для отрисовки движка
 		#  
 		# методы:
 		# 
-		#  add(options): DisplayObject - метод для добавления новых объектов / сцен
-		#  remove(childName): Boolean - удаляем сцену
-		#  onTop(childName): Scene/Boolean - поднимаем сцену на верх отображения
+		#  add(options):DisplayObject - метод для добавления новых объектов / сцен
+		#  remove(childName):Boolean - удаляем сцену
+		#  onTop(childName):Scene/Boolean - поднимаем сцену на верх отображения
+		#  getActive():Scene/Boolean - получить активную сцену
+		#  setActive(sceneName:String):Scene - установить активную сцену по имени
 		#  start() - запускаем цикл анимации
 		#  stop() - останавливаем цикл анимации
 		#  addEvent(func) - добавить функцию, выполняемую каждый раз перед анимацией
 		#  removeEvent(func) - удалить функцию из цикла анимации
-		#  fullscreen(Boolean): Boolean - включить/выключить полноэкранный режим
-		#  isFullscreen(): Boolean - определяет, включен ли полноэкранный режим
-		#  canvasSupport(): Boolean - проверка, поддерживает ли браузер canvas и context
+		#  fullscreen(Boolean):Boolean - включить/выключить полноэкранный режим
+		#  isFullscreen():Boolean - определяет, включен ли полноэкранный режим
+		#  canvasSupport():Boolean - проверка, поддерживает ли браузер canvas и context
 		# 
 		constructor: (options) ->
 
@@ -41,6 +43,12 @@ define ["DisplayObject", "Scene"], (DisplayObject, Scene) ->
 			# базовые свойства и методы
 			# 
 			super options
+
+			# 
+			# элемент для отрисовки движка
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+			# 
+			@parent = options.parent or document.body
 
 			# 
 			# если размеры движка не заданы, то пытаемся установить их равными
@@ -156,7 +164,7 @@ define ["DisplayObject", "Scene"], (DisplayObject, Scene) ->
 				maxZ = child.zIndex if child.zIndex > maxZ
 				result = child if childName == child.name
 
-			result.float maxZ + 1 if result
+			result.setZIndex maxZ + 1 if result
 
 			return result
 
@@ -255,14 +263,9 @@ define ["DisplayObject", "Scene"], (DisplayObject, Scene) ->
 			options.shadow = @shadow unless options.shadow?
 
 			# 
-			# передаем себя, как родителя
-			# 
-			options.parent = @
-
-			# 
 			# передаем родителя, как элемент для создания канваса
 			# 
-			options.stage = @parent
+			options.parent = @parent
 
 			# 
 			# создаем сцену
@@ -277,7 +280,7 @@ define ["DisplayObject", "Scene"], (DisplayObject, Scene) ->
 			# 
 			# делаем новую сцену активной
 			# 
-			@scene = scene.name
+			@setActive scene.name
 
 			return scene
 
@@ -303,11 +306,13 @@ define ["DisplayObject", "Scene"], (DisplayObject, Scene) ->
 			# перебираем сцены
 			@childrens.forEach (child) =>
 
+				needAnimation = child.needAnimation or child.childrens.some (childOfChild) -> childOfChild.needAnimation
+
 				# сохраняем значение
-				@needAnimation = @needAnimation or child.needAnimation
+				@needAnimation = @needAnimation or needAnimation
 
 				# собственно анимация
-				child.animate() if child.needAnimation
+				child.animate() if needAnimation
 
 			# 
 			# продолжаем анимацию

@@ -5,7 +5,7 @@
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define(["DisplayObject", "Scene"], function(DisplayObject, Scene) {
+  define(["ContainerObject", "Scene"], function(ContainerObject, Scene) {
     var CanvasEngine;
     return CanvasEngine = (function(superClass) {
       extend(CanvasEngine, superClass);
@@ -17,6 +17,7 @@
           return false;
         }
         CanvasEngine.__super__.constructor.call(this, options);
+        this.parent = options.parent || document.body;
         if (this.size[0] === 0 && this.size[1] === 0) {
           this.size = [this.int(this.parent.clientWidth), this.int(this.parent.clientHeight)];
         }
@@ -76,7 +77,7 @@
           }
         });
         if (result) {
-          result.float(maxZ + 1);
+          result.setZIndex(maxZ + 1);
         }
         return result;
       };
@@ -186,11 +187,10 @@
         if (options.shadow == null) {
           options.shadow = this.shadow;
         }
-        options.parent = this;
-        options.stage = this.parent;
+        options.parent = this.parent;
         scene = new Scene(options);
         this.childrens.push(scene);
-        this.scene = scene.name;
+        this.setActive(scene.name);
         return scene;
       };
 
@@ -201,8 +201,12 @@
         this.needAnimation = false;
         this.childrens.forEach((function(_this) {
           return function(child) {
-            _this.needAnimation = _this.needAnimation || child.needAnimation;
-            if (child.needAnimation) {
+            var needAnimation;
+            needAnimation = child.needAnimation || child.childrens.some(function(childOfChild) {
+              return childOfChild.needAnimation;
+            });
+            _this.needAnimation = _this.needAnimation || needAnimation;
+            if (needAnimation) {
               return child.animate();
             }
           };
@@ -212,7 +216,7 @@
 
       return CanvasEngine;
 
-    })(DisplayObject);
+    })(ContainerObject);
   });
 
 }).call(this);

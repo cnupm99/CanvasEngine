@@ -42,7 +42,7 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	});
 
 	graph2.linearGradient(0, 300, 100, 400, [[0, "#CCC"], [1, "#555"]]);
-	graph2.shade({
+	graph2.setShadow({
 		
 		color: "#888800",
 		blur: 30

@@ -25,7 +25,7 @@ requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
 
 	});
 
-	var count = 3000;
+	var count = 1000;
 
 	for(var i = 0; i < count; i++) {
 
@@ -58,7 +58,5 @@ requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
 		scene.needAnimation = true;
 
 	});
-
-	console.log(ce.childrens);
 
 });

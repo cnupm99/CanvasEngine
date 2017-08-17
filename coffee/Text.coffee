@@ -50,17 +50,17 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# текущая заливка, градиент или false, если заливка не нужна
 			# 
-			@fillStyle = options.fillStyle or false
+			@setFillStyle options.fillStyle
 
 			# 
 			# обводка шрифта или false, если обводка не нужна
 			# 
-			@strokeStyle = options.strokeStyle or false
+			@setStrokeStyle = options.strokeStyle or false
 
 			# 
 			# ширина обводки
 			# 
-			@strokeWidth = if options.strokeWidth? then @int options.strokeWidth else 1
+			@setStrokeWidth options.strokeWidth
 
 			# 
 			# текущий текст надписи
@@ -69,9 +69,7 @@ define ["DisplayObject"], (DisplayObject) ->
 
 		setFont: (value) ->
 
-			font = value or "12px Arial"
-			return if font == @font
-			@font = font
+			@font = value or "12px Arial"
 
 			# 
 			# устанавливаем реальную высоту шрифта в пикселях
@@ -83,65 +81,56 @@ define ["DisplayObject"], (DisplayObject) ->
 			@fontHeight = span.offsetHeight
 			document.body.removeChild span
 
-			@parent.needAnimation = true
+			@needAnimation = true
 			@font
 
 		setFillStyle: (value) ->
 
-			fillStyle = value or false
-			return if fillStyle == @fillStyle
-			@fillStyle = fillStyle
-			@parent.needAnimation = true
+			@fillStyle = value or false
+			@needAnimation = true
 			@fillStyle
 
 		setStrokeStyle: (value) ->
 
-			strokeStyle = value or false
-			return if strokeStyle == @strokeStyle
-			@strokeStyle = strokeStyle
-			@parent.needAnimation = true
+			@strokeStyle = value or false
+			@needAnimation = true
 			@strokeStyle
 
 		setStrokeWidth: (value) ->
 
-			strokeWidth = if value? then @int value else 1
-			return if strokeWidth == @strokeWidth
-			@strokeWidth = strokeWidth
-			@parent.needAnimation = true
+			@strokeWidth = if value? then @int value else 1
+			@needAnimation = true
 			@strokeWidth
 
 		write: (value) ->
 
-			text = value or ""
-			return if text == @text
-			@text = text
+			@text = value or ""
 
 			# 
 			# определяем ширину текста
 			# используя для этого ссылку на контекст
 			# 
-			context = @parent.context
-			context.save()
-			context.font = @font
-			@textWidth = context.measureText(@text).width
-			context.restore()
+			@context.save()
+			@context.font = @font
+			@textWidth = @context.measureText(@text).width
+			@context.restore()
 
-			@parent.needAnimation = true
+			@needAnimation = true
 			@text
 
-		animate: (context) ->
+		animate: () ->
 
-			super context
+			super()
 
 			# 
 			# установим шрифт контекста
 			# 
-			context.font = @font
+			@context.font = @font
 
 			# 
 			# по умолчанию позиционируем текст по верхнему краю
 			# 
-			context.textBaseline = "top"
+			@context.textBaseline = "top"
 			
 			# 
 			# нужна ли заливка
@@ -154,7 +143,7 @@ define ["DisplayObject"], (DisplayObject) ->
 					# 
 					# создаем градиент по нужным точкам
 					# 
-					gradient = context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight
+					gradient = @context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight
 
 					# 
 					# добавляем цвета
@@ -167,23 +156,23 @@ define ["DisplayObject"], (DisplayObject) ->
 					# 
 					# заливка градиентом
 					# 
-					context.fillStyle = gradient
+					@context.fillStyle = gradient
 
 				# 
 				# ну или просто цветом
 				# 
-				else context.fillStyle = @fillStyle
+				else @context.fillStyle = @fillStyle
 
 				# 
 				# выводим залитый текст
 				# 
-				context.fillText @text, @_deltaX, @_deltaY
+				@context.fillText @text, @_deltaX, @_deltaY
 
 			# 
 			# что насчет обводки?
 			# 
 			if @strokeStyle
 
-				context.strokeStyle = @strokeStyle
-				context.lineWidth = @strokeWidth
-				context.strokeText @text, @_deltaX, @_deltaY
+				@context.strokeStyle = @strokeStyle
+				@context.lineWidth = @strokeWidth
+				@context.strokeText @text, @_deltaX, @_deltaY

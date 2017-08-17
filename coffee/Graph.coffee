@@ -45,7 +45,7 @@ define ["DisplayObject"], (DisplayObject) ->
 		clear: () -> 
 
 			@_commands = []
-			@parent.needAnimation = true
+			@needAnimation = true
 
 		# 
 		# стиль линий
@@ -146,7 +146,7 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
-			@parent.needAnimation = true
+			@needAnimation = true
 
 		# 
 		# рисуем линию, соединяющую две точки,
@@ -163,7 +163,7 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
-			@parent.needAnimation = true
+			@needAnimation = true
 
 		# 
 		# рисуем прямоугольник, если указан radius, то скругляем углы
@@ -179,7 +179,7 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
-			@parent.needAnimation = true
+			@needAnimation = true
 
 		# 
 		# линия из множества точек
@@ -200,7 +200,7 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			if stroke then @stroke()
 
-			@parent.needAnimation = true
+			@needAnimation = true
 
 		# 
 		# полигон
@@ -224,7 +224,7 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
-			@parent.needAnimation = true
+			@needAnimation = true
 
 		# 
 		# Рисуем контур
@@ -237,16 +237,16 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
-			@parent.needAnimation = true
+			@needAnimation = true
 
-		animate: (context) ->
+		animate: () ->
 
-			super context
+			super()
 
 			# 
 			# установим закругленные окончания линий
 			# 
-			context.lineCap = "round"
+			@context.lineCap = "round"
 
 			# 
 			# перебираем все команды в массиве команд и выполняем соответствующие действия
@@ -257,55 +257,55 @@ define ["DisplayObject"], (DisplayObject) ->
 
 				switch command.command
 
-					when "beginPath" then context.beginPath()
+					when "beginPath" then @context.beginPath()
 
-					when "stroke" then context.stroke()
+					when "stroke" then @context.stroke()
 
-					when "fill" then context.fill()
+					when "fill" then @context.fill()
 
-					when "setDash" then context.setLineDash command.dash
+					when "setDash" then @context.setLineDash command.dash
 
-					when "dashOffset" then context.lineDashOffset = command.offset
+					when "dashOffset" then @context.lineDashOffset = command.offset
 
-					when "moveTo" then context.moveTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
+					when "moveTo" then @context.moveTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
 
-					when "lineTo" then context.lineTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
+					when "lineTo" then @context.lineTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
 
 					when "line"
 
-						context.beginPath()
-						context.moveTo command.from[0] + @_deltaX, command.from[1] + @_deltaY
-						context.lineTo command.to[0] + @_deltaX, command.to[1] + @_deltaY
-						context.stroke()
+						@context.beginPath()
+						@context.moveTo command.from[0] + @_deltaX, command.from[1] + @_deltaY
+						@context.lineTo command.to[0] + @_deltaX, command.to[1] + @_deltaY
+						@context.stroke()
 
-					when "strokeStyle" then context.strokeStyle = command.style
+					when "strokeStyle" then @context.strokeStyle = command.style
 
-					when "fillStyle" then context.fillStyle = command.style
+					when "fillStyle" then @context.fillStyle = command.style
 
-					when "lineWidth" then context.lineWidth = command.width
+					when "lineWidth" then @context.lineWidth = command.width
 
 					when "rect"
 
-						context.beginPath()
+						@context.beginPath()
 						
 						# обычный прямоугольник
 						if command.radius == 0
 						
-							context.rect command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1]
+							@context.rect command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1]
 
 						# прямоугольник со скругленными углами
-						else @_drawRoundedRect context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1], command.radius
+						else @_drawRoundedRect @context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1], command.radius
 
 					when "gradient"
 
 						# создаем градиент по нужным точкам
-						gradient = context.createLinearGradient command.point1[0] + @_deltaX, command.point1[1] + @_deltaY, command.point2[0] + @_deltaX, command.point2[1] + @_deltaY
+						gradient = @context.createLinearGradient command.point1[0] + @_deltaX, command.point1[1] + @_deltaY, command.point2[0] + @_deltaX, command.point2[1] + @_deltaY
 						# добавляем цвета
 						command.colors.forEach (color) ->
 							# сначала размер, потом цвет
 							gradient.addColorStop color[0], color[1]
 						# заливка градиентом
-						context.fillStyle = gradient
+						@context.fillStyle = gradient
 
 		# 
 		# В информационных целях

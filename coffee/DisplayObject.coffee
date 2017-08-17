@@ -3,33 +3,51 @@
 define ["AbstractObject"], (AbstractObject) ->
 
 	# 
-	# Абстрактный объект, отображаемый на экране
+	# Абстрактный объект, отображаемый на экране,
+	# имеющий для этого все необходимые свойства и методы
 	# 
 	class DisplayObject extends AbstractObject
 
 		# 
 		# свойсва:
 		# 
-		#  name: String - название объекта
-		#  type: String - тип объекта
-		#  context: Context2d - контекст для рисования
-		#  visible: Boolean - видимость объекта, устанавливаемая пользователем
-		#  position: Array - позиция объекта
-		#  size: Array - размер объекта
-		#  realSize: Array - реальный размер объкта
-		#  center: Array - относительные координаты точки центра объекта, вокруг которой происходит вращение
-		#  anchor: Array - дробное число, показывающее, где должен находиться цент относительно размеров объекта
-		#  scale: Array - коэффициенты для масштабирования объектов
-		#  rotation: Number - число в градусах, на которое объект повернут вокруг центра по часовой стрелке
-		#  alpha: [0..1] - прозрачность объекта
-		#  mask: Array - маска объекта
-		#  shadow: Object - тень объекта
+		#  name:String - имя объекта для его идентификации
+		#  type:String - тип объекта
+		#  canvas:Canvas - канвас для рисования
+		#  context:Context2d - контекст для рисования
+		#  
+		#  visible:Boolean - видимость объекта, устанавливаемая пользователем
+		#  position:Array - позиция объекта
+		#  size:Array - размер объекта
+		#  realSize:Array - реальный размер объкта
+		#  center:Array - относительные координаты точки центра объекта, вокруг которой происходит вращение
+		#  anchor:Array - дробное число, показывающее, где должен находиться цент относительно размеров объекта
+		#  scale:Array - коэффициенты для масштабирования объектов
+		#  rotation:int - число в градусах, на которое объект повернут вокруг центра по часовой стрелке
+		#  alpha:Number - прозрачность объекта
+		#  shadow:Object - тень объекта
+		#  
+		#  needAnimation: Boolean - сообщает движку, нужно ли анимировать объект
 		#  
 		# методы:
 		# 
-		#  testPoint(pointX, pointY) - проверка, пуста ли данная точка
-		#  testRect(pointX, pointY) - проверка, входит ли точка в прямоугольник объекта
+		#  set(value:Object) - установка сразу нескольких свойств
+		#  show():Boolean - 
+		#  hide():Boolean - 
+		#  move(value1, value2:int):Array - изменить позицию объекта
 		#  shift(deltaX, deltaY:int):Array - сдвигаем объект на нужное смещение по осям
+		#  resize(value1, value2:int):Array - изменить размер объекта
+		#  upsize(value1, value2:int):Array - обновить реальные размеры объекта
+		#  setCenter(value1, value2: int):Array - установить новый центр объекта
+		#  setAnchor(value1, value2: Number):Array - установить новый якорь объекта
+		#  zoom(value1, value2:Number):Array - установить масштаб объекта
+		#  rotate(value:int):int - установить угол поворота объекта
+		#  rotateOn(value:int):int - повернуть объект на угол относительно текщего
+		#  setAlpha(value:Number):Number - установить прозрачность объекта
+		#  setShadow(value:Object/Boolean/Null): Object/Boolean/Null - установить тень объекта
+		#  
+		#  testPoint(pointX, pointY:int):Boolean - проверка, пуста ли данная точка
+		#  testRect(pointX, pointY:int):Boolean - проверка, входит ли точка в прямоугольник объекта
 		#  animate() - попытка нарисовать объект
 		# 
 		constructor: (options) ->
@@ -51,6 +69,22 @@ define ["AbstractObject"], (AbstractObject) ->
 			@type = "DisplayObject"
 
 			# 
+			# канвас для рисования
+			# в случае сцены, создается до вызова этого конструктора,
+			# в остальных случаях получаем из опций от родителя (сцены)
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+			# 
+			@canvas = options.canvas unless @canvas
+
+			# 
+			# контекст для рисования
+			# в случае сцены, создается до вызова этого конструктора,
+			# в остальных случаях получаем из опций от родителя (сцены)
+			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+			# 
+			@context = options.context unless @context
+
+			# 
 			# установка свойств
 			# 
 			@_setProperties options
@@ -63,26 +97,25 @@ define ["AbstractObject"], (AbstractObject) ->
 			return unless options?
 
 			@visible = options.visible if options.visible?
-			@position = @pixel options.position if options.position?
-			@size = @pixel options.size if options.size?
-			@realSize = @pixel options.realSize if options.realSize?
-			@focus options.center if options.center?
-			@attach options.anchor if options.anchor?
-			@scale = @point options.scale if options.scale?
-			@rotation = @number options.rotation if options.rotation?
-			@opasity options.alpha if options.alpha?
-			@shade options.shadow if options.shadow?
-
-			@parent.needAnimation = true
+			if @visible then @show() else @hide()
+			@move options.position if options.position?
+			@resize options.size if options.size?
+			@upsize options.realSize if options.realSize?
+			@setCenter options.center if options.center?
+			@setAnchor options.anchor if options.anchor?
+			@zoom options.scale if options.scale?
+			@rotate options.rotation if options.rotation?
+			@setAlpha options.alpha if options.alpha?
+			@setShadow options.shadow if options.shadow?
+			@needAnimation = true
 
 		# 
 		# показать объект
 		# 
 		show: () -> 
 
-			return if @visible
 			@visible = true
-			@parent.needAnimation = true
+			@needAnimation = true
 			true
 
 		# 
@@ -90,9 +123,8 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		hide: () ->
 
-			return unless @visible
 			@visible = false
-			@parent.needAnimation = true
+			@needAnimation = true
 			false
 
 		# 
@@ -100,10 +132,8 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		move: (value1, value2) ->
 
-			position = @pixel value1, value2
-			return if position[0] == @position[0] and position[1] == @position[1]
-			@position = position
-			@parent.needAnimation = true
+			@position = @pixel value1, value2
+			@needAnimation = true
 			@position
 
 		# 
@@ -116,11 +146,9 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		resize: (value1, value2) ->
 
-			size = @pixel value1, value2
-			return if size[0] == @size[0] and size[1] == @size[1]
-			@size = size
-			@attach @anchor
-			@parent.needAnimation = true
+			@size = @pixel value1, value2
+			@setAnchor @anchor
+			@needAnimation = true
 			@size
 
 		# 
@@ -128,51 +156,45 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		upsize: (value1, value2) ->
 
-			size = @pixel value1, value2
-			return if size[0] == @realSize[0] and size[1] == @realSize[1]
-			@realSize = size
-			@attach @anchor
+			@realSize = @pixel value1, value2
+			@setAnchor @anchor
 			@realSize
 
 		# 
 		# установить новый центр объекта
 		# 
-		focus: (value1, value2) ->
+		setCenter: (value1, value2) ->
 
-			center = @pixel value1, value2
-			return if center[0] == @center[0] and center[1] == @center[1]
-			@center = center
+			@center = @pixel value1, value2
 
 			size = if @size[0] == 0 and @size[1] == 0 then @realSize else @size
 			anchorX = if size[0] == 0 then 0 else @center[0] / size[0]
 			anchorY = if size[1] == 0 then 0 else @center[1] / size[1]
 			@anchor = [anchorX, anchorY]
 
-			@parent.needAnimation = true
+			@needAnimation = true
 			@center
 
 		# 
 		# установить новый якорь объекта
 		# 
-		attach: (value1, value2) ->
+		setAnchor: (value1, value2) ->
 
 			@anchor = @point value1, value2
 			
 			size = if @size[0] == 0 and @size[1] == 0 then @realSize else @size
 			@center = [@int(size[0] * @anchor[0]), @int(size[1] * @anchor[1])]
 
-			@parent.needAnimation = true
+			@needAnimation = true
 			@anchor
 
 		# 
 		# установить масштаб объекта
 		# 
-		scaling: (value1, value2) ->
+		zoom: (value1, value2) ->
 
-			scale = if value1? then @point value1, value2 else [1, 1]
-			return if scale[0] == @scale[0] and scale[1] == @scale[1]
-			@scale = scale
-			@parent.needAnimation = true
+			@scale = if value1? then @point value1, value2 else [1, 1]
+			@needAnimation = true
 			@scale
 
 		# 
@@ -180,13 +202,11 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		rotate: (value) ->
 
-			rotation = @int value
-			rotation = 360 + rotation if rotation < 0
-			rotation = rotation % 360 if rotation >= 360
-			return if rotation == @rotation
-			@rotation = rotation
+			@rotation = @int value
+			@rotation = 360 + @rotation if @rotation < 0
+			@rotation = @rotation % 360 if @rotation >= 360
 			@_rotation = @rotation * @_PIDIV180
-			@parent.needAnimation = true
+			@needAnimation = true
 			@rotation
 
 		# 
@@ -197,18 +217,19 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		# установить прозрачность объекта
 		# 
-		opasity: (value) ->
+		setAlpha: (value) ->
 
-			alpha = if value then @number value else 1
-			alpha = 0 if alpha < 0
-			alpha = 1 if alpha > 1
-			return if alpha == @alpha
-			@alpha = alpha
+			@alpha = if value then @number value else 1
+			@alpha = 0 if @alpha < 0
+			@alpha = 1 if @alpha > 1
 
-			@parent.needAnimation = true
+			@needAnimation = true
 			@alpha
 
-		shade: (value) ->
+		# 
+		# установить тень объекта
+		# 
+		setShadow: (value) ->
 
 			if (not value?) or (not value) then @shadow = false
 			else
@@ -226,7 +247,7 @@ define ["AbstractObject"], (AbstractObject) ->
 
 				}
 
-			@parent.needAnimation = true
+			@needAnimation = true
 			@shadow
 
 		# 
@@ -243,7 +264,7 @@ define ["AbstractObject"], (AbstractObject) ->
 			# 
 			# получаем координаты канваса в окне
 			# 
-			rect = if @canvas? then @canvas.getBoundingClientRect() else @parent.canvas.getBoundingClientRect()
+			rect = @canvas.getBoundingClientRect()
 
 			# получаем координаты точки на канвасе, относительно самого канваса
 			# т.е. без учета родителей,
@@ -251,10 +272,8 @@ define ["AbstractObject"], (AbstractObject) ->
 			offsetX = pointX - rect.left
 			offsetY = pointY - rect.top
 
-			# ищем контекст
-			context = @context or @parent.context
 			# данные пикселя
-			imageData = context.getImageData offsetX, offsetY, 1, 1
+			imageData = @context.getImageData offsetX, offsetY, 1, 1
 			# цвет пикселя
 			pixelData = imageData.data
 
@@ -269,16 +288,13 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		testRect: (pointX, pointY) ->
 
+			rect = @canvas.getBoundingClientRect()
+
 			# 
 			# если это НЕ сцена
 			# 
-			unless @canvas?
+			unless @type == "scene"
 
-				# 
-				# получаем координаты канваса сцены
-				# 
-				rect = @parent.canvas.getBoundingClientRect()
-				
 				# 
 				# корректируем позицией и размерами объекта
 				# 
@@ -292,11 +308,6 @@ define ["AbstractObject"], (AbstractObject) ->
 				}
 
 			# 
-			# а если это сцена, то просто получаем ее размеры
-			# 
-			else rect = @canvas.getBoundingClientRect()
-
-			# 
 			# собственно сравнение координат
 			# 
 			return (pointX >= rect.left) and (pointX <= rect.right) and (pointY >= rect.top) and (pointY <= rect.bottom)
@@ -305,7 +316,7 @@ define ["AbstractObject"], (AbstractObject) ->
 		# анимация объекта, запускается автоматически,
 		# делать вручную это не нужно
 		# 
-		animate: (context) ->
+		animate: () ->
 
 			# смещение
 			@_deltaX = @position[0]
@@ -314,24 +325,24 @@ define ["AbstractObject"], (AbstractObject) ->
 			# установка тени
 			if @shadow
 
-				context.shadowColor = @shadow.color
-				context.shadowBlur = @shadow.blur
-				context.shadowOffsetX = Math.max @shadow.offsetX, @shadow.offset
-				context.shadowOffsetY = Math.max @shadow.offsetY, @shadow.offset
+				@context.shadowColor = @shadow.color
+				@context.shadowBlur = @shadow.blur
+				@context.shadowOffsetX = Math.max @shadow.offsetX, @shadow.offset
+				@context.shadowOffsetY = Math.max @shadow.offsetY, @shadow.offset
 
 			if @scale[0] != 1 or @scale[1] != 1
 
-				context.scale @scale[0], @scale[1]
+				@context.scale @scale[0], @scale[1]
 
 			if @alpha != 1
 
-				context.globalAlpha = @alpha
+				@context.globalAlpha = @alpha
 
 			# смещение и поворот холста
 			if @rotation != 0
 
-				context.translate @center[0] + @position[0], @center[1] + @position[1]
-				context.rotate @_rotation
+				@context.translate @center[0] + @position[0], @center[1] + @position[1]
+				@context.rotate @_rotation
 				@_deltaX = -@center[0]
 				@_deltaY = -@center[1]
 
@@ -349,12 +360,13 @@ define ["AbstractObject"], (AbstractObject) ->
 			# true / false
 			# 
 			@visible = if options.visible? then options.visible else true
+			if @visible then @show() else @hide()
 
 			# 
 			# позиция объекта
-			# массив вида [x, y], либо объект вида {x: int, y: int}
+			# массив вида [x, y]
 			# 
-			@position = @pixel options.position
+			@move options.position
 
 			# 
 			# реальный размер объекта,
@@ -363,15 +375,15 @@ define ["AbstractObject"], (AbstractObject) ->
 			# 
 			# пока не рассчитан программно, считается равным [0, 0]
 			# 
-			# массив вида [width, height], либо объект вида {width: int, height: int}
+			# массив вида [width, height]
 			# 
 			@realSize = [0, 0]
 
 			# 
 			# размер объекта
-			# массив вида [width, height], либо объект вида {width: int, height: int}
+			# массив вида [width, height]
 			# 
-			@size = @pixel options.size
+			@resize options.size
 
 			# 
 			# координаты точки, являющейся центром объекта,
@@ -380,38 +392,32 @@ define ["AbstractObject"], (AbstractObject) ->
 			# а относительно левого верхнего угла объекта
 			# массив вида [x, y], либо объект вида {x: int, y: int}
 			# 
-			if options.center? or not options.anchor?
-
-				@center = [0, 0]
-				@focus options.center
+			@setCenter options.center if options.center? or not options.anchor?
 
 			# 
 			# Якорь, дробное число, показывающее, где должен находиться цент относительно размеров объекта,
 			# т.е. center = size * anchor
 			# массив [number, number]
 			# 
-			if options.anchor? and not options.center?
-
-				@anchor = [0, 0]
-				@attach options.anchor
+			@setAnchor options.anchor if options.anchor? and not options.center?
 
 			# 
 			# Свойство хранит коэффициенты для масштабирования объектов
 			# массив вида [x, y]
 			# 
-			@scale = if options.scale then @point options.scale else [1, 1]
+			@zoom options.scale
 
 			# 
 			# поворот объекта вокруг точки center по часовой стрелке, измеряется в градусах
 			# число
 			# 
-			@rotation = @int options.rotation
+			@rotate options.rotation
 
 			# 
 			# прозрачность объекта
 			# число от 0 до 1
 			# 
-			@alpha = options.alpha or 1
+			@setAlpha options.alpha
 
 			# 
 			# тень объекта
@@ -426,4 +432,9 @@ define ["AbstractObject"], (AbstractObject) ->
 			# странная хрень, а точнее маска НЕ работает в данном случае
 			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
 			#
-			@shadow = options.shadow or false
+			@setShadow options.shadow
+
+			# 
+			# считаем, что надо нарисовать объект, если не указано иного
+			# 
+			@needAnimation = true

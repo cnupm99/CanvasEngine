@@ -123,9 +123,9 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			# можно рисовать
 			@loaded = true
-			@parent.needAnimation = true
+			@needAnimation = true
 
-		animate: (context) ->
+		animate: () ->
 
 			# 
 			# если картинка не загружена, то рисовать ее не будем
@@ -135,21 +135,21 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# действия по умолчанию для DisplayObject
 			# 
-			super context
+			super()
 
 			# 
 			# рисуем в реальном размере?
 			# 
 			if @size[0] == @realSize[0] and @size[1] == @realSize[1]
 
-				context.drawImage @image, @_deltaX, @_deltaY
+				@context.drawImage @image, @_deltaX, @_deltaY
 
 			else
 
 				# 
 				# тут масштабируем картинку
 				# 
-				context.drawImage @image, @_deltaX, @_deltaY, @size[0], @size[1]
+				@context.drawImage @image, @_deltaX, @_deltaY, @size[0], @size[1]
 
 		_imageOnLoad: (e) =>
 
@@ -165,7 +165,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			@resize @realSize if @size[0] <= 0 or @size[1] <= 0
 
 			@loaded = true
-			@parent.needAnimation = true
+			@needAnimation = true
 
 			# 
 			# если у картинки есть свойство onload, то вызываем его и

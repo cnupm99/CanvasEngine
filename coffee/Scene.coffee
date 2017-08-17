@@ -1,8 +1,8 @@
 "use strict";
 
-define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObject, Image, Text, Graph, TilingImage) ->
+define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerObject, Image, Text, Graph, TilingImage) ->
 
-	class Scene extends DisplayObject
+	class Scene extends ContainerObject
 
 		# 
 		# Класс сцены, на который добавляются все дочерние объекты
@@ -10,25 +10,27 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 		# 
 		# свойства:
 		# 
-		#  stage: Element - родительский элемент для добавления canvas
-		#  canvas: Element - canvas для рисования, создается автоматически
-		#  context: context2d - контекст для рисования, создается автоматически
-		#  zIndex: int - индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
-		#  needAnimation: Boolean - нужно ли анимировать данный объект с точки зрения движка
+		#  canvas:Element - canvas для рисования, создается автоматически
+		#  context:context2d - контекст для рисования, создается автоматически
+		#  zIndex:int - индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
+		#  mask:Array - маска объекта
+		#  needAnimation:Boolean - нужно ли анимировать данный объект с точки зрения движка
 		#  
 		# методы:
 		# 
-		#  add(Object): DisplayObject - добавление дочернего объекта
+		#  add(Object):DisplayObject - добавление дочернего объекта
 		#  animate() - попытка нарисовать объект
 		#  
 		# установка свойств:
 		# 
-		#  setZIndex()
-		#  setPosition()
-		#  setSize()
-		#  setCenter()
-		#  setRotation()
-		#  setAlpha()
+		#  setMask(value:Object):Object - установка маски
+		#  setZIndex(value:int):int - установка зед индекса канваса
+		#  hide() - скрыть сцену
+		#  move(value1, value2:int):Array - изменить позицию канваса
+		#  resize(value1, value2:int):Array - изменить размер канваса
+		#  setCenter(value1, value2: int):Array - установить новый центр канваса
+		#  rotate(value:int):int - установить угол поворота канваса
+		#  setAlpha(value:Number):Number - установить прозрачность канваса
 		# 
 		constructor: (options) ->
 
@@ -37,7 +39,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# всегда должен быть
 			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			@stage = options.stage or document.body
+			stage = options.parent or document.body
 			
 			# 
 			# создаем канвас
@@ -45,7 +47,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# 
 			@canvas = document.createElement "canvas"
 			@canvas.style.position = "absolute"
-			@stage.appendChild @canvas
+			stage.appendChild @canvas
 
 			# 
 			# контекст
@@ -54,21 +56,9 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			@context = @canvas.getContext "2d"
 
 			# 
-			# Буфер для рисования
-			# 
-			@_buffer = document.createElement "canvas"
-			@_bufferContext = @_buffer.getContext "2d"
-
-			# 
 			# создаем DisplayObject
 			# 
 			super options
-
-			@move @position
-			@resize @size
-			@focus @center
-			@rotate @rotation
-			@opasity @alpha
 
 			# 
 			# тип объекта
@@ -79,7 +69,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
 			# целое число >= 0
 			# 
-			@float options.zIndex
+			@setZIndex options.zIndex
 
 			# 
 			# прямоугольная маска, применимо к Scene
@@ -93,7 +83,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# странная хрень, а точнее маска НЕ работает в данном случае
 			# Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
 			# 
-			@masking options.mask
+			@setMask options.mask
 
 			# 
 			# нужно ли анимировать данный объект с точки зрения движка
@@ -118,9 +108,10 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			options.shadow = @shadow unless options.shadow?
 
 			# 
-			# передаем себя, как родителя
+			# передаем канвас и контекст для рисования
 			# 
-			options.parent = @
+			options.canvas = @canvas
+			options.context = @context
 
 			# 
 			# создание объекта
@@ -145,7 +136,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 		# 
 		# Установка прямоугольной маски для рисования
 		# 
-		masking: (value) ->
+		setMask: (value) ->
 
 			if (not value?) or (not value) then @mask = false else @mask = value
 
@@ -155,7 +146,7 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 		# 
 		# Установка zIndex
 		# 
-		float: (value) ->
+		setZIndex: (value) ->
 
 			@zIndex = @int value
 			@canvas.style.zIndex = @zIndex
@@ -165,6 +156,11 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 		# Далее функции, перегружающие свойсва экранного объекта,
 		# т.к. нам нужно в этом случае двигать, поворачивать и т.д. сам канвас
 		# 
+
+		hide: () ->
+
+			super()
+			@context.clearRect 0, 0, @size[0], @size[1]
 
 		move: (value1, value2) ->
 
@@ -186,11 +182,9 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# 
 			@canvas.width = @size[0]
 			@canvas.height = @size[1]
-			@_buffer.width = @size[0]
-			@_buffer.height = @size[1]
 			@size
 
-		focus: (value1, value2) ->
+		setCenter: (value1, value2) ->
 
 			super value1, value2
 
@@ -198,7 +192,6 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# сдвигаем начало координат в центр
 			# 
 			@context.translate @center[0], @center[1]
-			@_bufferContext.translate @center[0], @center[1]
 			@center
 
 		rotate: (value) ->
@@ -208,16 +201,14 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# 
 			# поворот всего контекста на угол
 			# 
-			@context.rotate @deg2rad(@rotation)
-			@_bufferContext.rotate @deg2rad(@rotation)
+			@context.rotate @_rotation
 			@rotation
 
-		opasity: (value) ->
+		setAlpha: (value) ->
 
 			super value
 
 			@context.globalAlpha = @alpha
-			@_bufferContext.globalAlpha = @alpha
 			@alpha
 
 		# 
@@ -232,14 +223,8 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			return unless @visible
 
 			# 
-			# может не надо?
-			# 
-			return unless @needAnimation
-
-			# 
 			# очистка контекста
 			# 
-			# @_bufferContext.clearRect 0, 0, @size[0], @size[1]
 			@context.clearRect 0, 0, @size[0], @size[1]
 
 			# 
@@ -247,27 +232,18 @@ define ["DisplayObject", "Image", "Text", "Graph", "TilingImage"], (DisplayObjec
 			# 
 			if @mask
 
-				@_bufferContext.beginPath()
-				@_bufferContext.rect @mask[0], @mask[1], @mask[2], @mask[3]
-				@_bufferContext.clip()
+				@context.beginPath()
+				@context.rect @mask[0], @mask[1], @mask[2], @mask[3]
+				@context.clip()
 
 			# 
 			# анимация в буфер
 			# 
 			@childrens.forEach (child) => 
 
-				# @_bufferContext.save()
 				@context.save()
-				# child.animate @_bufferContext
-				child.animate @context
-				# @_bufferContext.restore()
+				child.animate()
 				@context.restore()
-
-			# 
-			# рисуем на основной канвас
-			# 
-			# @context.clearRect 0, 0, @size[0], @size[1]
-			# @context.drawImage @_buffer, 0, 0
 
 			# 
 			# анимация больше не нужна

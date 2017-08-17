@@ -4,28 +4,18 @@ define () ->
 
 	# 
 	# Абстрактный объект, не имеющий отображения на экране
-	# но вмещающий в себя основные свойства и методы
-	# других объектов
+	# но вмещающий в себя общедоступные базовые методы
 	# 
 	class AbstractObject
 
 		# 
-		# свойства:
-		# 
-		#  parent: Object/Element - родитель объекта
-		#  childrens: Array - массив дочерних объектов
-		#  
 		# методы:
 		# 
-		#  get(childName:String):Object/false - поиск среди дочерних элементов по имени элемента
-		#  remove(childName:String):Boolean - удаление дочернего элемента по его имени
-		#  rename(oldName, newName:String):Boolean - переименование дочернего элемента
-		#  index(childName:String): int - возвращает индекс элемента в массиве дочерних по его имени
-		#  point(value1, value2): Array - приведение выражений к виду [x, y]
-		#  pixel(value1, value2): Array - округляет результат pixel
-		#  int(value): int - приведение к целому числу
-		#  number(value): Number - приведение к числу
-		#  deg2rad(value): Number - перевод из градусов в радианы
+		#  point(value1, value2):Array - приведение выражений к виду [x, y]
+		#  pixel(value1, value2):Array - округляет результат pixel
+		#  int(value):int - приведение к целому числу
+		#  number(value):Number - приведение к числу
+		#  deg2rad(value):Number - перевод из градусов в радианы
 		#  
 		# константы:
 		# 
@@ -39,68 +29,6 @@ define () ->
 			# чтобы можно было обратиться к его свойствам
 			# 
 			options = {} unless options?
-
-			# 
-			# родитель объекта, он должен быть всегда
-			# для CanvasEngine это Element
-			# для Scene это CancasEngine
-			# для других объектов это Scene
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			@parent = options.parent or document.body
-
-			# 
-			# массив дочерних элементов,
-			# для CanvasEngine это Scene
-			# для Scene остальные элементы
-			# для остальных элементов - массив пустой
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			@childrens = []
-
-		# 
-		# поиск среди дочерних элементов по имени элемента
-		# 
-		get: (childName) ->
-
-			index = @index childName
-			if index == -1 then return false
-			return @childrens[index]
-
-		# 
-		# удаление дочернего элемента по его имени
-		# 
-		remove: (childName) ->
-
-			index = @index childName
-			if index == -1 then return false
-			@childrens.splice index, 1
-			return true
-
-		# 
-		# переименование дочернего элемента
-		# 
-		rename: (oldName, newName) ->
-
-			index = @index oldName
-			if index == -1 then return false
-			@childrens[index].name = newName
-			return true
-
-		# 
-		# возвращает индекс элемента в массиве дочерних по его имени
-		# 
-		index: (childName) ->
-
-			result = -1
-
-			@childrens.some (child, index) ->
-
-				flag = child.name == childName
-				result = index if flag
-				return flag
-
-			return result
 
 		# 
 		# приведение выражений к виду [x, y]

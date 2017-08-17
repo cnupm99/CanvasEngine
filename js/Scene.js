@@ -4,28 +4,22 @@
   var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define(["DisplayObject", "Image", "Text", "Graph", "TilingImage"], function(DisplayObject, Image, Text, Graph, TilingImage) {
+  define(["ContainerObject", "Image", "Text", "Graph", "TilingImage"], function(ContainerObject, Image, Text, Graph, TilingImage) {
     var Scene;
     return Scene = (function(superClass) {
       extend(Scene, superClass);
 
       function Scene(options) {
-        this.stage = options.stage || document.body;
+        var stage;
+        stage = options.parent || document.body;
         this.canvas = document.createElement("canvas");
         this.canvas.style.position = "absolute";
-        this.stage.appendChild(this.canvas);
+        stage.appendChild(this.canvas);
         this.context = this.canvas.getContext("2d");
-        this._buffer = document.createElement("canvas");
-        this._bufferContext = this._buffer.getContext("2d");
         Scene.__super__.constructor.call(this, options);
-        this.move(this.position);
-        this.resize(this.size);
-        this.focus(this.center);
-        this.rotate(this.rotation);
-        this.opasity(this.alpha);
         this.type = "scene";
-        this.float(options.zIndex);
-        this.masking(options.mask);
+        this.setZIndex(options.zIndex);
+        this.setMask(options.mask);
         this.needAnimation = false;
       }
 
@@ -40,7 +34,8 @@
         if (options.shadow == null) {
           options.shadow = this.shadow;
         }
-        options.parent = this;
+        options.canvas = this.canvas;
+        options.context = this.context;
         switch (options.type) {
           case "image":
             result = new Image(options);
@@ -58,7 +53,7 @@
         return result;
       };
 
-      Scene.prototype.masking = function(value) {
+      Scene.prototype.setMask = function(value) {
         if ((value == null) || (!value)) {
           this.mask = false;
         } else {
@@ -68,10 +63,15 @@
         return this.mask;
       };
 
-      Scene.prototype.float = function(value) {
+      Scene.prototype.setZIndex = function(value) {
         this.zIndex = this.int(value);
         this.canvas.style.zIndex = this.zIndex;
         return this.zIndex;
+      };
+
+      Scene.prototype.hide = function() {
+        Scene.__super__.hide.call(this);
+        return this.context.clearRect(0, 0, this.size[0], this.size[1]);
       };
 
       Scene.prototype.move = function(value1, value2) {
@@ -85,29 +85,24 @@
         Scene.__super__.resize.call(this, value1, value2);
         this.canvas.width = this.size[0];
         this.canvas.height = this.size[1];
-        this._buffer.width = this.size[0];
-        this._buffer.height = this.size[1];
         return this.size;
       };
 
-      Scene.prototype.focus = function(value1, value2) {
-        Scene.__super__.focus.call(this, value1, value2);
+      Scene.prototype.setCenter = function(value1, value2) {
+        Scene.__super__.setCenter.call(this, value1, value2);
         this.context.translate(this.center[0], this.center[1]);
-        this._bufferContext.translate(this.center[0], this.center[1]);
         return this.center;
       };
 
       Scene.prototype.rotate = function(value) {
         Scene.__super__.rotate.call(this, value);
-        this.context.rotate(this.deg2rad(this.rotation));
-        this._bufferContext.rotate(this.deg2rad(this.rotation));
+        this.context.rotate(this._rotation);
         return this.rotation;
       };
 
-      Scene.prototype.opasity = function(value) {
-        Scene.__super__.opasity.call(this, value);
+      Scene.prototype.setAlpha = function(value) {
+        Scene.__super__.setAlpha.call(this, value);
         this.context.globalAlpha = this.alpha;
-        this._bufferContext.globalAlpha = this.alpha;
         return this.alpha;
       };
 
@@ -115,19 +110,16 @@
         if (!this.visible) {
           return;
         }
-        if (!this.needAnimation) {
-          return;
-        }
         this.context.clearRect(0, 0, this.size[0], this.size[1]);
         if (this.mask) {
-          this._bufferContext.beginPath();
-          this._bufferContext.rect(this.mask[0], this.mask[1], this.mask[2], this.mask[3]);
-          this._bufferContext.clip();
+          this.context.beginPath();
+          this.context.rect(this.mask[0], this.mask[1], this.mask[2], this.mask[3]);
+          this.context.clip();
         }
         this.childrens.forEach((function(_this) {
           return function(child) {
             _this.context.save();
-            child.animate(_this.context);
+            child.animate();
             return _this.context.restore();
           };
         })(this));
@@ -136,7 +128,7 @@
 
       return Scene;
 
-    })(DisplayObject);
+    })(ContainerObject);
   });
 
 }).call(this);

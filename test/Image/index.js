@@ -36,7 +36,7 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 			ds = -ds;
 
 		}
-		image.scaling([scale, scale]);
+		image.zoom([scale, scale]);
 
 	});
 

@@ -14,99 +14,74 @@
         this.fontHeight = 0;
         this.textWidth = 0;
         this.setFont(options.font);
-        this.fillStyle = options.fillStyle || false;
-        this.strokeStyle = options.strokeStyle || false;
-        this.strokeWidth = options.strokeWidth != null ? this.int(options.strokeWidth) : 1;
+        this.setFillStyle(options.fillStyle);
+        this.setStrokeStyle = options.strokeStyle || false;
+        this.setStrokeWidth(options.strokeWidth);
         this.write(options.text);
       }
 
       Text.prototype.setFont = function(value) {
-        var font, span;
-        font = value || "12px Arial";
-        if (font === this.font) {
-          return;
-        }
-        this.font = font;
+        var span;
+        this.font = value || "12px Arial";
         span = document.createElement("span");
         span.appendChild(document.createTextNode("height"));
         span.style.cssText = "font: " + this.font + "; white-space: nowrap; display: inline;";
         document.body.appendChild(span);
         this.fontHeight = span.offsetHeight;
         document.body.removeChild(span);
-        this.parent.needAnimation = true;
+        this.needAnimation = true;
         return this.font;
       };
 
       Text.prototype.setFillStyle = function(value) {
-        var fillStyle;
-        fillStyle = value || false;
-        if (fillStyle === this.fillStyle) {
-          return;
-        }
-        this.fillStyle = fillStyle;
-        this.parent.needAnimation = true;
+        this.fillStyle = value || false;
+        this.needAnimation = true;
         return this.fillStyle;
       };
 
       Text.prototype.setStrokeStyle = function(value) {
-        var strokeStyle;
-        strokeStyle = value || false;
-        if (strokeStyle === this.strokeStyle) {
-          return;
-        }
-        this.strokeStyle = strokeStyle;
-        this.parent.needAnimation = true;
+        this.strokeStyle = value || false;
+        this.needAnimation = true;
         return this.strokeStyle;
       };
 
       Text.prototype.setStrokeWidth = function(value) {
-        var strokeWidth;
-        strokeWidth = value != null ? this.int(value) : 1;
-        if (strokeWidth === this.strokeWidth) {
-          return;
-        }
-        this.strokeWidth = strokeWidth;
-        this.parent.needAnimation = true;
+        this.strokeWidth = value != null ? this.int(value) : 1;
+        this.needAnimation = true;
         return this.strokeWidth;
       };
 
       Text.prototype.write = function(value) {
-        var context, text;
-        text = value || "";
-        if (text === this.text) {
-          return;
-        }
-        this.text = text;
-        context = this.parent.context;
-        context.save();
-        context.font = this.font;
-        this.textWidth = context.measureText(this.text).width;
-        context.restore();
-        this.parent.needAnimation = true;
+        this.text = value || "";
+        this.context.save();
+        this.context.font = this.font;
+        this.textWidth = this.context.measureText(this.text).width;
+        this.context.restore();
+        this.needAnimation = true;
         return this.text;
       };
 
-      Text.prototype.animate = function(context) {
+      Text.prototype.animate = function() {
         var gradient;
-        Text.__super__.animate.call(this, context);
-        context.font = this.font;
-        context.textBaseline = "top";
+        Text.__super__.animate.call(this);
+        this.context.font = this.font;
+        this.context.textBaseline = "top";
         if (this.fillStyle) {
           if (Array.isArray(this.fillStyle)) {
-            gradient = context.createLinearGradient(this._deltaX, this._deltaY, this._deltaX, this._deltaY + this.fontHeight);
+            gradient = this.context.createLinearGradient(this._deltaX, this._deltaY, this._deltaX, this._deltaY + this.fontHeight);
             this.fillStyle.forEach(function(color) {
               return gradient.addColorStop(color[0], color[1]);
             });
-            context.fillStyle = gradient;
+            this.context.fillStyle = gradient;
           } else {
-            context.fillStyle = this.fillStyle;
+            this.context.fillStyle = this.fillStyle;
           }
-          context.fillText(this.text, this._deltaX, this._deltaY);
+          this.context.fillText(this.text, this._deltaX, this._deltaY);
         }
         if (this.strokeStyle) {
-          context.strokeStyle = this.strokeStyle;
-          context.lineWidth = this.strokeWidth;
-          return context.strokeText(this.text, this._deltaX, this._deltaY);
+          this.context.strokeStyle = this.strokeStyle;
+          this.context.lineWidth = this.strokeWidth;
+          return this.context.strokeText(this.text, this._deltaX, this._deltaY);
         }
       };
 

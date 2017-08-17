@@ -34,6 +34,13 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 			}
 
 		}
+		if(e.which == 1) {
+
+			var scene = ce.get("scene1");
+			if(scene.visible) {scene.hide()}
+			else {scene.show()}
+
+		}
 
 	});
 
@@ -86,16 +93,24 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	// Доказательство и пример здесь: http://codepen.io/cnupm99/pen/wdGKBO
 
 	// добавим картинке тень
-	image.shade({
+	image.setShadow({
 
 		blur: 20
 
 	});
 
 	// добавим на сцену маску
-	scene1.masking([250, 250, 200, 200]);
+	scene1.setMask([250, 250, 200, 200]);
+	console.log(scene1.mask);
 
 	var shadow = false;
+
+	var scene2 = ce.add({
+
+		type: "scene",
+		name: "scene2"
+
+	});
 
 	// создаем графический объект,
 	// одновременно создается новая сцена
@@ -119,7 +134,7 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	// рисуем прямоугольник с тенью и скругленными углами
 	// и градиентом
 	graph2.linearGradient(0, 0, 100, 100, [[0, "#CCC"], [1, "#555"]]);
-	graph2.shade({
+	graph2.setShadow({
 		color: "#888800",
 		blur: 30
 	});
@@ -158,5 +173,7 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 		}
 
 	});
+
+	console.log(ce);
 
 });

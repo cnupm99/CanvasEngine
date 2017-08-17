@@ -43,18 +43,18 @@
           this.resize(this.realSize);
         }
         this.loaded = true;
-        return this.parent.needAnimation = true;
+        return this.needAnimation = true;
       };
 
-      Image.prototype.animate = function(context) {
+      Image.prototype.animate = function() {
         if (!this.loaded) {
           return;
         }
-        Image.__super__.animate.call(this, context);
+        Image.__super__.animate.call(this);
         if (this.size[0] === this.realSize[0] && this.size[1] === this.realSize[1]) {
-          return context.drawImage(this.image, this._deltaX, this._deltaY);
+          return this.context.drawImage(this.image, this._deltaX, this._deltaY);
         } else {
-          return context.drawImage(this.image, this._deltaX, this._deltaY, this.size[0], this.size[1]);
+          return this.context.drawImage(this.image, this._deltaX, this._deltaY, this.size[0], this.size[1]);
         }
       };
 
@@ -64,7 +64,7 @@
           this.resize(this.realSize);
         }
         this.loaded = true;
-        this.parent.needAnimation = true;
+        this.needAnimation = true;
         if (this.onload != null) {
           return this.onload(this.realSize);
         }

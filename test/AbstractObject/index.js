@@ -18,5 +18,7 @@ requirejs(["AbstractObject"], function(AO){
 
 	console.log(a.int(3.14));
 	console.log(a.int(-3.1456));
+	console.log(a.point(-3.5, 10));
+	console.log(a.pixel(-3.5, 10));
 
 });

@@ -11,23 +11,23 @@
 
       function TilingImage(options) {
         TilingImage.__super__.constructor.call(this, options);
-        this.rect = options.rect || [0, 0, this.parent.size[0], this.parent.size[1]];
+        this.setRect(options.rect);
       }
 
       TilingImage.prototype.setRect = function(value) {
-        this.rect = value || [0, 0, this.parent.size[0], this.parent.size[1]];
-        this.parent.needAnimation = true;
+        this.rect = value || [0, 0, this.canvas.width, this.canvas.height];
+        this.needAnimation = true;
         return this.rect;
       };
 
-      TilingImage.prototype.animate = function(context) {
+      TilingImage.prototype.animate = function() {
         if (!this.loaded) {
           return;
         }
-        context.beginPath();
-        context.fillStyle = context.createPattern(this.image, "repeat");
-        context.rect(this.rect[0], this.rect[1], this.rect[2], this.rect[3]);
-        return context.fill();
+        this.context.beginPath();
+        this.context.fillStyle = this.context.createPattern(this.image, "repeat");
+        this.context.rect(this.rect[0], this.rect[1], this.rect[2], this.rect[3]);
+        return this.context.fill();
       };
 
       return TilingImage;
