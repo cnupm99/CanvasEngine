@@ -6,41 +6,45 @@
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   define(function() {
-    var CanvasEngine, DisplayObject, FPS, Graph, Image, Scene, Scenes, Text, TilingImage, base;
-    base = (function() {
-      function base(options) {
-        this._rotation = options.rotation || 0;
-        this._alpha = options.alpha || 1;
-        this._sizes = this._point(options.sizes);
-        this._position = this._point(options.position);
-        this._center = this._point(options.center);
+    var AbstractObject, CanvasEngine, ContainerObject, DisplayObject, Graph, Image, Scene, Text, TilingImage;
+    AbstractObject = (function() {
+      function AbstractObject(options) {
+        if (options == null) {
+          options = {};
+        }
       }
 
-      base.prototype._point = function(value, value2) {
-        if (value == null) {
+      AbstractObject.prototype.point = function(value1, value2) {
+        if (value1 == null) {
           return [0, 0];
         }
         if (value2 != null) {
-          return [this._int(value), this._int(value2)];
+          return [this.number(value1), this.number(value2)];
         }
-        if (Array.isArray(value)) {
-          return [this._int(value[0]), this._int(value[1])];
+        if (Array.isArray(value1)) {
+          return [this.number(value1[0]), this.number(value1[1])];
         } else {
-          if ((value.x != null) && (value.y != null)) {
-            return [this._int(value.x), this._int(value.y)];
+          if ((value1.x != null) && (value1.y != null)) {
+            return [this.number(value1.x), this.number(value1.y)];
           }
-          if ((value.width != null) && (value.height != null)) {
-            return [this._int(value.width), this._int(value.height)];
+          if ((value1.width != null) && (value1.height != null)) {
+            return [this.number(value1.width), this.number(value1.height)];
           }
           return [0, 0];
         }
       };
 
-      base.prototype._int = function(value) {
-        return Math.round(this._value(value));
+      AbstractObject.prototype.pixel = function(value1, value2) {
+        var result;
+        result = this.point(value1, value2);
+        return [result[0] >> 0, result[1] >> 0];
       };
 
-      base.prototype._value = function(value) {
+      AbstractObject.prototype.int = function(value) {
+        return this.number(value) >> 0;
+      };
+
+      AbstractObject.prototype.number = function(value) {
         if (value != null) {
           return +value;
         } else {
@@ -48,7 +52,13 @@
         }
       };
 
-      return base;
+      AbstractObject.prototype.deg2rad = function(value) {
+        return this.number(value) * this._PIDIV180;
+      };
+
+      AbstractObject.prototype._PIDIV180 = Math.PI / 180;
+
+      return AbstractObject;
 
     })();
     DisplayObject = (function(superClass) {
@@ -56,19 +66,171 @@
 
       function DisplayObject(options) {
         DisplayObject.__super__.constructor.call(this, options);
-        this.name = options.name;
-        this._shadow = false;
-        this._visible = options.visible != null ? options.visible : true;
-        this._context = options.parent.context;
-        this._parentPosition = options.parent.position;
-        this.needAnimation = this._visible;
+        this.name = options.name || "";
+        this.type = "DisplayObject";
+        if (!this.canvas) {
+          this.canvas = options.canvas;
+        }
+        if (!this.context) {
+          this.context = options.context;
+        }
+        this._setProperties(options);
       }
 
+      DisplayObject.prototype.set = function(options) {
+        if (options == null) {
+          return;
+        }
+        if (options.visible != null) {
+          this.visible = options.visible;
+        }
+        if (this.visible) {
+          this.show();
+        } else {
+          this.hide();
+        }
+        if (options.position != null) {
+          this.move(options.position);
+        }
+        if (options.size != null) {
+          this.resize(options.size);
+        }
+        if (options.realSize != null) {
+          this.upsize(options.realSize);
+        }
+        if (options.center != null) {
+          this.setCenter(options.center);
+        }
+        if (options.anchor != null) {
+          this.setAnchor(options.anchor);
+        }
+        if (options.scale != null) {
+          this.zoom(options.scale);
+        }
+        if (options.rotation != null) {
+          this.rotate(options.rotation);
+        }
+        if (options.alpha != null) {
+          this.setAlpha(options.alpha);
+        }
+        if (options.shadow != null) {
+          this.setShadow(options.shadow);
+        }
+        return this.needAnimation = true;
+      };
+
+      DisplayObject.prototype.show = function() {
+        this.visible = true;
+        this.needAnimation = true;
+        return true;
+      };
+
+      DisplayObject.prototype.hide = function() {
+        this.visible = false;
+        this.needAnimation = true;
+        return false;
+      };
+
+      DisplayObject.prototype.move = function(value1, value2) {
+        this.position = this.pixel(value1, value2);
+        this.needAnimation = true;
+        return this.position;
+      };
+
+      DisplayObject.prototype.shift = function(value1, value2) {
+        return this.move([value1 + this.position[0], value2 + this.position[1]]);
+      };
+
+      DisplayObject.prototype.resize = function(value1, value2) {
+        this.size = this.pixel(value1, value2);
+        this.setAnchor(this.anchor);
+        this.needAnimation = true;
+        return this.size;
+      };
+
+      DisplayObject.prototype.upsize = function(value1, value2) {
+        this.realSize = this.pixel(value1, value2);
+        this.setAnchor(this.anchor);
+        return this.realSize;
+      };
+
+      DisplayObject.prototype.setCenter = function(value1, value2) {
+        var anchorX, anchorY, size;
+        this.center = this.pixel(value1, value2);
+        size = this.size[0] === 0 && this.size[1] === 0 ? this.realSize : this.size;
+        anchorX = size[0] === 0 ? 0 : this.center[0] / size[0];
+        anchorY = size[1] === 0 ? 0 : this.center[1] / size[1];
+        this.anchor = [anchorX, anchorY];
+        this.needAnimation = true;
+        return this.center;
+      };
+
+      DisplayObject.prototype.setAnchor = function(value1, value2) {
+        var size;
+        this.anchor = this.point(value1, value2);
+        size = this.size[0] === 0 && this.size[1] === 0 ? this.realSize : this.size;
+        this.center = [this.int(size[0] * this.anchor[0]), this.int(size[1] * this.anchor[1])];
+        this.needAnimation = true;
+        return this.anchor;
+      };
+
+      DisplayObject.prototype.zoom = function(value1, value2) {
+        this.scale = value1 != null ? this.point(value1, value2) : [1, 1];
+        this.needAnimation = true;
+        return this.scale;
+      };
+
+      DisplayObject.prototype.rotate = function(value) {
+        this.rotation = this.int(value);
+        if (this.rotation < 0) {
+          this.rotation = 360 + this.rotation;
+        }
+        if (this.rotation >= 360) {
+          this.rotation = this.rotation % 360;
+        }
+        this._rotation = this.rotation * this._PIDIV180;
+        this.needAnimation = true;
+        return this.rotation;
+      };
+
+      DisplayObject.prototype.rotateOn = function(value) {
+        return this.rotate(this.rotation + this.int(value));
+      };
+
+      DisplayObject.prototype.setAlpha = function(value) {
+        this.alpha = value ? this.number(value) : 1;
+        if (this.alpha < 0) {
+          this.alpha = 0;
+        }
+        if (this.alpha > 1) {
+          this.alpha = 1;
+        }
+        this.needAnimation = true;
+        return this.alpha;
+      };
+
+      DisplayObject.prototype.setShadow = function(value) {
+        if ((value == null) || (!value)) {
+          this.shadow = false;
+        } else {
+          this.shadow = {
+            color: value.color || "#000",
+            blur: value.blur || 3,
+            offsetX: this.int(value.offsetX),
+            offsetY: this.int(value.offsetY),
+            offset: this.int(value.offset)
+          };
+        }
+        this.needAnimation = true;
+        return this.shadow;
+      };
+
       DisplayObject.prototype.testPoint = function(pointX, pointY) {
-        var imageData, offsetX, offsetY, pixelData;
-        offsetX = pointX - this._parentPosition[0];
-        offsetY = pointY - this._parentPosition[1];
-        imageData = this._context.getImageData(offsetX, offsetY, 1, 1);
+        var imageData, offsetX, offsetY, pixelData, rect;
+        rect = this.canvas.getBoundingClientRect();
+        offsetX = pointX - rect.left;
+        offsetY = pointY - rect.top;
+        imageData = this.context.getImageData(offsetX, offsetY, 1, 1);
         pixelData = imageData.data;
         if (pixelData.every == null) {
           pixelData.every = Array.prototype.every;
@@ -80,142 +242,128 @@
 
       DisplayObject.prototype.testRect = function(pointX, pointY) {
         var rect;
-        rect = {
-          left: this._position[0] + this._parentPosition[0],
-          top: this._position[1] + this._parentPosition[1]
-        };
-        rect.right = rect.left + this._sizes[0];
-        rect.bottom = rect.top + this._sizes[1];
+        rect = this.canvas.getBoundingClientRect();
+        if (this.type !== "scene") {
+          rect = {
+            left: rect.left + this.position[0],
+            top: rect.top + this.position[1],
+            right: rect.left + this.position[0] + this.size[0],
+            bottom: rect.top + this.position[1] + this.size[1]
+          };
+        }
         return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
       };
 
-      DisplayObject.prototype.getPosition = function() {
-        return this._position;
-      };
-
-      DisplayObject.prototype.getCenter = function() {
-        return this._center;
-      };
-
-      DisplayObject.prototype.shift = function(_deltaX, _deltaY) {
-        if (_deltaX == null) {
-          _deltaX = 0;
+      DisplayObject.prototype.animate = function() {
+        this._deltaX = this.position[0];
+        this._deltaY = this.position[1];
+        if (this.shadow) {
+          this.context.shadowColor = this.shadow.color;
+          this.context.shadowBlur = this.shadow.blur;
+          this.context.shadowOffsetX = Math.max(this.shadow.offsetX, this.shadow.offset);
+          this.context.shadowOffsetY = Math.max(this.shadow.offsetY, this.shadow.offset);
         }
-        if (_deltaY == null) {
-          _deltaY = 0;
+        if (this.scale[0] !== 1 || this.scale[1] !== 1) {
+          this.context.scale(this.scale[0], this.scale[1]);
         }
-        return this.setPosition([_deltaX + this._position[0], _deltaY + this._position[1]]);
-      };
-
-      DisplayObject.prototype.setVisible = function(value) {
-        this._visible = value != null ? value : true;
-        return this.needAnimation = this._visible;
-      };
-
-      DisplayObject.prototype.setTransform = function(options) {
-        this.setSizes(options.sizes);
-        this.setPosition(options.position);
-        this.setCenter(options.center);
-        this.setRotation(options.rotation);
-        return this.setAlpha(options.alpha);
-      };
-
-      DisplayObject.prototype.setSizes = function(sizes) {
-        if (sizes != null) {
-          this._sizes = this._point(sizes);
+        if (this.alpha !== 1) {
+          this.context.globalAlpha = this.alpha;
         }
-        return this.needAnimation = true;
-      };
-
-      DisplayObject.prototype.setPosition = function(position) {
-        if (position != null) {
-          this._position = this._point(position);
+        if (this.rotation !== 0) {
+          this.context.translate(this.center[0] + this.position[0], this.center[1] + this.position[1]);
+          this.context.rotate(this._rotation);
+          this._deltaX = -this.center[0];
+          return this._deltaY = -this.center[1];
         }
-        return this.needAnimation = true;
       };
 
-      DisplayObject.prototype.setCenter = function(center) {
-        if (center != null) {
-          this._center = this._point(center);
-        }
-        return this.needAnimation = true;
-      };
-
-      DisplayObject.prototype.setRotation = function(rotation) {
-        if (rotation != null) {
-          this._rotation = this._value(rotation);
-        }
-        return this.needAnimation = true;
-      };
-
-      DisplayObject.prototype.setAlpha = function(alpha) {
-        if (alpha != null) {
-          this._alpha = this._value(alpha);
-        }
-        return this.needAnimation = true;
-      };
-
-      DisplayObject.prototype.setShadow = function(options) {
-        if (options != null) {
-          this._shadow = {
-            color: options.color || "#000",
-            blur: options.blur || 3,
-            offsetX: options.offsetX || 0,
-            offsetY: options.offsetY || 0,
-            offset: options.offset || 0
-          };
+      DisplayObject.prototype._setProperties = function(options) {
+        this.visible = options.visible != null ? options.visible : true;
+        if (this.visible) {
+          this.show();
         } else {
-          this._shadow = false;
+          this.hide();
         }
+        this.move(options.position);
+        this.realSize = [0, 0];
+        this.resize(options.size);
+        if ((options.center != null) || (options.anchor == null)) {
+          this.setCenter(options.center);
+        }
+        if ((options.anchor != null) && (options.center == null)) {
+          this.setAnchor(options.anchor);
+        }
+        this.zoom(options.scale);
+        this.rotate(options.rotation);
+        this.setAlpha(options.alpha);
+        this.setShadow(options.shadow);
         return this.needAnimation = true;
-      };
-
-      DisplayObject.prototype.animate = function(context) {
-        if (!this._visible) {
-          this.needAnimation = false;
-          return;
-        }
-        context.save();
-        this._deltaX = this._position[0];
-        this._deltaY = this._position[1];
-        if (this._shadow) {
-          context.shadowColor = this._shadow.color;
-          context.shadowBlur = this._shadow.blur;
-          context.shadowOffsetX = Math.max(this._shadow.offsetX, this._shadow.offset);
-          context.shadowOffsetY = Math.max(this._shadow.offsetY, this._shadow.offset);
-        }
-        if (this._rotation !== 0) {
-          context.translate(this._center[0] + this._position[0], this._center[1] + this._position[1]);
-          context.rotate(this._rotation * Math.PI / 180);
-          this._deltaX = -this._center[0];
-          this._deltaY = -this._center[1];
-        }
-        return this.needAnimation = false;
       };
 
       return DisplayObject;
 
-    })(base);
+    })(AbstractObject);
+    ContainerObject = (function(superClass) {
+      extend(ContainerObject, superClass);
+
+      function ContainerObject(options) {
+        ContainerObject.__super__.constructor.call(this, options);
+        this.childrens = [];
+      }
+
+      ContainerObject.prototype.get = function(childName) {
+        var index;
+        index = this.index(childName);
+        if (index === -1) {
+          return false;
+        }
+        return this.childrens[index];
+      };
+
+      ContainerObject.prototype.remove = function(childName) {
+        var index;
+        index = this.index(childName);
+        if (index === -1) {
+          return false;
+        }
+        this.childrens.splice(index, 1);
+        return true;
+      };
+
+      ContainerObject.prototype.rename = function(oldName, newName) {
+        var index;
+        index = this.index(oldName);
+        if (index === -1) {
+          return false;
+        }
+        this.childrens[index].name = newName;
+        return true;
+      };
+
+      ContainerObject.prototype.index = function(childName) {
+        var result;
+        result = -1;
+        this.childrens.some(function(child, index) {
+          var flag;
+          flag = child.name === childName;
+          if (flag) {
+            result = index;
+          }
+          return flag;
+        });
+        return result;
+      };
+
+      return ContainerObject;
+
+    })(DisplayObject);
     Graph = (function(superClass) {
       extend(Graph, superClass);
 
       function Graph(options) {
         Graph.__super__.constructor.call(this, options);
         this._commands = [];
-        this.needAnimation = false;
       }
-
-      Graph.prototype.line = function(fromX, fromY, toX, toY) {
-        var from, to;
-        from = this._point(fromX, fromY);
-        to = this._point(toX, toY);
-        this._commands.push({
-          "command": "line",
-          "from": from,
-          "to": to
-        });
-        return this.needAnimation = true;
-      };
 
       Graph.prototype.clear = function() {
         this._commands = [];
@@ -239,57 +387,66 @@
       Graph.prototype.linearGradient = function(x1, y1, x2, y2, colors) {
         return this._commands.push({
           "command": "gradient",
-          "point1": this._point(x1, y1),
-          "point2": this._point(x2, y2),
+          "point1": this.pixel(x1, y1),
+          "point2": this.pixel(x2, y2),
           "colors": colors
         });
       };
 
-      Graph.prototype.rect = function(fromX, fromY, width, height, radius) {
-        var point, sizes;
-        if (radius == null) {
-          radius = 0;
-        }
-        point = this._point(fromX, fromY);
-        sizes = this._point(width, height);
-        this._commands.push({
-          "command": "rect",
-          "point": point,
-          "sizes": sizes,
-          "radius": radius
+      Graph.prototype.lineWidth = function(width) {
+        return this._commands.push({
+          "command": "lineWidth",
+          "width": this.int(width)
         });
-        return this.needAnimation = true;
+      };
+
+      Graph.prototype.setLineDash = function(dash) {
+        return this._commands.push({
+          "command": "setDash",
+          "dash": dash
+        });
+      };
+
+      Graph.prototype.lineDashOffset = function(offset) {
+        return this._commands.push({
+          "command": "dashOffset",
+          "offset": this.int(offset)
+        });
       };
 
       Graph.prototype.moveTo = function(toX, toY) {
-        var point;
-        point = this._point(toX, toY);
         return this._commands.push({
           "command": "moveTo",
-          "point": point
+          "point": this.pixel(toX, toY)
         });
       };
 
       Graph.prototype.lineTo = function(toX, toY) {
-        var point;
-        point = this._point(toX, toY);
         this._commands.push({
           "command": "lineTo",
-          "point": point
+          "point": this.pixel(toX, toY)
         });
         return this.needAnimation = true;
       };
 
-      Graph.prototype.fill = function() {
+      Graph.prototype.line = function(fromX, fromY, toX, toY) {
         this._commands.push({
-          "command": "fill"
+          "command": "line",
+          "from": this.pixel(fromX, fromY),
+          "to": this.pixel(toX, toY)
         });
         return this.needAnimation = true;
       };
 
-      Graph.prototype.stroke = function() {
+      Graph.prototype.rect = function(fromX, fromY, width, height, radius) {
+        if (radius == null) {
+          radius = 0;
+        }
         this._commands.push({
-          "command": "stroke"
+          "command": "rect",
+          "point": this.pixel(fromX, fromY),
+          "size": this.pixel(width, height),
+          "radius": this.int(radius)
         });
         return this.needAnimation = true;
       };
@@ -308,9 +465,7 @@
           };
         })(this));
         if (stroke) {
-          this._commands.push({
-            "command": "stroke"
-          });
+          this.stroke();
         }
         return this.needAnimation = true;
       };
@@ -318,36 +473,77 @@
       Graph.prototype.polygon = function(points) {
         this.polyline(points, false);
         this.lineTo(points[0][0], points[0][1]);
-        this._commands.push({
-          "command": "stroke"
-        });
+        this.stroke();
+        return this.fill();
+      };
+
+      Graph.prototype.fill = function() {
         this._commands.push({
           "command": "fill"
         });
         return this.needAnimation = true;
       };
 
-      Graph.prototype.lineWidth = function(width) {
-        width = this._int(width);
-        return this._commands.push({
-          "command": "lineWidth",
-          "width": width
+      Graph.prototype.stroke = function() {
+        this._commands.push({
+          "command": "stroke"
         });
+        return this.needAnimation = true;
       };
 
-      Graph.prototype.setLineDash = function(dash) {
-        return this._commands.push({
-          "command": "setDash",
-          "dash": dash
-        });
+      Graph.prototype.animate = function() {
+        Graph.__super__.animate.call(this);
+        this.context.lineCap = "round";
+        return this._commands.forEach((function(_this) {
+          return function(command) {
+            var gradient;
+            switch (command.command) {
+              case "beginPath":
+                return _this.context.beginPath();
+              case "stroke":
+                return _this.context.stroke();
+              case "fill":
+                return _this.context.fill();
+              case "setDash":
+                return _this.context.setLineDash(command.dash);
+              case "dashOffset":
+                return _this.context.lineDashOffset = command.offset;
+              case "moveTo":
+                return _this.context.moveTo(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY);
+              case "lineTo":
+                return _this.context.lineTo(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY);
+              case "line":
+                _this.context.beginPath();
+                _this.context.moveTo(command.from[0] + _this._deltaX, command.from[1] + _this._deltaY);
+                _this.context.lineTo(command.to[0] + _this._deltaX, command.to[1] + _this._deltaY);
+                return _this.context.stroke();
+              case "strokeStyle":
+                return _this.context.strokeStyle = command.style;
+              case "fillStyle":
+                return _this.context.fillStyle = command.style;
+              case "lineWidth":
+                return _this.context.lineWidth = command.width;
+              case "rect":
+                _this.context.beginPath();
+                if (command.radius === 0) {
+                  return _this.context.rect(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.size[0], command.size[1]);
+                } else {
+                  return _this._drawRoundedRect(_this.context, command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.size[0], command.size[1], command.radius);
+                }
+                break;
+              case "gradient":
+                gradient = _this.context.createLinearGradient(command.point1[0] + _this._deltaX, command.point1[1] + _this._deltaY, command.point2[0] + _this._deltaX, command.point2[1] + _this._deltaY);
+                command.colors.forEach(function(color) {
+                  return gradient.addColorStop(color[0], color[1]);
+                });
+                return _this.context.fillStyle = gradient;
+            }
+          };
+        })(this));
       };
 
-      Graph.prototype.lineDashOffset = function(offset) {
-        offset = this._int(offset);
-        return this._commands.push({
-          "command": "dashOffset",
-          "offset": offset
-        });
+      Graph.prototype.log = function() {
+        return console.log(this._commands);
       };
 
       Graph.prototype._drawRoundedRect = function(context, x, y, width, height, radius) {
@@ -369,63 +565,73 @@
         return context.arc(x1, y1, radius, pi, 3 * halfpi);
       };
 
-      Graph.prototype.animate = function(context) {
-        if (context == null) {
-          context = this._context;
+      return Graph;
+
+    })(DisplayObject);
+    Image = (function(superClass) {
+      extend(Image, superClass);
+
+      function Image(options) {
+        this._imageOnLoad = bind(this._imageOnLoad, this);
+        Image.__super__.constructor.call(this, options);
+        this.type = "image";
+        this.onload = options.onload;
+        this.loaded = false;
+        this.image = document.createElement("img");
+        this.image.onload = this._imageOnLoad;
+        this.loadedFrom = "";
+        if (options.src != null) {
+          this.src(options.src);
+        } else {
+          this.from(options.from);
         }
-        Graph.__super__.animate.call(this, context);
-        context.lineCap = "round";
-        this._commands.forEach((function(_this) {
-          return function(command) {
-            var gradient;
-            switch (command.command) {
-              case "beginPath":
-                return context.beginPath();
-              case "stroke":
-                return context.stroke();
-              case "fill":
-                return context.fill();
-              case "setDash":
-                return context.setLineDash(command.dash);
-              case "dashOffset":
-                return context.lineDashOffset = command.offset;
-              case "moveTo":
-                return context.moveTo(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY);
-              case "lineTo":
-                return context.lineTo(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY);
-              case "line":
-                context.beginPath();
-                context.moveTo(command.from[0] + _this._deltaX, command.from[1] + _this._deltaY);
-                context.lineTo(command.to[0] + _this._deltaX, command.to[1] + _this._deltaY);
-                return context.stroke();
-              case "strokeStyle":
-                return context.strokeStyle = command.style;
-              case "fillStyle":
-                return context.fillStyle = command.style;
-              case "lineWidth":
-                return context.lineWidth = command.width;
-              case "rect":
-                context.beginPath();
-                if (command.radius === 0) {
-                  return context.rect(command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.sizes[0], command.sizes[1]);
-                } else {
-                  return _this._drawRoundedRect(context, command.point[0] + _this._deltaX, command.point[1] + _this._deltaY, command.sizes[0], command.sizes[1], command.radius);
-                }
-                break;
-              case "gradient":
-                gradient = context.createLinearGradient(command.point1[0] + _this._deltaX, command.point1[1] + _this._deltaY, command.point2[0] + _this._deltaX, command.point2[1] + _this._deltaY);
-                command.colors.forEach(function(color) {
-                  return gradient.addColorStop(color[0], color[1]);
-                });
-                return context.fillStyle = gradient;
-            }
-          };
-        })(this));
-        context.restore();
-        return this.needAnimation = false;
+      }
+
+      Image.prototype.src = function(value) {
+        this.loaded = false;
+        this.loadedFrom = value;
+        return this.image.src = value;
       };
 
-      return Graph;
+      Image.prototype.from = function(from, src) {
+        if (from == null) {
+          return;
+        }
+        this.image = from;
+        this.loadedFrom = src || "";
+        this.upsize([this.image.width, this.image.height]);
+        if (this.size[0] <= 0 || this.size[1] <= 0) {
+          this.resize(this.realSize);
+        }
+        this.loaded = true;
+        return this.needAnimation = true;
+      };
+
+      Image.prototype.animate = function() {
+        if (!this.loaded) {
+          return;
+        }
+        Image.__super__.animate.call(this);
+        if (this.size[0] === this.realSize[0] && this.size[1] === this.realSize[1]) {
+          return this.context.drawImage(this.image, this._deltaX, this._deltaY);
+        } else {
+          return this.context.drawImage(this.image, this._deltaX, this._deltaY, this.size[0], this.size[1]);
+        }
+      };
+
+      Image.prototype._imageOnLoad = function(e) {
+        this.upsize([this.image.width, this.image.height]);
+        if (this.size[0] <= 0 || this.size[1] <= 0) {
+          this.resize(this.realSize);
+        }
+        this.loaded = true;
+        this.needAnimation = true;
+        if (this.onload != null) {
+          return this.onload(this.realSize);
+        }
+      };
+
+      return Image;
 
     })(DisplayObject);
     Text = (function(superClass) {
@@ -433,148 +639,81 @@
 
       function Text(options) {
         Text.__super__.constructor.call(this, options);
+        this.fontHeight = 0;
+        this.textWidth = 0;
         this.setFont(options.font);
-        this.setText(options.text || "");
-        this.fillStyle(options.fillStyle);
-        this._strokeStyle = options.strokeStyle || false;
-        this._strokeWidth = options.strokeWidth || 1;
-        this.needAnimation = true;
+        this.setFillStyle(options.fillStyle);
+        this.setStrokeStyle = options.strokeStyle || false;
+        this.setStrokeWidth(options.strokeWidth);
+        this.write(options.text);
       }
 
-      Text.prototype.setText = function(text) {
-        this._text = text;
-        this._context.save();
-        this._context.font = this._font;
-        this.width = this._context.measureText(this._text).width;
-        this._context.restore();
-        return this.needAnimation = true;
-      };
-
-      Text.prototype.fillStyle = function(style) {
-        this._fillStyle = style || false;
-        return this.needAnimation = true;
-      };
-
-      Text.prototype.strokeStyle = function(style) {
-        this._strokeStyle = style || false;
-        return this.needAnimation = true;
-      };
-
-      Text.prototype.setFont = function(font) {
+      Text.prototype.setFont = function(value) {
         var span;
-        this._font = font || "12px Arial";
+        this.font = value || "12px Arial";
         span = document.createElement("span");
         span.appendChild(document.createTextNode("height"));
-        span.style.cssText = "font: " + this._font + "; white-space: nowrap; display: inline;";
+        span.style.cssText = "font: " + this.font + "; white-space: nowrap; display: inline;";
         document.body.appendChild(span);
         this.fontHeight = span.offsetHeight;
         document.body.removeChild(span);
-        return this.needAnimation = true;
+        this.needAnimation = true;
+        return this.font;
       };
 
-      Text.prototype.animate = function(context) {
+      Text.prototype.setFillStyle = function(value) {
+        this.fillStyle = value || false;
+        this.needAnimation = true;
+        return this.fillStyle;
+      };
+
+      Text.prototype.setStrokeStyle = function(value) {
+        this.strokeStyle = value || false;
+        this.needAnimation = true;
+        return this.strokeStyle;
+      };
+
+      Text.prototype.setStrokeWidth = function(value) {
+        this.strokeWidth = value != null ? this.int(value) : 1;
+        this.needAnimation = true;
+        return this.strokeWidth;
+      };
+
+      Text.prototype.write = function(value) {
+        this.text = value || "";
+        this.context.save();
+        this.context.font = this.font;
+        this.textWidth = this.context.measureText(this.text).width;
+        this.context.restore();
+        this.needAnimation = true;
+        return this.text;
+      };
+
+      Text.prototype.animate = function() {
         var gradient;
-        if (context == null) {
-          context = this._context;
-        }
-        Text.__super__.animate.call(this, context);
-        context.font = this._font;
-        context.textBaseline = "top";
-        if (this._fillStyle) {
-          if (Array.isArray(this._fillStyle)) {
-            gradient = context.createLinearGradient(this._deltaX, this._deltaY, this._deltaX, this._deltaY + this.fontHeight);
-            this._fillStyle.forEach(function(color) {
+        Text.__super__.animate.call(this);
+        this.context.font = this.font;
+        this.context.textBaseline = "top";
+        if (this.fillStyle) {
+          if (Array.isArray(this.fillStyle)) {
+            gradient = this.context.createLinearGradient(this._deltaX, this._deltaY, this._deltaX, this._deltaY + this.fontHeight);
+            this.fillStyle.forEach(function(color) {
               return gradient.addColorStop(color[0], color[1]);
             });
-            context.fillStyle = gradient;
+            this.context.fillStyle = gradient;
           } else {
-            context.fillStyle = this._fillStyle;
+            this.context.fillStyle = this.fillStyle;
           }
-          context.fillText(this._text, this._deltaX, this._deltaY);
+          this.context.fillText(this.text, this._deltaX, this._deltaY);
         }
-        if (this._strokeStyle) {
-          context.strokeStyle = this._strokeStyle;
-          context.lineWidth = this._strokeWidth;
-          context.strokeText(this._text, this._deltaX, this._deltaY);
+        if (this.strokeStyle) {
+          this.context.strokeStyle = this.strokeStyle;
+          this.context.lineWidth = this.strokeWidth;
+          return this.context.strokeText(this.text, this._deltaX, this._deltaY);
         }
-        context.restore();
-        return this.needAnimation = false;
       };
 
       return Text;
-
-    })(DisplayObject);
-    Image = (function(superClass) {
-      extend(Image, superClass);
-
-      function Image(options) {
-        Image.__super__.constructor.call(this, options);
-        this.onload = options.onload;
-        if (options.src != null) {
-          this._image = document.createElement("img");
-          this.needAnimation = false;
-          this._loaded = false;
-          this.setSrc(options.src);
-        } else {
-          this.from(options.from);
-        }
-      }
-
-      Image.prototype.setSrc = function(src) {
-        this._loaded = false;
-        this._image.onload = (function(_this) {
-          return function() {
-            _this._realSizes = [_this._image.width, _this._image.height];
-            if ((_this._sizes[0] <= 0) || (_this._sizes[1] <= 0)) {
-              _this._sizes = _this._realSizes;
-            }
-            _this.needAnimation = true;
-            _this._loaded = true;
-            if (_this.onload != null) {
-              return _this.onload(_this._realSizes);
-            }
-          };
-        })(this);
-        return this._image.src = src;
-      };
-
-      Image.prototype.from = function(from) {
-        this._image = from.image;
-        this._src = from.src;
-        this._realSizes = from.sizes;
-        if ((this._sizes[0] <= 0) || (this._sizes[1] <= 0)) {
-          this._sizes = this._realSizes;
-        }
-        this._loaded = true;
-        return this.needAnimation = true;
-      };
-
-      Image.prototype.getSizes = function() {
-        return this._sizes;
-      };
-
-      Image.prototype.getRealSizes = function() {
-        return this._realSizes;
-      };
-
-      Image.prototype.animate = function(context) {
-        if (context == null) {
-          context = this._context;
-        }
-        if (!this._loaded) {
-          return;
-        }
-        Image.__super__.animate.call(this, context);
-        if ((this._sizes[0] === this._realSizes[0]) && (this._sizes[1] === this._realSizes[1])) {
-          context.drawImage(this._image, this._deltaX, this._deltaY);
-        } else {
-          context.drawImage(this._image, this._deltaX, this._deltaY, this._sizes[0], this._sizes[1]);
-        }
-        context.restore();
-        return this.needAnimation = false;
-      };
-
-      return Image;
 
     })(DisplayObject);
     TilingImage = (function(superClass) {
@@ -582,27 +721,23 @@
 
       function TilingImage(options) {
         TilingImage.__super__.constructor.call(this, options);
-        this._rect = options.rect || [0, 0, options.parent.sizes[0], options.parent.sizes[1]];
+        this.setRect(options.rect);
       }
 
-      TilingImage.prototype.setRect = function(rect) {
-        this._rect = rect;
-        return this.needAnimation = true;
+      TilingImage.prototype.setRect = function(x, y, width, height) {
+        this.rect = value || [0, 0, this.canvas.width, this.canvas.height];
+        this.needAnimation = true;
+        return this.rect;
       };
 
-      TilingImage.prototype.animate = function(context) {
-        if (context == null) {
-          context = this._context;
-        }
-        if (!this._loaded) {
+      TilingImage.prototype.animate = function() {
+        if (!this.loaded) {
           return;
         }
-        TilingImage.__super__.animate.call(this, context);
-        context.fillStyle = context.createPattern(this._image, "repeat");
-        context.rect(this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
-        context.fill();
-        context.restore();
-        return this.needAnimation = false;
+        this.context.beginPath();
+        this.context.fillStyle = this.context.createPattern(this.image, "repeat");
+        this.context.rect(this.rect[0], this.rect[1], this.rect[2], this.rect[3]);
+        return this.context.fill();
       };
 
       return TilingImage;
@@ -612,49 +747,32 @@
       extend(Scene, superClass);
 
       function Scene(options) {
-        Scene.__super__.constructor.call(this, options);
-        this.name = options.name;
-        this._parentPosition = options.parentPosition;
+        var stage;
+        stage = options.parent || document.body;
         this.canvas = document.createElement("canvas");
         this.canvas.style.position = "absolute";
-        this.setZ(options.zIndex);
+        stage.appendChild(this.canvas);
         this.context = this.canvas.getContext("2d");
-        this.setTransform(options);
-        this._mask = false;
-        this._needAnimation = false;
-        this.objects = [];
+        Scene.__super__.constructor.call(this, options);
+        this.type = "scene";
+        this.setZIndex(options.zIndex);
+        this.setMask(options.mask);
+        this.needAnimation = false;
       }
-
-      Scene.prototype.shift = function(deltaX, deltaY) {
-        if (deltaX == null) {
-          deltaX = 0;
-        }
-        if (deltaY == null) {
-          deltaY = 0;
-        }
-        return this.objects.forEach(function(_object) {
-          return _object.shift(deltaX, deltaY);
-        });
-      };
-
-      Scene.prototype.setZ = function(value) {
-        this._zIndex = this._int(value);
-        return this.canvas.style.zIndex = this._zIndex;
-      };
-
-      Scene.prototype.getZ = function() {
-        return this._zIndex;
-      };
 
       Scene.prototype.add = function(options) {
         var result;
         if (options.type == null) {
           return;
         }
-        options.parent = {};
-        options.parent.context = this.context;
-        options.parent.position = [this._position[0] + this._parentPosition[0], this._position[1] + this._parentPosition[1]];
-        options.parent.sizes = this._sizes;
+        if (options.visible == null) {
+          options.visible = this.visible;
+        }
+        if (options.shadow == null) {
+          options.shadow = this.shadow;
+        }
+        options.canvas = this.canvas;
+        options.context = this.context;
         switch (options.type) {
           case "image":
             result = new Image(options);
@@ -668,412 +786,183 @@
           case "tile":
             result = new TilingImage(options);
         }
-        this.objects.push(result);
-        result.getScene = (function(_this) {
-          return function() {
-            return _this;
-          };
-        })(this);
+        this.childrens.push(result);
         return result;
       };
 
-      Scene.prototype.get = function(objectName) {
-        var answer;
-        answer = false;
-        this.objects.some(function(_object) {
-          var flag;
-          flag = _object.name === objectName;
-          if (flag) {
-            answer = _object;
-          }
-          return flag;
-        });
-        return answer;
-      };
-
-      Scene.prototype.remove = function(objectName) {
-        var index;
-        index = -1;
-        this.objects.some(function(_object, i) {
-          var flag;
-          flag = _object.name === objectName;
-          if (flag) {
-            index = i;
-          }
-          return flag;
-        });
-        if (index > -1) {
-          this.objects.splice(index, 1);
-          return true;
-        }
-        return false;
-      };
-
-      Scene.prototype.addChild = function(_object) {
-        this.objects.push(_object);
-        return this._needAnimation = true;
-      };
-
-      Scene.prototype.removeChild = function(_object) {
-        var index;
-        index = -1;
-        this.objects.some(function(_object2, i) {
-          var flag;
-          flag = _object2 === _object;
-          if (flag) {
-            index = i;
-          }
-          return flag;
-        });
-        if (index > -1) {
-          this.objects.splice(index, 1);
-          return true;
-        }
-        return false;
-      };
-
-      Scene.prototype.needAnimation = function() {
-        return this._needAnimation || this.objects.some(function(_object) {
-          return _object.needAnimation;
-        });
-      };
-
-      Scene.prototype.testPoint = function(pointX, pointY) {
-        var imageData, offsetX, offsetY, pixelData;
-        offsetX = pointX - this._position[0] - this._parentPosition[0];
-        offsetY = pointY - this._position[1] - this._parentPosition[1];
-        imageData = this.context.getImageData(offsetX, offsetY, 1, 1);
-        pixelData = imageData.data;
-        if (pixelData.every == null) {
-          pixelData.every = Array.prototype.every;
-        }
-        return !pixelData.every(function(value) {
-          return value === 0;
-        });
-      };
-
-      Scene.prototype.testRect = function(pointX, pointY) {
-        var rect;
-        rect = {
-          left: this._position[0] + this._parentPosition[0],
-          top: this._position[1] + this._parentPosition[1]
-        };
-        rect.right = rect.left + this._sizes[0];
-        rect.bottom = rect.top + this._sizes[1];
-        return (pointX >= rect.left) && (pointX <= rect.right) && (pointY >= rect.top) && (pointY <= rect.bottom);
-      };
-
-      Scene.prototype.getSizes = function() {
-        return this._sizes;
-      };
-
-      Scene.prototype.setMask = function(x, y, width, height) {
-        if (arguments.length < 4) {
-          this._mask = false;
+      Scene.prototype.setMask = function(value) {
+        if ((value == null) || (!value)) {
+          this.mask = false;
         } else {
-          this._mask = {
-            x: this._int(x),
-            y: this._int(y),
-            width: this._int(width),
-            height: this._int(height)
-          };
+          this.mask = value;
         }
-        return this._needAnimation = true;
+        this.needAnimation = true;
+        return this.mask;
       };
 
-      Scene.prototype.setTransform = function(options) {
-        this.setSizes(options.sizes);
-        this.setPosition(options.position);
-        this.setCenter(options.center);
-        this.setRotation(options.rotation);
-        return this.setAlpha(options.alpha);
+      Scene.prototype.setZIndex = function(value) {
+        this.zIndex = this.int(value);
+        this.canvas.style.zIndex = this.zIndex;
+        return this.zIndex;
       };
 
-      Scene.prototype.setSizes = function(sizes) {
-        if (sizes != null) {
-          this._sizes = this._point(sizes);
-        }
-        this.canvas.width = this._sizes[0];
-        this.canvas.height = this._sizes[1];
-        return this._needAnimation = true;
+      Scene.prototype.hide = function() {
+        Scene.__super__.hide.call(this);
+        return this.context.clearRect(0, 0, this.size[0], this.size[1]);
       };
 
-      Scene.prototype.setPosition = function(position) {
-        if (position != null) {
-          this._position = this._point(position);
-        }
-        this.canvas.style.left = this._position[0] + "px";
-        this.canvas.style.top = this._position[1] + "px";
-        return this._needAnimation = true;
+      Scene.prototype.move = function(value1, value2) {
+        Scene.__super__.move.call(this, value1, value2);
+        this.canvas.style.left = this.position[0] + "px";
+        this.canvas.style.top = this.position[1] + "px";
+        return this.position;
       };
 
-      Scene.prototype.setCenter = function(center) {
-        if (center != null) {
-          this._center = this._point(center);
-        }
-        this.context.translate(this._center[0], this._center[1]);
-        return this._needAnimation = true;
+      Scene.prototype.resize = function(value1, value2) {
+        Scene.__super__.resize.call(this, value1, value2);
+        this.canvas.width = this.size[0];
+        this.canvas.height = this.size[1];
+        return this.size;
       };
 
-      Scene.prototype.setRotation = function(rotation) {
-        if (rotation != null) {
-          this._rotation = this._value(rotation);
-        }
-        this.context.rotation = this._rotation * Math.PI / 180;
-        return this._needAnimation = true;
+      Scene.prototype.setCenter = function(value1, value2) {
+        Scene.__super__.setCenter.call(this, value1, value2);
+        this.context.translate(this.center[0], this.center[1]);
+        return this.center;
       };
 
-      Scene.prototype.setAlpha = function(alpha) {
-        if (alpha != null) {
-          this._alpha = this._value(alpha);
-        }
-        this.context.globalAlpha = this._alpha;
-        return this._needAnimation = true;
+      Scene.prototype.setAnchor = function(value1, value2) {
+        Scene.__super__.setAnchor.call(this, value1, value2);
+        this.context.translate(this.center[0], this.center[1]);
+        return this.anchor;
+      };
+
+      Scene.prototype.rotate = function(value) {
+        Scene.__super__.rotate.call(this, value);
+        this.context.rotate(this._rotation);
+        return this.rotation;
+      };
+
+      Scene.prototype.setAlpha = function(value) {
+        Scene.__super__.setAlpha.call(this, value);
+        this.context.globalAlpha = this.alpha;
+        return this.alpha;
       };
 
       Scene.prototype.animate = function() {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        if (this._mask) {
+        if (!this.visible) {
+          return;
+        }
+        this.context.clearRect(0, 0, this.size[0], this.size[1]);
+        if (this.mask) {
           this.context.beginPath();
-          this.context.rect(this._mask.x, this._mask.y, this._mask.width, this._mask.height);
+          this.context.rect(this.mask[0], this.mask[1], this.mask[2], this.mask[3]);
           this.context.clip();
         }
-        this.objects.forEach((function(_this) {
-          return function(_object) {
-            return _object.animate();
+        this.childrens.forEach((function(_this) {
+          return function(child) {
+            _this.context.save();
+            child.animate();
+            return _this.context.restore();
           };
         })(this));
-        return this._needAnimation = false;
+        return this.needAnimation = false;
       };
 
       return Scene;
 
-    })(base);
-    Scenes = (function() {
-      function Scenes(stage) {
-        this._scenes = [];
-        this._stage = stage;
-        this._activeSceneName = "";
-      }
-
-      Scenes.prototype.create = function(options) {
-        var scene, sceneName, setActive, stagePosition;
-        sceneName = options.name || "default";
-        scene = this.get(sceneName);
-        if (!scene) {
-          stagePosition = [this._stage.offsetLeft, this._stage.offsetTop];
-          options.parentPosition = stagePosition;
-          scene = new Scene(options);
-          this._stage.appendChild(scene.canvas);
-          this._scenes.push(scene);
-        }
-        setActive = options.setActive != null ? options.setActive : true;
-        if (setActive) {
-          this._activeSceneName = sceneName;
-        }
-        return scene;
-      };
-
-      Scenes.prototype.active = function() {
-        return this._activeSceneName;
-      };
-
-      Scenes.prototype.active.set = function(sceneName) {
-        var scene;
-        scene = this.get(sceneName);
-        if (scene) {
-          this._activeSceneName = sceneName;
-        }
-        return scene;
-      };
-
-      Scenes.prototype.active.get = function() {
-        return this.get(this._activeSceneName);
-      };
-
-      Scenes.prototype.get = function(sceneName) {
-        var answer;
-        answer = false;
-        this._scenes.some(function(scene) {
-          var flag;
-          flag = scene.name === sceneName;
-          if (flag) {
-            answer = scene;
-          }
-          return flag;
-        });
-        return answer;
-      };
-
-      Scenes.prototype.remove = function(sceneName) {
-        var index;
-        index = this._index(sceneName);
-        if (index > -1) {
-          this._stage.removeChild(this._scenes[index].canvas);
-          this._scenes.splice(index, 1);
-          return true;
-        }
-        return false;
-      };
-
-      Scenes.prototype.rename = function(sceneName, newName) {
-        var scene;
-        scene = this.get(sceneName);
-        if (scene) {
-          scene.name = newName;
-        }
-        return scene;
-      };
-
-      Scenes.prototype.onTop = function(sceneName) {
-        var maxZ, result;
-        maxZ = 0;
-        result = false;
-        this._scenes.forEach(function(scene) {
-          if (scene.getZ() > maxZ) {
-            maxZ = scene.getZ();
-          }
-          if (sceneName === scene.name) {
-            return result = scene;
-          }
-        });
-        if (result) {
-          result.setZ(maxZ + 1);
-        }
-        return result;
-      };
-
-      Scenes.prototype.needAnimation = function() {
-        return this._scenes.some(function(scene) {
-          return scene.needAnimation();
-        });
-      };
-
-      Scenes.prototype.animate = function() {
-        return this._scenes.forEach(function(scene) {
-          if (scene.needAnimation()) {
-            return scene.animate();
-          }
-        });
-      };
-
-      Scenes.prototype._index = function(sceneName) {
-        var index;
-        index = -1;
-        this._scenes.some(function(scene, i) {
-          var flag;
-          flag = scene.name === sceneName;
-          if (flag) {
-            index = i;
-          }
-          return flag;
-        });
-        return index;
-      };
-
-      return Scenes;
-
-    })();
-    FPS = (function() {
-      function FPS(options) {
-        this._onTimer = bind(this._onTimer, this);
-        this._scene = options.scene;
-        this._graph = this._scene.add({
-          type: "graph"
-        });
-        this._values = [];
-        this._caption = this._scene.add({
-          type: "text",
-          fillStyle: "#00FF00",
-          font: "10px Arial",
-          position: [3, 1]
-        });
-        this._caption2 = this._scene.add({
-          type: "text",
-          fillStyle: "#FF0000",
-          font: "10px Arial",
-          position: [48, 1]
-        });
-        this.start();
-        this._onTimer();
-      }
-
-      FPS.prototype.start = function() {
-        this._counter = this._updateCounter = this._FPSValue = 0;
-        return this._interval = setInterval(this._onTimer, 1000);
-      };
-
-      FPS.prototype.stop = function() {
-        clearInterval(this._interval);
-        return this._counter = this._updateCounter = this._FPSValue = 0;
-      };
-
-      FPS.prototype._onTimer = function() {
-        var fps, i, j, ref, ups, x;
-        this._FPSValue = this._counter;
-        this._counter = 0;
-        this._updateValue = this._updateCounter;
-        this._updateCounter = 0;
-        this._values.push([this._FPSValue, this._updateValue]);
-        if (this._values.length === 84) {
-          this._values.shift();
-        }
-        this._graph.clear();
-        this._graph.fillStyle("#000");
-        this._graph.rect(0, 0, 90, 40);
-        this._graph.fill();
-        for (i = j = 0, ref = this._values.length; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
-          x = 87 - this._values.length + i;
-          fps = this._values[i][0];
-          ups = this._values[i][1];
-          this._graph.strokeStyle("#00FF00");
-          this._graph.line(x, 37, x, 37 - 23 * fps / 60);
-          this._graph.strokeStyle("#FF0000");
-          this._graph.line(x, 37, x, 37 - 23 * ups / 60);
-        }
-        this._caption.setText("FPS: " + this._FPSValue);
-        return this._caption2.setText("UPS: " + this._updateValue);
-      };
-
-      FPS.prototype.update = function(needAnimation) {
-        this._counter++;
-        if (needAnimation) {
-          return this._updateCounter++;
-        }
-      };
-
-      return FPS;
-
-    })();
+    })(ContainerObject);
     CanvasEngine = (function(superClass) {
       extend(CanvasEngine, superClass);
 
       function CanvasEngine(options) {
         this._animate = bind(this._animate, this);
-        var scene;
-        if (!this._canvasSupport()) {
+        if (!this.canvasSupport()) {
           console.log("your browser not support canvas and/or context");
           return false;
         }
         CanvasEngine.__super__.constructor.call(this, options);
-        this._parent = options.parent || document.body;
-        this.scenes = new Scenes(this._parent);
-        this._beforeAnimate = [];
-        this._showFPS = options.showFPS != null ? options.showFPS : true;
-        if (this._showFPS) {
-          scene = this.scenes.create({
-            name: "FPS",
-            sizes: [90, 40],
-            position: [this._sizes[0] - 95, 5],
-            zIndex: 99999,
-            setActive: false
-          });
-          this._FPS = new FPS({
-            scene: scene
-          });
+        this.parent = options.parent || document.body;
+        if (this.size[0] === 0 && this.size[1] === 0) {
+          this.size = [this.int(this.parent.clientWidth), this.int(this.parent.clientHeight)];
         }
+        this._beforeAnimate = [];
+        this._scene = "default";
+        this.add({
+          type: "scene",
+          name: "default"
+        });
         this.start();
       }
+
+      CanvasEngine.prototype.add = function(options) {
+        var scene, type;
+        if (options == null) {
+          options = {};
+        }
+        type = options.type || "scene";
+        if (type === "scene") {
+          return this._createScene(options);
+        } else {
+          scene = this.get(options.scene);
+          if (!scene) {
+            scene = this.getActive();
+          }
+          if (!scene) {
+            scene = this.add({
+              type: "scene",
+              name: "default"
+            });
+          }
+          return scene.add(options);
+        }
+      };
+
+      CanvasEngine.prototype.remove = function(childName) {
+        var index;
+        index = this.index(childName);
+        if (index === -1) {
+          return false;
+        }
+        this.parent.removeChild(this.childrens[index].canvas);
+        this.childrens.splice(index, 1);
+        return true;
+      };
+
+      CanvasEngine.prototype.onTop = function(childName) {
+        var maxZ, result;
+        maxZ = 0;
+        result = false;
+        this.childrens.forEach(function(child) {
+          if (child.zIndex > maxZ) {
+            maxZ = child.zIndex;
+          }
+          if (childName === child.name) {
+            return result = child;
+          }
+        });
+        if (result) {
+          result.setZIndex(maxZ + 1);
+        }
+        return result;
+      };
+
+      CanvasEngine.prototype.getActive = function() {
+        var result;
+        result = this.get(this._scene);
+        if (!result) {
+          result = this.childrens[0];
+        }
+        if (!result) {
+          result = false;
+        }
+        return result;
+      };
+
+      CanvasEngine.prototype.setActive = function(sceneName) {
+        this._scene = sceneName || "default";
+        return this.getActive();
+      };
 
       CanvasEngine.prototype.start = function() {
         return this._render = requestAnimationFrame(this._animate);
@@ -1083,40 +972,18 @@
         return cancelAnimationFrame(this._render);
       };
 
-      CanvasEngine.prototype.addEvent = function(handler) {
-        return this._beforeAnimate.push(handler);
+      CanvasEngine.prototype.addEvent = function(func) {
+        return this._beforeAnimate.push(func);
       };
 
-      CanvasEngine.prototype.removeEvent = function(handler) {
+      CanvasEngine.prototype.removeEvent = function(func) {
         return this._beforeAnimate.forEach((function(_this) {
           return function(item, i) {
-            if (item === handler) {
+            if (item === func) {
               return _this._beforeAnimate.splice(i, 1);
             }
           };
         })(this));
-      };
-
-      CanvasEngine.prototype.add = function(options) {
-        var scene, sceneName, type;
-        type = options.type || "scene";
-        if (type === "scene") {
-          if (options.sizes == null) {
-            options.sizes = this._sizes;
-          }
-          if (options.position == null) {
-            options.position = this._position;
-          }
-          return this.scenes.create(options);
-        } else {
-          sceneName = options.scene || this.scenes.active() || "default";
-          scene = this.scenes.create({
-            name: sceneName,
-            sizes: this._sizes,
-            position: this._position
-          });
-          return scene.add(options);
-        }
       };
 
       CanvasEngine.prototype.fullscreen = function(value) {
@@ -1124,12 +991,12 @@
           value = true;
         }
         if (value) {
-          if (this._parent.requestFullScreen != null) {
-            this._parent.requestFullScreen();
-          } else if (this._parent.webkitRequestFullScreen != null) {
-            this._parent.webkitRequestFullScreen();
-          } else if (this._parent.mozRequestFullScreen != null) {
-            this._parent.mozRequestFullScreen();
+          if (this.parent.requestFullScreen != null) {
+            this.parent.requestFullScreen();
+          } else if (this.parent.webkitRequestFullScreen != null) {
+            this.parent.webkitRequestFullScreen();
+          } else if (this.parent.mozRequestFullScreen != null) {
+            this.parent.mozRequestFullScreen();
           } else {
             return false;
           }
@@ -1155,30 +1022,66 @@
         return element != null;
       };
 
-      CanvasEngine.prototype._canvasSupport = function() {
+      CanvasEngine.prototype.canvasSupport = function() {
         return document.createElement("canvas").getContext != null;
       };
 
+      CanvasEngine.prototype._createScene = function(options) {
+        var scene;
+        if (options.visible == null) {
+          options.visible = this.visible;
+        }
+        if (options.position == null) {
+          options.position = this.position;
+        }
+        if (options.size == null) {
+          options.size = this.size;
+        }
+        if (options.center == null) {
+          options.center = this.center;
+        }
+        if (options.rotation == null) {
+          options.rotation = this.rotation;
+        }
+        if (options.alpha == null) {
+          options.alpha = this.alpha;
+        }
+        if (options.mask == null) {
+          options.mask = this.mask;
+        }
+        if (options.shadow == null) {
+          options.shadow = this.shadow;
+        }
+        options.parent = this.parent;
+        scene = new Scene(options);
+        this.childrens.push(scene);
+        this.setActive(scene.name);
+        return scene;
+      };
+
       CanvasEngine.prototype._animate = function() {
-        var needAnimation;
-        this._beforeAnimate.forEach(function(handler) {
-          if (typeof handler === "function") {
-            return handler();
-          }
+        this._beforeAnimate.forEach(function(func) {
+          return func();
         });
-        needAnimation = this.scenes.needAnimation();
-        if (needAnimation) {
-          this.scenes.animate();
-        }
-        if (this._showFPS) {
-          this._FPS.update(needAnimation);
-        }
+        this.needAnimation = false;
+        this.childrens.forEach((function(_this) {
+          return function(child) {
+            var needAnimation;
+            needAnimation = child.needAnimation || child.childrens.some(function(childOfChild) {
+              return childOfChild.needAnimation;
+            });
+            _this.needAnimation = _this.needAnimation || needAnimation;
+            if (needAnimation) {
+              return child.animate();
+            }
+          };
+        })(this));
         return this._render = requestAnimationFrame(this._animate);
       };
 
       return CanvasEngine;
 
-    })(base);
+    })(ContainerObject);
     return CanvasEngine;
   });
 
