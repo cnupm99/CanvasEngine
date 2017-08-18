@@ -94,6 +94,12 @@
         return this.center;
       };
 
+      Scene.prototype.setAnchor = function(value1, value2) {
+        Scene.__super__.setAnchor.call(this, value1, value2);
+        this.context.translate(this.center[0], this.center[1]);
+        return this.anchor;
+      };
+
       Scene.prototype.rotate = function(value) {
         Scene.__super__.rotate.call(this, value);
         this.context.rotate(this._rotation);

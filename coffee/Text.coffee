@@ -7,21 +7,21 @@ define ["DisplayObject"], (DisplayObject) ->
 	# 
 	# свойства:
 	# 
-	#  fontHeight: int - высота текста с текущим шрифтом
-	#  textWidth: int - ширина текущего текста
-	#  font: String - текущий шрифт
-	#  fillStyle: String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
-	#  strokeStyle: String/Boolean - обводка шрифта или false, если обводка не нужна
-	#  strokeWidth: int - ширина обводки
-	#  text: String - отображаемый текст
+	#  fontHeight:int - высота текста с текущим шрифтом
+	#  textWidth:int - ширина текущего текста
+	#  font:String - текущий шрифт
+	#  fillStyle:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
+	#  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
+	#  strokeWidth:int - ширина обводки
+	#  text:String - отображаемый текст
 	#  
 	# методы:
 	# 
-	#  setFont()
-	#  setFillStyle()
-	#  setStrokeStyle()
-	#  setStrokeWidth()
-	#  setText()
+	#  setFont(font:String):String - установка шрифта
+	#  setFillStyle(style:String/Array):String/Array - установка заливки текста
+	#  setStrokeStyle(style:String):String - установка обводки
+	#  setStrokeWidth(value:int):int - толщина обводки
+	#  write(text:String):String - установка текста
 	#  animate() - попытка нарисовать объект
 	# 
 	class Text extends DisplayObject

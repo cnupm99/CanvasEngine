@@ -44,7 +44,7 @@ define ["AbstractObject"], (AbstractObject) ->
 		#  rotate(value:int):int - установить угол поворота объекта
 		#  rotateOn(value:int):int - повернуть объект на угол относительно текщего
 		#  setAlpha(value:Number):Number - установить прозрачность объекта
-		#  setShadow(value:Object/Boolean/Null): Object/Boolean/Null - установить тень объекта
+		#  setShadow(value:Object): Object - установить тень объекта
 		#  
 		#  testPoint(pointX, pointY:int):Boolean - проверка, пуста ли данная точка
 		#  testRect(pointX, pointY:int):Boolean - проверка, входит ли точка в прямоугольник объекта

@@ -11,7 +11,7 @@ define ["Image"], (Image) ->
 	#  
 	# методы:
 	# 
-	#  setRect()
+	#  setRect(value:Array):Array - установка области
 	#  animate() - попытка нарисовать объект 
 	# 
 	class TilingImage extends Image
@@ -30,7 +30,7 @@ define ["Image"], (Image) ->
 		# 
 		# Установка области
 		# 
-		setRect: (value) ->
+		setRect: (x, y, width, height) ->
 
 			@rect = value or [0, 0, @canvas.width, @canvas.height]
 			@needAnimation = true

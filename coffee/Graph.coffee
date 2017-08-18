@@ -8,18 +8,18 @@ define ["DisplayObject"], (DisplayObject) ->
 	# методы:
 	# 
 	#  clear() - очистка экрана и команд
-	#  strokeStyle(String) - стиль линий
-	#  fillStyle(String) - стиль заливки
-	#  linearGradient(int, int, int, int, Array) - установка градиента
-	#  lineWidth(int) - толщина линий
-	#  setLineDash(int) - установка пунктирной линии
-	#  lineDashOffset(int) - смещение пунктирной линии
-	#  moveTo(int, int) - перемещение указателя
-	#  lineTo(int, int) - линия в указанную точку
-	#  line(int, int, int, int) - рисуем линию по двум точкам
-	#  rect(int, int, int, int, int) - рисуем прямоугольник (опционально скругленный)
-	#  polyline(Array, Boolean) - полилиния
-	#  polygon(Array) - полигон
+	#  strokeStyle(style:String) - стиль линий
+	#  fillStyle(style:String) - стиль заливки
+	#  linearGradient(x1, y1, x2, y2:int, colors:Array) - установка градиента
+	#  lineWidth(value:int) - толщина линий
+	#  setLineDash(value:int) - установка пунктирной линии
+	#  lineDashOffset(value:int) - смещение пунктирной линии
+	#  moveTo(x, y:int) - перемещение указателя
+	#  lineTo(x, y:int) - линия в указанную точку
+	#  line(x1, y1, x2, y2:int) - рисуем линию по двум точкам
+	#  rect(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
+	#  polyline(points:Array, needDraw:Boolean) - полилиния
+	#  polygon(points:Array) - полигон
 	#  fill() - заливка фигуры
 	#  stroke() - прорисовка контура
 	#  animate() - попытка нарисовать объект

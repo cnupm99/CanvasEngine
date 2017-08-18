@@ -18,7 +18,7 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 		#  
 		# методы:
 		# 
-		#  add(Object):DisplayObject - добавление дочернего объекта
+		#  add(data:Object):DisplayObject - добавление дочернего объекта
 		#  animate() - попытка нарисовать объект
 		#  
 		# установка свойств:
@@ -28,7 +28,8 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 		#  hide() - скрыть сцену
 		#  move(value1, value2:int):Array - изменить позицию канваса
 		#  resize(value1, value2:int):Array - изменить размер канваса
-		#  setCenter(value1, value2: int):Array - установить новый центр канваса
+		#  setCenter(value1, value2:int):Array - установить новый центр канваса
+		#  setAnchor(value1, value2:int):Array - установить якорь канваса
 		#  rotate(value:int):int - установить угол поворота канваса
 		#  setAlpha(value:Number):Number - установить прозрачность канваса
 		# 
@@ -193,6 +194,16 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 			# 
 			@context.translate @center[0], @center[1]
 			@center
+
+		setAnchor: (value1, value2) ->
+
+			super value1, value2
+
+			# 
+			# сдвигаем начало координат в центр
+			# 
+			@context.translate @center[0], @center[1]
+			@anchor
 
 		rotate: (value) ->
 

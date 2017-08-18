@@ -7,14 +7,14 @@ define ["DisplayObject"], (DisplayObject) ->
 		# 
 		# свойства:
 		# 
-		#  childrens: Array - массив дочерних объектов
+		#  childrens:Array - массив дочерних объектов
 		#  
 		# методы:
 		# 
 		#  get(childName:String):Object/false - поиск среди дочерних элементов по имени элемента
 		#  remove(childName:String):Boolean - удаление дочернего элемента по его имени
 		#  rename(oldName, newName:String):Boolean - переименование дочернего элемента
-		#  index(childName:String): int - возвращает индекс элемента в массиве дочерних по его имени
+		#  index(childName:String):int - возвращает индекс элемента в массиве дочерних по его имени
 		#  
 		constructor: (options) ->
 
