@@ -6,12 +6,12 @@ requirejs.config({
 
 });
 
-requirejs(["CanvasEngine", "../utils/ProgressBar/ProgressBar"], function(CanvasEngine, ProgressBar) {
+requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(CanvasEngine, ProgressBar) {
 
 	// создаем движок
 	var ce = new CanvasEngine({
 
-		sizes: [1000, 800]
+		size: [1000, 800]
 
 	});
 

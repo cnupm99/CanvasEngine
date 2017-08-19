@@ -2,11 +2,13 @@
 
 requirejs.config({
 	
-	baseUrl: "../../js"
+	// baseUrl: "../../js"
+	baseUrl: "../../bin"
 
 });
 
-requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
+// requirejs(["CanvasEngine", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
+requirejs(["CanvasEngine.min", "../utils/FPS/FPS"], function(CanvasEngine, FPS) {
 
 	// создаем движок
 	var ce = new CanvasEngine({

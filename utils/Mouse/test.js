@@ -6,13 +6,13 @@ requirejs.config({
 
 });
 
-requirejs(["CanvasEngine", "../utils/Mouse/Mouse"], function(CanvasEngine, Mouse) {
+requirejs(["CanvasEngine.min", "../utils/Mouse/Mouse"], function(CanvasEngine, Mouse) {
 
 	// создаем движок
 	var ce = new CanvasEngine({
 
 		parent: document.getElementById("main"),
-		sizes: [1000, 800]
+		size: [1000, 800]
 
 	});
 
@@ -30,7 +30,7 @@ requirejs(["CanvasEngine", "../utils/Mouse/Mouse"], function(CanvasEngine, Mouse
 
 		type: "graph",
 		position: [100, 100],
-		sizes: [200, 50]
+		size: [200, 50]
 
 	});
 
@@ -52,7 +52,7 @@ requirejs(["CanvasEngine", "../utils/Mouse/Mouse"], function(CanvasEngine, Mouse
 		graph.setShadow({Blur:10});
 		mouse.setCursor("pointer");
 
-	});
+	}, "rect");
 	mouse.add(graph, "mouseout", function(){
 
 		graph.clear();
@@ -62,21 +62,21 @@ requirejs(["CanvasEngine", "../utils/Mouse/Mouse"], function(CanvasEngine, Mouse
 		graph.setShadow();
 		mouse.setCursor("default");
 
-	});
+	}, "rect");
 	mouse.add(graph, "mousedown", function(e){
 
 		console.log("down");
 
-	});
+	}, "rect");
 	mouse.add(graph, "mouseup", function(){
 
 		console.log("up");
 
-	});
+	}, "rect");
 	mouse.add(graph, "click", function(){
 
 		console.log("click");
 
-	});
+	}, "rect");
 
 });

@@ -22,11 +22,14 @@ define () ->
 		# _object: CanvasEngine object - графический объект движка
 		# _event: String - событие мыши, одно из: mousemove, mouseover, mouseout, mousedown, mouseup, click
 		# func: Function - выполняемая функция
-		# realTest: Boolean - нужно ли выполнять сравнение только по координатам, или проверять попадание в пиксель
-		add: (_object, _event, func, realTest = false) ->
+		# type: String - 
+		# 	"rect" - сравнение по координатам
+		# 	"point" - сравнение по точке
+		# 	"both" - сначала по координатам, потом по точке
+		add: (_object, _event, func, type = "both") ->
 
 			# проверяем нет ли уже такого события
-			index = @_getIndex _object, _event, func, realTest
+			index = @_getIndex _object, _event, func, type
 
 			return true if index >= 0
 
@@ -40,7 +43,7 @@ define () ->
 				mouseOn: false
 				# нажата клавиша над объектом
 				mouseDown: false
-				realTest: realTest
+				type: type
 
 			}
 
@@ -53,9 +56,9 @@ define () ->
 				@_enabled = true
 
 		# удаляем событие
-		remove: (_object, _event, func, realTest = false) ->
+		remove: (_object, _event, func, type = "both") ->
 
-			index = @_getIndex _object, _event, func, realTest
+			index = @_getIndex _object, _event, func, type
 
 			return false if index < 0
 
@@ -76,13 +79,13 @@ define () ->
 			@_parent.style.cursor = style
 
 		# возвращает индекс события в массиве
-		_getIndex: (_object, _event, func, realTest = false) ->
+		_getIndex: (_object, _event, func, type = "both") ->
 
 			index = -1
 
 			@_events.some (e, i) =>
 
-				if e.object == _object and e.event == _event and e.func == func and e.realTest == realTest
+				if e.object == _object and e.event == _event and e.func == func and e.type == type
 
 					index = i
 					return true
@@ -116,7 +119,12 @@ define () ->
 			@_events.forEach (_event) ->
 
 				# здесь мы проверяем, над объектом ли мышь, используя нужный метод объекта
-				mouseOn = if _event.realTest then _event.object.testPoint e.pageX, e.pageY else _event.object.testRect e.pageX, e.pageY
+				mouseOn = false
+				switch _event.type
+
+					when "rect" then mouseOn = _event.object.testRect e.pageX, e.pageY
+					when "point" then mouseOn = _event.object.testPoint e.pageX, e.pageY
+					when "both" then mouseOn = _event.object.testRect e.pageX, e.pageY and _event.object.testPoint e.pageX, e.pageY
 
 				_event.func e, _event.object if mouseOn and _event.event == "mousemove"
 				
