@@ -30,7 +30,7 @@ define ["Image"], (Image) ->
 		# 
 		# Установка области
 		# 
-		setRect: (x, y, width, height) ->
+		setRect: (value) ->
 
 			@rect = value or [0, 0, @canvas.width, @canvas.height]
 			@needAnimation = true

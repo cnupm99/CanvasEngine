@@ -1,9 +1,9 @@
 #
 # CanvasEngine
 #
-# version 1.10
-# build 71
-# Fri Aug 18 2017
+# version 1.10
+# build 74
+# Sat Aug 19 2017
 #
 
 "use strict";
@@ -1319,7 +1319,7 @@ define () ->
 		# 
 		# Установка области
 		# 
-		setRect: (x, y, width, height) ->
+		setRect: (value) ->
 
 			@rect = value or [0, 0, @canvas.width, @canvas.height]
 			@needAnimation = true

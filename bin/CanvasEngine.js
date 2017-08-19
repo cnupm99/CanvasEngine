@@ -724,7 +724,7 @@
         this.setRect(options.rect);
       }
 
-      TilingImage.prototype.setRect = function(x, y, width, height) {
+      TilingImage.prototype.setRect = function(value) {
         this.rect = value || [0, 0, this.canvas.width, this.canvas.height];
         this.needAnimation = true;
         return this.rect;
