@@ -20,7 +20,7 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 		type: "image",
 		src: "../flower.png",
-		position: [50, 50],
+		position: [150, 150],
 		anchor: [0.5, 0.5]
 
 	});
