@@ -19,6 +19,19 @@
         return this.needAnimation = true;
       };
 
+      Graph.prototype.beginPath = function() {
+        return this._commands.push({
+          "command": "beginPath"
+        });
+      };
+
+      Graph.prototype.lineCap = function(value) {
+        return this._commands.push({
+          "command": "lineCap",
+          "lineCap": value
+        });
+      };
+
       Graph.prototype.strokeStyle = function(style) {
         return this._commands.push({
           "command": "strokeStyle",
@@ -149,6 +162,8 @@
             switch (command.command) {
               case "beginPath":
                 return _this.context.beginPath();
+              case "lineCap":
+                return _this.context.lineCap = command.lineCap;
               case "stroke":
                 return _this.context.stroke();
               case "fill":

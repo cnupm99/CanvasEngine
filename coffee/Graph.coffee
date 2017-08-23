@@ -8,11 +8,13 @@ define ["DisplayObject"], (DisplayObject) ->
 	# методы:
 	# 
 	#  clear() - очистка экрана и команд
+	#  beginPath() - начало отрисовки линии
+	#  lineCap(value:String) - установить стиль окончания линий
 	#  strokeStyle(style:String) - стиль линий
 	#  fillStyle(style:String) - стиль заливки
 	#  linearGradient(x1, y1, x2, y2:int, colors:Array) - установка градиента
 	#  lineWidth(value:int) - толщина линий
-	#  setLineDash(value:int) - установка пунктирной линии
+	#  setLineDash(value:Arrow) - установка пунктирной линии
 	#  lineDashOffset(value:int) - смещение пунктирной линии
 	#  moveTo(x, y:int) - перемещение указателя
 	#  lineTo(x, y:int) - линия в указанную точку
@@ -46,6 +48,29 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			@_commands = []
 			@needAnimation = true
+
+		# 
+		# начало отрисовки линии
+		# 
+		beginPath: () ->
+
+			@_commands.push {
+
+				"command": "beginPath"
+
+			}
+
+		# 
+		# установить стиль окончания линий
+		# 
+		lineCap: (value) ->
+
+			@_commands.push {
+
+				"command": "lineCap"
+				"lineCap": value
+
+			}
 
 		# 
 		# стиль линий
@@ -258,6 +283,8 @@ define ["DisplayObject"], (DisplayObject) ->
 				switch command.command
 
 					when "beginPath" then @context.beginPath()
+
+					when "lineCap" then @context.lineCap = command.lineCap
 
 					when "stroke" then @context.stroke()
 
