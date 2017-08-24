@@ -2,7 +2,7 @@
 # CanvasEngine
 #
 # version 1.10
-# build 76
+# build 77
 # Thu Aug 24 2017
 #
 
@@ -1937,7 +1937,16 @@ define () ->
 			# 
 			# выполняем все функции в массиве
 			# 
-			@_beforeAnimate.forEach (func) -> func()
+			@_beforeAnimate.forEach (func, i) =>
+
+				# 
+				# если это функция, то выполняем ее
+				# 
+				if typeof(func) == "function" then func()
+				# 
+				# а иначе удаляем эту чушь из массива
+				# 
+				else @_beforeAnimate.splice i, 1
 
 			# 
 			# АНИМАЦИЯ ТУТ

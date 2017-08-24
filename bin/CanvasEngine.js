@@ -1077,9 +1077,15 @@
       };
 
       CanvasEngine.prototype._animate = function() {
-        this._beforeAnimate.forEach(function(func) {
-          return func();
-        });
+        this._beforeAnimate.forEach((function(_this) {
+          return function(func, i) {
+            if (typeof func === "function") {
+              return func();
+            } else {
+              return _this._beforeAnimate.splice(i, 1);
+            }
+          };
+        })(this));
         this.needAnimation = false;
         this.childrens.forEach((function(_this) {
           return function(child) {

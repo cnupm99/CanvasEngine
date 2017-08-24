@@ -294,7 +294,16 @@ define ["ContainerObject", "Scene"], (ContainerObject, Scene) ->
 			# 
 			# выполняем все функции в массиве
 			# 
-			@_beforeAnimate.forEach (func) -> func()
+			@_beforeAnimate.forEach (func, i) =>
+
+				# 
+				# если это функция, то выполняем ее
+				# 
+				if typeof(func) == "function" then func()
+				# 
+				# а иначе удаляем эту чушь из массива
+				# 
+				else @_beforeAnimate.splice i, 1
 
 			# 
 			# АНИМАЦИЯ ТУТ
