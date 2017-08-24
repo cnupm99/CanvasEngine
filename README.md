@@ -128,7 +128,7 @@ Simple Canvas Engine for javascript / coffeescript
 
 ## API
 
-###CanvasEngine:
+### CanvasEngine:
 
 - **parent**:Element - элемент для отрисовки движка
 - **add**(options):DisplayObject - метод для добавления новых объектов / сцен
@@ -144,7 +144,7 @@ Simple Canvas Engine for javascript / coffeescript
 - **isFullscreen**():Boolean - определяет, включен ли полноэкранный режим
 - **canvasSupport**():Boolean - проверка, поддерживает ли браузер canvas и context
 
-###Общие свойства/методы экранных объектов:
+### Общие свойства/методы экранных объектов:
 
 - **name**:String - имя объекта для его идентификации
 - **type**:String - тип объекта
@@ -179,7 +179,7 @@ Simple Canvas Engine for javascript / coffeescript
 - **testRect**(pointX, pointY:int):Boolean - проверка, входит ли точка в прямоугольник объекта
 - **needAnimation**:Boolean - нужно ли анимировать данный объект с точки зрения движка
 
-###Scene:
+### Scene:
 
 - **zIndex**:int - индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
 - **mask**:Array - маска объекта
