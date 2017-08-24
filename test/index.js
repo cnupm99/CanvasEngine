@@ -7,13 +7,13 @@ requirejs.config({
 
 });
 
-// requirejs(["CanvasEngine.min"], function(CanvasEngine){
-requirejs(["CanvasEngine"], function(CanvasEngine){
+requirejs(["CanvasEngine.min"], function(CanvasEngine){
+// requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	// создаем движок
 	var ce = new CanvasEngine({
 
-		sizes: [1000, 800]
+		size: [1000, 800]
 
 	});
 
@@ -32,6 +32,13 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 				ce.fullscreen(true);
 
 			}
+
+		}
+		if(e.which == 1) {
+
+			var scene = ce.get("scene1");
+			if(scene.visible) {scene.hide()}
+			else {scene.show()}
 
 		}
 
@@ -93,44 +100,15 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 	});
 
 	// добавим на сцену маску
-	scene1.setMask(250, 250, 200, 200);
+	scene1.setMask([250, 250, 200, 200]);
+	console.log(scene1.mask);
 
 	var shadow = false;
 
-	// так можно обратиться напрямую к канвасу
-	// и добавить событие
-	scene1.canvas.addEventListener("mousemove", function(e){
+	var scene2 = ce.add({
 
-		// ВНИМАНИЕ!
-		// использовать этот метод ЛОКАЛЬНО нужно осторожно, так как
-		// в браузерах на основе chrome будет возникать ошибка безопасности
-		// (как будто пытаешься загрузить изображение с другого хоста).
-		// В firefox работает и локально без проблем.
-		// При загрузке кода на сервер работает во всех браузерах.
-
-		if(scene1.testPoint(e.clientX, e.clientY)) {
-
-			document.body.style.cursor = "pointer";
-			
-			if (!shadow) {
-
-				image.setShadow({});
-				shadow = true;
-
-			}
-
-		} else {
-
-			document.body.style.cursor = "default";
-			
-			if (shadow) {
-
-				image.setShadow();
-				shadow = false;
-
-			}
-
-		}
+		type: "scene",
+		name: "scene2"
 
 	});
 
@@ -195,5 +173,7 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 		}
 
 	});
+
+	console.log(ce);
 
 });

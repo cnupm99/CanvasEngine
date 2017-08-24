@@ -2,37 +2,65 @@
 
 define ["Image"], (Image) ->
 
+	# 
+	# Изображение, которое замостит указанную область
+	# 
+	# свойства:
+	#  
+	#  rect:Array - прямоугольник для замастивания
+	#  
+	# методы:
+	# 
+	#  setRect(value:Array):Array - установка области
+	#  animate() - попытка нарисовать объект 
+	# 
 	class TilingImage extends Image
 
-		# 
-		# Изображение, которое замостит указанную область
-		# 
 		constructor: (options) ->
 
 			super options
 
+			# 
 			# область замостивания по умолчанию равна размеру контекста
-			@_rect = options.rect or [0, 0, options.parent.sizes[0], options.parent.sizes[1]]
+			# 
+			# массив вида [int, int, int, int]
+			# 
+			@setRect options.rect
 
-		# установка области
-		setRect: (rect) ->
+		# 
+		# Установка области
+		# 
+		setRect: (value) ->
 
-			@_rect = rect
+			@rect = value or [0, 0, @canvas.width, @canvas.height]
 			@needAnimation = true
+			@rect
 
-		animate: (context = @_context) ->
+		animate: () ->
 
-			return unless @_loaded
+			return unless @loaded
 
-			super context
+			# 
+			# Начало отрисовки
+			# 
+			@context.beginPath()
 
+			# 
 			# создаем паттерн
-			context.fillStyle = context.createPattern @_image, "repeat"
+			# 
+			@context.fillStyle = @context.createPattern @image, "repeat"
+
+			# 
 			# рисуем прямоугольник
-			context.rect @_rect[0], @_rect[1], @_rect[2], @_rect[3]
+			# 
+			@context.rect @rect[0], @rect[1], @rect[2], @rect[3]
+
+			# 
 			# заливаем паттерном
-			context.fill()
+			# 
+			@context.fill()
 
-			context.restore()
-
+			# 
+			# анимация больше не нужна
+			# 
 			@needAnimation = false

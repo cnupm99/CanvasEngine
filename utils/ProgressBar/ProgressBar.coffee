@@ -38,7 +38,7 @@ define () ->
 			# позиция
 			@_position = options.position or [0, 0]
 			# размеры
-			@_sizes = options.sizes or [300, 50]
+			@_size = options.sizes or [300, 50]
 			# расстояние между внешней рамкой и линией прогресса
 			@_padding = options.padding or 3
 			# радиус скругления углов, если 0 или null,
@@ -180,7 +180,7 @@ define () ->
 
 			}
 			# градиент
-			@_graph.linearGradient 0, 0, 0, @_sizes[1], [
+			@_graph.linearGradient 0, 0, 0, @_size[1], [
 
 				[0, @_colors.backgroundColor[0]]
 				[0.5, @_colors.backgroundColor[1]]
@@ -192,7 +192,7 @@ define () ->
 			@_graph.lineWidth 1
 
 			# рисуем
-			@_graph.rect 0, 0, @_sizes[0], @_sizes[1], @_radius
+			@_graph.rect 0, 0, @_size[0], @_size[1], @_radius
 			@_graph.fill()
 			@_graph.stroke()
 
@@ -206,7 +206,7 @@ define () ->
 			else color = @_colors.progress100
 
 			# размер линии
-			size = Math.floor((@_sizes[0] - @_padding * 2) * @_value / @_maxValue)
+			size = Math.floor((@_size[0] - @_padding * 2) * @_value / @_maxValue)
 
 			# тень
 			@_graph.setShadow {
@@ -217,7 +217,7 @@ define () ->
 
 			}
 			# градиент
-			@_graph.linearGradient @_padding, @_padding, @_padding, @_sizes[1] - @_padding, [
+			@_graph.linearGradient @_padding, @_padding, @_padding, @_size[1] - @_padding, [
 
 				[0, color[0]]
 				[1, color[1]]
@@ -228,7 +228,7 @@ define () ->
 			]
 
 			# рисуем
-			@_graph.rect @_padding, @_padding, size, @_sizes[1] - @_padding * 2, @_radius
+			@_graph.rect @_padding, @_padding, size, @_size[1] - @_padding * 2, @_radius
 			@_graph.fill()
 
 		_animateText: () ->
@@ -253,6 +253,6 @@ define () ->
 						text += " / " + @_maxValue if @_showTotal
 
 				# установка текста
-				@_text.setText text
+				@_text.write text
 				# установка позиции
-				@_text.setPosition [@_position[0] + (@_sizes[0] - @_text.width) / 2, @_position[1] + (@_sizes[1] - @_text.fontHeight) / 2]
+				@_text.move [@_position[0] + (@_size[0] - @_text.textWidth) / 2, @_position[1] + (@_size[1] - @_text.fontHeight) / 2]

@@ -26,7 +26,7 @@
 
       ProgressBar.prototype._sizeOptions = function(options) {
         this._position = options.position || [0, 0];
-        this._sizes = options.sizes || [300, 50];
+        this._size = options.sizes || [300, 50];
         this._padding = options.padding || 3;
         this._radius = options.radius != null ? options.radius : 5;
         if (options.backgroundImage) {
@@ -126,10 +126,10 @@
           blur: 3,
           offset: 0
         });
-        this._graph.linearGradient(0, 0, 0, this._sizes[1], [[0, this._colors.backgroundColor[0]], [0.5, this._colors.backgroundColor[1]], [1, this._colors.backgroundColor[0]]]);
+        this._graph.linearGradient(0, 0, 0, this._size[1], [[0, this._colors.backgroundColor[0]], [0.5, this._colors.backgroundColor[1]], [1, this._colors.backgroundColor[0]]]);
         this._graph.strokeStyle(this._colors.strokeColor);
         this._graph.lineWidth(1);
-        this._graph.rect(0, 0, this._sizes[0], this._sizes[1], this._radius);
+        this._graph.rect(0, 0, this._size[0], this._size[1], this._radius);
         this._graph.fill();
         return this._graph.stroke();
       };
@@ -147,14 +147,14 @@
         } else {
           color = this._colors.progress100;
         }
-        size = Math.floor((this._sizes[0] - this._padding * 2) * this._value / this._maxValue);
+        size = Math.floor((this._size[0] - this._padding * 2) * this._value / this._maxValue);
         this._graph.setShadow({
           color: this._colors.progressShadowColor,
           blur: 3,
           offset: 0
         });
-        this._graph.linearGradient(this._padding, this._padding, this._padding, this._sizes[1] - this._padding, [[0, color[0]], [1, color[1]]]);
-        this._graph.rect(this._padding, this._padding, size, this._sizes[1] - this._padding * 2, this._radius);
+        this._graph.linearGradient(this._padding, this._padding, this._padding, this._size[1] - this._padding, [[0, color[0]], [1, color[1]]]);
+        this._graph.rect(this._padding, this._padding, size, this._size[1] - this._padding * 2, this._radius);
         return this._graph.fill();
       };
 
@@ -175,8 +175,8 @@
               }
             }
           }
-          this._text.setText(text);
-          return this._text.setPosition([this._position[0] + (this._sizes[0] - this._text.width) / 2, this._position[1] + (this._sizes[1] - this._text.fontHeight) / 2]);
+          this._text.write(text);
+          return this._text.move([this._position[0] + (this._size[0] - this._text.textWidth) / 2, this._position[1] + (this._size[1] - this._text.fontHeight) / 2]);
         }
       };
 

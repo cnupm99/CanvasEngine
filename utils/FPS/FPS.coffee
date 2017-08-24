@@ -12,9 +12,20 @@ define () ->
 		# 
 		# UPS показывает сколько реально раз происходила перерисовка чего либо
 		# 
-		constructor: (options) ->
+		constructor: (CE, position = [0, 0]) ->
 
-			@_scene = options.scene
+			return unless CE?
+			@CE = CE
+
+			@_scene = CE.add {
+
+				type: "scene"
+				name: "FPS"
+				zIndex: 9999
+				size: [100, 45]
+				position: position
+
+			}
 			
 			# граф для прорисовки
 			@_graph = @_scene.add { type: "graph" }
@@ -27,7 +38,7 @@ define () ->
 
 				type: "text"
 				fillStyle: "#00FF00"
-				font: "10px Arial"
+				font: "12px Arial"
 				position: [3, 1]
 
 			}
@@ -36,11 +47,13 @@ define () ->
 			@_caption2 = @_scene.add {
 
 				type: "text"
-				fillStyle: "#FF0000"
-				font: "10px Arial"
-				position: [48, 1]
+				fillStyle: "#FFFF00"
+				font: "12px Arial"
+				position: [53, 1]
 
 			}
+
+			CE.addEvent @_update
 
 			# запускаем
 			@start()
@@ -66,31 +79,31 @@ define () ->
 			# записываем значения в массив
 			@_values.push [@_FPSValue, @_updateValue]
 			# лишние выкидываем
-			@_values.shift() if @_values.length == 84
+			@_values.shift() if @_values.length == 94
 
 			# начинаем рисовать
 			@_graph.clear()
 			@_graph.fillStyle "#000"
-			@_graph.rect 0, 0, 90, 40
+			@_graph.rect 0, 0, 100, 45
 			@_graph.fill()
 
 			for i in [0 ... @_values.length]
 
-				x = 87 - @_values.length + i
+				x = 97 - @_values.length + i
 				fps = @_values[i][0]
 				ups = @_values[i][1]
 
 				@_graph.strokeStyle "#00FF00"
-				@_graph.line x, 37, x, 37 - 23 * fps / 60
-				@_graph.strokeStyle "#FF0000"
-				@_graph.line x, 37, x, 37 - 23 * ups / 60
+				@_graph.line x, 42, x, 42 - 26 * fps / 60
+				@_graph.strokeStyle "#FFFF00"
+				@_graph.line x, 42, x, 42 - 26 * ups / 60
 
-			@_caption.setText "FPS: " + @_FPSValue
-			@_caption2.setText "UPS: " + @_updateValue
+			@_caption.write "FPS: " + @_FPSValue
+			@_caption2.write "UPS: " + @_updateValue
 
 		# эту функцию нужно вызывать в цикле анимации
 		# для подсчета значений
-		update: (needAnimation) ->
+		_update: () =>
 
 			@_counter++
-			@_updateCounter++ if needAnimation
+			@_updateCounter++ if @CE.needAnimation

@@ -2,6 +2,31 @@
 
 define ["DisplayObject"], (DisplayObject) ->
 
+	# 
+	# Класс для рисования графических примитивов
+	# 
+	# методы:
+	# 
+	#  clear() - очистка экрана и команд
+	#  beginPath() - начало отрисовки линии
+	#  lineCap(value:String) - установить стиль окончания линий
+	#  strokeStyle(style:String) - стиль линий
+	#  fillStyle(style:String) - стиль заливки
+	#  linearGradient(x1, y1, x2, y2:int, colors:Array) - установка градиента
+	#  lineWidth(value:int) - толщина линий
+	#  setLineDash(value:Array) - установка пунктирной линии
+	#  lineDashOffset(value:int) - смещение пунктирной линии
+	#  moveTo(x, y:int) - перемещение указателя
+	#  lineTo(x, y:int) - линия в указанную точку
+	#  line(x1, y1, x2, y2:int) - рисуем линию по двум точкам
+	#  rect(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
+	#  polyline(points:Array, needDraw:Boolean) - полилиния
+	#  polygon(points:Array) - полигон
+	#  fill() - заливка фигуры
+	#  stroke() - прорисовка контура
+	#  animate() - попытка нарисовать объект
+	#  log() - выводим массив комманд в консоль
+	# 
 	class Graph extends DisplayObject
 
 		constructor: (options) ->
@@ -11,31 +36,45 @@ define ["DisplayObject"], (DisplayObject) ->
 			# массив команд для рисования
 			@_commands = []
 
-			@needAnimation = false
+		# 
+		# Далее идут функции для рисования графических примитивов
+		# Все они сохраняют свои данные в _commands
+		# 
 
-		# рисуем линию, соединяющую две точки
-		line: (fromX, fromY, toX, toY) ->
-
-			from = @_point fromX, fromY
-			to = @_point toX, toY
-
-			@_commands.push {
-
-				"command": "line"
-				"from": from
-				"to": to
-
-			}
-
-			@needAnimation = true
-
+		# 
 		# очистка экрана и команд
+		# 
 		clear: () -> 
 
 			@_commands = []
 			@needAnimation = true
 
+		# 
+		# начало отрисовки линии
+		# 
+		beginPath: () ->
+
+			@_commands.push {
+
+				"command": "beginPath"
+
+			}
+
+		# 
+		# установить стиль окончания линий
+		# 
+		lineCap: (value) ->
+
+			@_commands.push {
+
+				"command": "lineCap"
+				"lineCap": value
+
+			}
+
+		# 
 		# стиль линий
+		# 
 		strokeStyle: (style) ->
 
 			@_commands.push {
@@ -45,7 +84,9 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
+		# 
 		# стиль заливки
+		# 
 		fillStyle: (style) ->
 
 			@_commands.push {
@@ -55,83 +96,121 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			}
 
+		# 
 		# устновка градиента
 		# colors = Array [ [size, color], .... ], где color:String, size:Number [0..1]
+		# 
 		linearGradient: (x1, y1, x2, y2, colors) ->
 
 			@_commands.push {
 
 				"command": "gradient"
-				"point1": @_point x1, y1
-				"point2": @_point x2, y2
+				"point1": @pixel x1, y1
+				"point2": @pixel x2, y2
 				"colors": colors
 
 			}
 
-		# рисуем прямоугольник, если указан radius, то скругляем углы
-		rect: (fromX, fromY, width, height, radius = 0) ->
-
-			point = @_point fromX, fromY
-			sizes = @_point width, height
+		# 
+		# толщина линий
+		# 
+		lineWidth: (width) ->
 
 			@_commands.push {
 
-				"command": "rect"
-				"point": point
-				"sizes": sizes
-				"radius": radius
+				"command": "lineWidth"
+				"width": @int width
 
 			}
 
-			@needAnimation = true
+		# 
+		# установка пунктирной линии
+		# 
+		setLineDash: (dash) ->
 
+			@_commands.push {
+
+				"command": "setDash"
+				"dash": dash
+
+			}
+
+		# 
+		# смещение пунктирной линии
+		# 
+		lineDashOffset: (offset) ->
+
+			@_commands.push {
+
+				"command": "dashOffset"
+				"offset": @int offset
+
+			}
+
+		# 
+		# Перевод указателя в точку
+		# 
 		moveTo: (toX, toY) ->
-
-			point = @_point toX, toY
 
 			@_commands.push {
 
 				"command": "moveTo"
-				"point": point
+				"point": @pixel toX, toY
 
 			}
 
+		# 
+		# Линия из текущей точки в указанную
+		# 
 		lineTo: (toX, toY) ->
-
-			point = @_point toX, toY
 
 			@_commands.push {
 
 				"command": "lineTo"
-				"point": point
+				"point": @pixel toX, toY
 
 			}
 
 			@needAnimation = true
 
-		fill: () ->
+		# 
+		# рисуем линию, соединяющую две точки,
+		# разница между moveTo + lineTo еще и в том, что line рисует линию,
+		# т.е. автоматически делает stroke()
+		# 
+		line: (fromX, fromY, toX, toY) ->
 
 			@_commands.push {
 
-				"command": "fill"
+				"command": "line"
+				"from": @pixel fromX, fromY
+				"to": @pixel toX, toY
 
 			}
 
 			@needAnimation = true
 
-		stroke: () ->
+		# 
+		# рисуем прямоугольник, если указан radius, то скругляем углы
+		# 
+		rect: (fromX, fromY, width, height, radius = 0) ->
 
 			@_commands.push {
 
-				"command": "stroke"
+				"command": "rect"
+				"point": @pixel fromX, fromY
+				"size": @pixel width, height
+				"radius": @int radius
 
 			}
 
 			@needAnimation = true
 
+		# 
 		# линия из множества точек
 		# второй параметр говорит, нужно ли ее рисовать,
 		# он нужен, чтобы рисовать многоугольники без границы
+		# 
 		polyline: (points, stroke = true) ->
 
 			@_commands.push {
@@ -144,27 +223,26 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			points.forEach (point) => @lineTo point[0], point[1]
 
-			if stroke
-
-				@_commands.push {
-
-					"command": "stroke"
-
-				}
+			if stroke then @stroke()
 
 			@needAnimation = true
 
+		# 
 		# полигон
+		# 
 		polygon: (points) ->
 
 			@polyline points, false
 			@lineTo points[0][0], points[0][1]
 
-			@_commands.push {
+			@stroke()
+			@fill()
 
-				"command": "stroke"
+		# 
+		# Заливка
+		# 
+		fill: () ->
 
-			}
 			@_commands.push {
 
 				"command": "fill"
@@ -173,41 +251,98 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			@needAnimation = true
 
-		# толщина линий
-		lineWidth: (width) ->
-
-			width = @_int width
-
-			@_commands.push {
-
-				"command": "lineWidth"
-				"width": width
-
-			}
-
-		# установка пунктирной линии
-		setLineDash: (dash) ->
+		# 
+		# Рисуем контур
+		# 
+		stroke: () ->
 
 			@_commands.push {
 
-				"command": "setDash"
-				"dash": dash
+				"command": "stroke"
 
 			}
 
-		# смещение пунктирной линии
-		lineDashOffset: (offset) ->
+			@needAnimation = true
 
-			offset = @_int offset
+		animate: () ->
 
-			@_commands.push {
+			super()
 
-				"command": "dashOffset"
-				"offset": offset
+			# 
+			# установим закругленные окончания линий
+			# 
+			@context.lineCap = "round"
 
-			}
+			# 
+			# перебираем все команды в массиве команд и выполняем соответствующие действия
+			# можно было поменять строковые команды на числа вида 0, 1, 2 .... и т.д.,
+			# но зачем?
+			# 
+			@_commands.forEach (command) =>
 
+				switch command.command
+
+					when "beginPath" then @context.beginPath()
+
+					when "lineCap" then @context.lineCap = command.lineCap
+
+					when "stroke" then @context.stroke()
+
+					when "fill" then @context.fill()
+
+					when "setDash" then @context.setLineDash command.dash
+
+					when "dashOffset" then @context.lineDashOffset = command.offset
+
+					when "moveTo" then @context.moveTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
+
+					when "lineTo" then @context.lineTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
+
+					when "line"
+
+						@context.beginPath()
+						@context.moveTo command.from[0] + @_deltaX, command.from[1] + @_deltaY
+						@context.lineTo command.to[0] + @_deltaX, command.to[1] + @_deltaY
+						@context.stroke()
+
+					when "strokeStyle" then @context.strokeStyle = command.style
+
+					when "fillStyle" then @context.fillStyle = command.style
+
+					when "lineWidth" then @context.lineWidth = command.width
+
+					when "rect"
+
+						@context.beginPath()
+						
+						# обычный прямоугольник
+						if command.radius == 0
+						
+							@context.rect command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1]
+
+						# прямоугольник со скругленными углами
+						else @_drawRoundedRect @context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1], command.radius
+
+					when "gradient"
+
+						# создаем градиент по нужным точкам
+						gradient = @context.createLinearGradient command.point1[0] + @_deltaX, command.point1[1] + @_deltaY, command.point2[0] + @_deltaX, command.point2[1] + @_deltaY
+						# добавляем цвета
+						command.colors.forEach (color) ->
+							# сначала размер, потом цвет
+							gradient.addColorStop color[0], color[1]
+						# заливка градиентом
+						@context.fillStyle = gradient
+
+		# 
+		# В информационных целях
+		# выводим массив комманд в консоль
+		# 
+		log: () -> console.log @_commands
+
+		# 
 		# рисуем пряоугольник со скругленными углами
+		# 
 		_drawRoundedRect: (context, x, y, width, height, radius) ->
 
 			# предварительные вычисления
@@ -227,71 +362,3 @@ define ["DisplayObject"], (DisplayObject) ->
 			context.arc x1, y2, radius, halfpi, pi
 			context.lineTo x, y1
 			context.arc x1, y1, radius, pi, 3 * halfpi
-
-		animate: (context = @_context) ->
-
-			super context
-
-			# установим закругленные окончания линий
-			context.lineCap = "round"
-
-			# перебираем все команды в массиве команд и выполняем соответствующие действия
-			# можно было поменять строковые команды на числа вида 0, 1, 2 .... и т.д.,
-			# но зачем?
-			@_commands.forEach (command) =>
-
-				switch command.command
-
-					when "beginPath" then context.beginPath()
-
-					when "stroke" then context.stroke()
-
-					when "fill" then context.fill()
-
-					when "setDash" then context.setLineDash command.dash
-
-					when "dashOffset" then context.lineDashOffset = command.offset
-
-					when "moveTo" then context.moveTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
-
-					when "lineTo" then context.lineTo command.point[0] + @_deltaX, command.point[1] + @_deltaY
-
-					when "line"
-
-						context.beginPath()
-						context.moveTo command.from[0] + @_deltaX, command.from[1] + @_deltaY
-						context.lineTo command.to[0] + @_deltaX, command.to[1] + @_deltaY
-						context.stroke()
-
-					when "strokeStyle" then context.strokeStyle = command.style
-
-					when "fillStyle" then context.fillStyle = command.style
-
-					when "lineWidth" then context.lineWidth = command.width
-
-					when "rect"
-
-						context.beginPath()
-						
-						# обычный прямоугольник
-						if command.radius == 0
-						
-							context.rect command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.sizes[0], command.sizes[1]
-
-						# прямоугольник со скругленными углами
-						else @_drawRoundedRect context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.sizes[0], command.sizes[1], command.radius
-
-					when "gradient"
-
-						# создаем градиент по нужным точкам
-						gradient = context.createLinearGradient command.point1[0] + @_deltaX, command.point1[1] + @_deltaY, command.point2[0] + @_deltaX, command.point2[1] + @_deltaY
-						# добавляем цвета
-						command.colors.forEach (color) ->
-							# сначала размер, потом цвет
-							gradient.addColorStop color[0], color[1]
-						# заливка градиентом
-						context.fillStyle = gradient
-
-			context.restore()
-
-			@needAnimation = false
