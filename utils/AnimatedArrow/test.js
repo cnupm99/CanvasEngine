@@ -25,11 +25,29 @@ requirejs(["CanvasEngine.min", "../utils/AnimatedArrow/AnimatedArrow", "../utils
 
 	});
 
-	var ar = new AnimatedArrow({
+	var ar = new AnimatedArrow(ce, {
 
 		scene: scene,
-		from: [100, 100],
-		to: [500, 500]
+		from: [500, 400],
+		to: [100, 100]
+
+	});
+
+	var graph = scene.add({ type:"graph" });
+	graph.fillStyle("#000");
+	graph.rect(95, 95, 10, 10);
+	graph.fill();
+	graph.rect(495, 395, 10, 10);
+	graph.fill();
+
+	scene.canvas.addEventListener("mousemove", function(e){
+
+		ar.setTo([e.pageX, e.pageY]);
+
+	});
+	scene.canvas.addEventListener("mouseout", function(e){
+
+		ar.setTo([100, 100]);
 
 	});
 

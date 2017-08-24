@@ -203,6 +203,8 @@ Simple Canvas Engine for javascript / coffeescript
 ### Graph
 
 **clear**() - очистка экрана и команд
+**beginPath**() - начало отрисовки линии
+**lineCap**(value:String) - установить стиль окончания линий
 **strokeStyle**(style:String) - стиль линий
 **fillStyle**(style:String) - стиль заливки
 **linearGradient**(x1, y1, x2, y2:int, colors:Array) - установка градиента

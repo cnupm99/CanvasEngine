@@ -14,7 +14,7 @@ define ["DisplayObject"], (DisplayObject) ->
 	#  fillStyle(style:String) - стиль заливки
 	#  linearGradient(x1, y1, x2, y2:int, colors:Array) - установка градиента
 	#  lineWidth(value:int) - толщина линий
-	#  setLineDash(value:Arrow) - установка пунктирной линии
+	#  setLineDash(value:Array) - установка пунктирной линии
 	#  lineDashOffset(value:int) - смещение пунктирной линии
 	#  moveTo(x, y:int) - перемещение указателя
 	#  lineTo(x, y:int) - линия в указанную точку
