@@ -59,3 +59,8 @@ define ["Image"], (Image) ->
 			# заливаем паттерном
 			# 
 			@context.fill()
+
+			# 
+			# анимация больше не нужна
+			# 
+			@needAnimation = false

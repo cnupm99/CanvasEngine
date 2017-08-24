@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 75
-# Wed Aug 23 2017
+# build 76
+# Thu Aug 24 2017
 #
 
 "use strict";
@@ -447,6 +447,11 @@ define () ->
 				@_deltaX = -@center[0]
 				@_deltaY = -@center[1]
 
+			# 
+			# анимация больше не нужна
+			# 
+			@needAnimation = false
+
 		# 
 		# Создание и установка свойств объекта
 		# 
@@ -623,7 +628,7 @@ define () ->
 	#  fillStyle(style:String) - стиль заливки
 	#  linearGradient(x1, y1, x2, y2:int, colors:Array) - установка градиента
 	#  lineWidth(value:int) - толщина линий
-	#  setLineDash(value:Arrow) - установка пунктирной линии
+	#  setLineDash(value:Array) - установка пунктирной линии
 	#  lineDashOffset(value:int) - смещение пунктирной линии
 	#  moveTo(x, y:int) - перемещение указателя
 	#  lineTo(x, y:int) - линия в указанную точку
@@ -1375,6 +1380,11 @@ define () ->
 			# заливаем паттерном
 			# 
 			@context.fill()
+
+			# 
+			# анимация больше не нужна
+			# 
+			@needAnimation = false
 
 	class Scene extends ContainerObject
 

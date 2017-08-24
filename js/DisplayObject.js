@@ -218,8 +218,9 @@
           this.context.translate(this.center[0] + this.position[0], this.center[1] + this.position[1]);
           this.context.rotate(this._rotation);
           this._deltaX = -this.center[0];
-          return this._deltaY = -this.center[1];
+          this._deltaY = -this.center[1];
         }
+        return this.needAnimation = false;
       };
 
       DisplayObject.prototype._setProperties = function(options) {

@@ -273,8 +273,9 @@
           this.context.translate(this.center[0] + this.position[0], this.center[1] + this.position[1]);
           this.context.rotate(this._rotation);
           this._deltaX = -this.center[0];
-          return this._deltaY = -this.center[1];
+          this._deltaY = -this.center[1];
         }
+        return this.needAnimation = false;
       };
 
       DisplayObject.prototype._setProperties = function(options) {
@@ -752,7 +753,8 @@
         this.context.beginPath();
         this.context.fillStyle = this.context.createPattern(this.image, "repeat");
         this.context.rect(this.rect[0], this.rect[1], this.rect[2], this.rect[3]);
-        return this.context.fill();
+        this.context.fill();
+        return this.needAnimation = false;
       };
 
       return TilingImage;

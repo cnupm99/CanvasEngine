@@ -346,6 +346,11 @@ define ["AbstractObject"], (AbstractObject) ->
 				@_deltaX = -@center[0]
 				@_deltaY = -@center[1]
 
+			# 
+			# анимация больше не нужна
+			# 
+			@needAnimation = false
+
 		# 
 		# Создание и установка свойств объекта
 		# 
