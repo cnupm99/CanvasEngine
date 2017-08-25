@@ -39,7 +39,7 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 
 		scene: scene,
 		position: [100, 200],
-		sizes: [250, 20],
+		size: [250, 20],
 		progress: 0,
 		showCaption: false,
 		showProgress: false,
@@ -53,7 +53,7 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 
 		scene: scene,
 		position: [100, 300],
-		sizes: [189, 36],
+		size: [189, 36],
 		padding: 7,
 		radius: 0,
 		value: 0,

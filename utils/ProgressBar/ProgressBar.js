@@ -26,7 +26,7 @@
 
       ProgressBar.prototype._sizeOptions = function(options) {
         this._position = options.position || [0, 0];
-        this._size = options.sizes || [300, 50];
+        this._size = options.size || [300, 50];
         this._padding = options.padding || 3;
         this._radius = options.radius != null ? options.radius : 5;
         if (options.backgroundImage) {

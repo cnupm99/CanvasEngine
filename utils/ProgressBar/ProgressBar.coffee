@@ -38,7 +38,7 @@ define () ->
 			# позиция
 			@_position = options.position or [0, 0]
 			# размеры
-			@_size = options.sizes or [300, 50]
+			@_size = options.size or [300, 50]
 			# расстояние между внешней рамкой и линией прогресса
 			@_padding = options.padding or 3
 			# радиус скругления углов, если 0 или null,
