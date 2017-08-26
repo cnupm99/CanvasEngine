@@ -15,7 +15,7 @@
         this.textWidth = 0;
         this.setFont(options.font);
         this.setFillStyle(options.fillStyle);
-        this.setStrokeStyle = options.strokeStyle || false;
+        this.setStrokeStyle(options.strokeStyle);
         this.setStrokeWidth(options.strokeWidth);
         this.write(options.text);
       }

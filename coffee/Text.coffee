@@ -55,7 +55,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# обводка шрифта или false, если обводка не нужна
 			# 
-			@setStrokeStyle = options.strokeStyle or false
+			@setStrokeStyle options.strokeStyle
 
 			# 
 			# ширина обводки

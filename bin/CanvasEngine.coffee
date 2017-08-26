@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 77
-# Thu Aug 24 2017
+# build 78
+# Sat Aug 26 2017
 #
 
 "use strict";
@@ -1201,7 +1201,7 @@ define () ->
 			# 
 			# обводка шрифта или false, если обводка не нужна
 			# 
-			@setStrokeStyle = options.strokeStyle or false
+			@setStrokeStyle options.strokeStyle
 
 			# 
 			# ширина обводки
