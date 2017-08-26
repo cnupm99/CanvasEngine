@@ -15,12 +15,12 @@
         this._enabled = false;
       }
 
-      Mouse.prototype.add = function(_object, _event, func, realTest) {
+      Mouse.prototype.add = function(_object, _event, func, type) {
         var index;
-        if (realTest == null) {
-          realTest = false;
+        if (type == null) {
+          type = "both";
         }
-        index = this._getIndex(_object, _event, func, realTest);
+        index = this._getIndex(_object, _event, func, type);
         if (index >= 0) {
           return true;
         }
@@ -30,7 +30,7 @@
           func: func,
           mouseOn: false,
           mouseDown: false,
-          realTest: realTest
+          type: type
         });
         if (!this._enabled) {
           this._parent.addEventListener("mousemove", this._mouseMove);
@@ -40,12 +40,12 @@
         }
       };
 
-      Mouse.prototype.remove = function(_object, _event, func, realTest) {
+      Mouse.prototype.remove = function(_object, _event, func, type) {
         var index;
-        if (realTest == null) {
-          realTest = false;
+        if (type == null) {
+          type = "both";
         }
-        index = this._getIndex(_object, _event, func, realTest);
+        index = this._getIndex(_object, _event, func, type);
         if (index < 0) {
           return false;
         }
@@ -62,15 +62,15 @@
         return this._parent.style.cursor = style;
       };
 
-      Mouse.prototype._getIndex = function(_object, _event, func, realTest) {
+      Mouse.prototype._getIndex = function(_object, _event, func, type) {
         var index;
-        if (realTest == null) {
-          realTest = false;
+        if (type == null) {
+          type = "both";
         }
         index = -1;
         this._events.some((function(_this) {
           return function(e, i) {
-            if (e.object === _object && e.event === _event && e.func === func && e.realTest === realTest) {
+            if (e.object === _object && e.event === _event && e.func === func && e.type === type) {
               index = i;
               return true;
             }
@@ -106,7 +106,17 @@
       Mouse.prototype._mouseMove = function(e) {
         return this._events.forEach(function(_event) {
           var mouseOn;
-          mouseOn = _event.realTest ? _event.object.testPoint(e.pageX, e.pageY) : _event.object.testRect(e.pageX, e.pageY);
+          mouseOn = false;
+          switch (_event.type) {
+            case "rect":
+              mouseOn = _event.object.testRect(e.pageX, e.pageY);
+              break;
+            case "point":
+              mouseOn = _event.object.testPoint(e.pageX, e.pageY);
+              break;
+            case "both":
+              mouseOn = _event.object.testRect(e.pageX, e.pageY) && _event.object.testPoint(e.pageX, e.pageY);
+          }
           if (mouseOn && _event.event === "mousemove") {
             _event.func(e, _event.object);
           }

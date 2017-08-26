@@ -124,7 +124,7 @@ define () ->
 
 					when "rect" then mouseOn = _event.object.testRect e.pageX, e.pageY
 					when "point" then mouseOn = _event.object.testPoint e.pageX, e.pageY
-					when "both" then mouseOn = _event.object.testRect e.pageX, e.pageY and _event.object.testPoint e.pageX, e.pageY
+					when "both" then mouseOn = _event.object.testRect(e.pageX, e.pageY) and _event.object.testPoint(e.pageX, e.pageY)
 
 				_event.func e, _event.object if mouseOn and _event.event == "mousemove"
 				
