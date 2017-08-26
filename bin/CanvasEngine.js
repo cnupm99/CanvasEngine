@@ -138,6 +138,9 @@
       };
 
       DisplayObject.prototype.shift = function(value1, value2) {
+        if (value2 == null) {
+          value2 = 0;
+        }
         return this.move([value1 + this.position[0], value2 + this.position[1]]);
       };
 
@@ -833,6 +836,15 @@
         this.canvas.style.left = this.position[0] + "px";
         this.canvas.style.top = this.position[1] + "px";
         return this.position;
+      };
+
+      Scene.prototype.shiftAll = function(value1, value2) {
+        if (value2 == null) {
+          value2 = 0;
+        }
+        return this.childrens.forEach(function(child) {
+          return child.shift(value1, value2);
+        });
       };
 
       Scene.prototype.resize = function(value1, value2) {

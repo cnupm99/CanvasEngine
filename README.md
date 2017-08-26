@@ -190,6 +190,7 @@ Simple Canvas Engine for javascript / coffeescript
 - **index**(childName:String):int - возвращает индекс элемента в массиве дочерних по его имени
 - **setMask**(value:Object):Object - установка маски
 - **setZIndex**(value:int):int - установка зед индекса канваса
+- **shiftAll**(value1, value2:int) - сдвигаем все дочерные объекты
 
 ### Image
 

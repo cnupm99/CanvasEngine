@@ -139,7 +139,7 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		# сдвигаем объект на нужную величину по осям
 		# 
-		shift: (value1, value2) -> @move [value1 + @position[0], value2 + @position[1]]
+		shift: (value1, value2 = 0) -> @move [value1 + @position[0], value2 + @position[1]]
 
 		# 
 		# изменить размер объекта

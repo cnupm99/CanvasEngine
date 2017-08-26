@@ -27,6 +27,7 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 		#  setZIndex(value:int):int - установка зед индекса канваса
 		#  hide() - скрыть сцену
 		#  move(value1, value2:int):Array - изменить позицию канваса
+		#  shiftAll(value1, value2:int) - сдвигаем все дочерные объекты
 		#  resize(value1, value2:int):Array - изменить размер канваса
 		#  setCenter(value1, value2:int):Array - установить новый центр канваса
 		#  setAnchor(value1, value2:int):Array - установить якорь канваса
@@ -173,6 +174,13 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 			@canvas.style.left = @position[0] + "px"
 			@canvas.style.top = @position[1] + "px"
 			@position
+
+		# 
+		# сдвигаем все дочерние объекты
+		# 
+		shiftAll: (value1, value2 = 0) ->
+
+			@childrens.forEach (child) -> child.shift value1, value2
 
 		resize: (value1, value2) ->
 

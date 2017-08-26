@@ -81,6 +81,15 @@
         return this.position;
       };
 
+      Scene.prototype.shiftAll = function(value1, value2) {
+        if (value2 == null) {
+          value2 = 0;
+        }
+        return this.childrens.forEach(function(child) {
+          return child.shift(value1, value2);
+        });
+      };
+
       Scene.prototype.resize = function(value1, value2) {
         Scene.__super__.resize.call(this, value1, value2);
         this.canvas.width = this.size[0];

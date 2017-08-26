@@ -83,6 +83,9 @@
       };
 
       DisplayObject.prototype.shift = function(value1, value2) {
+        if (value2 == null) {
+          value2 = 0;
+        }
         return this.move([value1 + this.position[0], value2 + this.position[1]]);
       };
 

@@ -2,7 +2,7 @@
 # CanvasEngine
 #
 # version 1.10
-# build 78
+# build 79
 # Sat Aug 26 2017
 #
 
@@ -240,7 +240,7 @@ define () ->
 		# 
 		# сдвигаем объект на нужную величину по осям
 		# 
-		shift: (value1, value2) -> @move [value1 + @position[0], value2 + @position[1]]
+		shift: (value1, value2 = 0) -> @move [value1 + @position[0], value2 + @position[1]]
 
 		# 
 		# изменить размер объекта
@@ -1411,6 +1411,7 @@ define () ->
 		#  setZIndex(value:int):int - установка зед индекса канваса
 		#  hide() - скрыть сцену
 		#  move(value1, value2:int):Array - изменить позицию канваса
+		#  shiftAll(value1, value2:int) - сдвигаем все дочерные объекты
 		#  resize(value1, value2:int):Array - изменить размер канваса
 		#  setCenter(value1, value2:int):Array - установить новый центр канваса
 		#  setAnchor(value1, value2:int):Array - установить якорь канваса
@@ -1557,6 +1558,13 @@ define () ->
 			@canvas.style.left = @position[0] + "px"
 			@canvas.style.top = @position[1] + "px"
 			@position
+
+		# 
+		# сдвигаем все дочерние объекты
+		# 
+		shiftAll: (value1, value2 = 0) ->
+
+			@childrens.forEach (child) -> child.shift value1, value2
 
 		resize: (value1, value2) ->
 
