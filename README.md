@@ -224,8 +224,10 @@ Simple Canvas Engine for javascript / coffeescript
 
 ### Text
 
-- **fontHeight**:int - высота текста с текущим шрифтом
+- **fontHeight**:int - высота шрифта
 - **textWidth**:int - ширина текущего текста
+- **textHeight**:int - высота текущего текста
+- **realSize**:Array - размеры области текущего текста с учетом шрифта и многострочности
 - **font**:String - текущий шрифт
 - **fillStyle**:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
 - **strokeStyle**:String/Boolean - обводка шрифта или false, если обводка не нужна

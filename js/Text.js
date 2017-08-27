@@ -21,14 +21,8 @@
       }
 
       Text.prototype.setFont = function(value) {
-        var span;
         this.font = value || "12px Arial";
-        span = document.createElement("span");
-        span.appendChild(document.createTextNode("height"));
-        span.style.cssText = "font: " + this.font + "; white-space: nowrap; display: inline;";
-        document.body.appendChild(span);
-        this.fontHeight = span.offsetHeight;
-        document.body.removeChild(span);
+        this.fontHeight = this._getFontHeight(this.font);
         this.needAnimation = true;
         return this.font;
       };
@@ -53,16 +47,15 @@
 
       Text.prototype.write = function(value) {
         this.text = value || "";
-        this.context.save();
-        this.context.font = this.font;
-        this.textWidth = this.context.measureText(this.text).width;
-        this.context.restore();
+        this.upsize(this._getRealSizes(this.text));
+        this.textWidth = this.realSize[0];
+        this.textHeight = this.realSize[1];
         this.needAnimation = true;
         return this.text;
       };
 
       Text.prototype.animate = function() {
-        var gradient;
+        var gradient, lines, textY;
         Text.__super__.animate.call(this);
         this.context.font = this.font;
         this.context.textBaseline = "top";
@@ -76,13 +69,60 @@
           } else {
             this.context.fillStyle = this.fillStyle;
           }
-          this.context.fillText(this.text, this._deltaX, this._deltaY);
         }
         if (this.strokeStyle) {
           this.context.strokeStyle = this.strokeStyle;
           this.context.lineWidth = this.strokeWidth;
-          return this.context.strokeText(this.text, this._deltaX, this._deltaY);
         }
+        lines = this.text.split("\n");
+        textY = this._deltaY;
+        return lines.forEach((function(_this) {
+          return function(line) {
+            if (_this.fillStyle) {
+              _this.context.fillText(line, _this._deltaX, textY);
+            }
+            if (_this.strokeStyle) {
+              _this.context.strokeText(line, _this._deltaX, textY);
+            }
+            return textY += _this.fontHeight;
+          };
+        })(this));
+      };
+
+      Text.prototype._getFontHeight = function(font) {
+        var fontHeight, span;
+        span = document.createElement("span");
+        span.appendChild(document.createTextNode("height"));
+        span.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;";
+        document.body.appendChild(span);
+        fontHeight = span.offsetHeight;
+        document.body.removeChild(span);
+        return fontHeight;
+      };
+
+      Text.prototype._getTextWidth = function(text) {
+        var textWidth;
+        this.context.save();
+        this.context.font = this.font;
+        textWidth = this.context.measureText(text).width;
+        this.context.restore();
+        return textWidth;
+      };
+
+      Text.prototype._getRealSizes = function(text) {
+        var lines, maxWidth;
+        maxWidth = 0;
+        lines = this.text.split("\n");
+        lines.forEach((function(_this) {
+          return function(line) {
+            var width;
+            width = _this._getTextWidth(line);
+            if (width > maxWidth) {
+              return maxWidth = width;
+            }
+          };
+        })(this));
+        return [maxWidth, lines.length * this.fontHeight];
       };
 
       return Text;

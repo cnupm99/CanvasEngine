@@ -30,4 +30,20 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 	text.move([(CE.size[0] - text.textWidth) / 2, 200]);
 
+	console.log(text.realSize);
+	console.log(text.fontHeight, text.textWidth, text.textHeight);
+
+	var text2 = CE.add({
+
+		type: "text",
+		text: "More then one\nline text!",
+		font: "40px Helvetica",
+		fillStyle: "#000",
+		position: [50, 50]
+
+	});
+
+	console.log(text2.realSize);
+	console.log(text2.fontHeight, text2.textWidth, text2.textHeight);
+
 });

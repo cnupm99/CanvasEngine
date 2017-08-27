@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 79
-# Sat Aug 26 2017
+# build 81
+# Sun Aug 27 2017
 #
 
 "use strict";
@@ -1153,8 +1153,10 @@ define () ->
 	# 
 	# свойства:
 	# 
-	#  fontHeight:int - высота текста с текущим шрифтом
+	#  fontHeight:int - высота шрифта
 	#  textWidth:int - ширина текущего текста
+	#  textHeight:int - высота текущего текста
+	#  realSize:Array - размеры области текущего текста с учетом шрифта и многострочности
 	#  font:String - текущий шрифт
 	#  fillStyle:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
 	#  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
@@ -1215,17 +1217,15 @@ define () ->
 
 		setFont: (value) ->
 
+			# 
+			# установка шрифта
+			# 
 			@font = value or "12px Arial"
 
 			# 
-			# устанавливаем реальную высоту шрифта в пикселях
+			# получаем высоту шрифта
 			# 
-			span = document.createElement "span"
-			span.appendChild document.createTextNode("height")
-			span.style.cssText = "font: " + @font + "; white-space: nowrap; display: inline;"
-			document.body.appendChild span
-			@fontHeight = span.offsetHeight
-			document.body.removeChild span
+			@fontHeight = @_getFontHeight @font
 
 			@needAnimation = true
 			@font
@@ -1250,16 +1250,23 @@ define () ->
 
 		write: (value) ->
 
+			# 
+			# установка текста
+			# 
 			@text = value or ""
 
 			# 
-			# определяем ширину текста
-			# используя для этого ссылку на контекст
+			# получаем реальные размеры области с текстом
+			# с учетом многострочности и установленного шрифта
 			# 
-			@context.save()
-			@context.font = @font
-			@textWidth = @context.measureText(@text).width
-			@context.restore()
+			@upsize @_getRealSizes(@text)
+
+			# 
+			# вспомогательные свойства, нужны для удобства
+			# и обратной совметсимости
+			# 
+			@textWidth = @realSize[0]
+			@textHeight = @realSize[1]
 
 			@needAnimation = true
 			@text
@@ -1277,7 +1284,7 @@ define () ->
 			# по умолчанию позиционируем текст по верхнему краю
 			# 
 			@context.textBaseline = "top"
-			
+
 			# 
 			# нужна ли заливка
 			# 
@@ -1309,11 +1316,6 @@ define () ->
 				# 
 				else @context.fillStyle = @fillStyle
 
-				# 
-				# выводим залитый текст
-				# 
-				@context.fillText @text, @_deltaX, @_deltaY
-
 			# 
 			# что насчет обводки?
 			# 
@@ -1321,7 +1323,80 @@ define () ->
 
 				@context.strokeStyle = @strokeStyle
 				@context.lineWidth = @strokeWidth
-				@context.strokeText @text, @_deltaX, @_deltaY
+
+			# 
+			# разбиваем текст на строки, это нужно для вывода многострочного текста
+			# 
+			lines = @text.split "\n"
+			# 
+			# координата для смещения текста по вертикали
+			# 
+			textY = @_deltaY
+
+			# 
+			# выводим текст построчно
+			# 
+			lines.forEach (line) =>
+				
+				@context.fillText line, @_deltaX, textY if @fillStyle
+				@context.strokeText line, @_deltaX, textY if @strokeStyle
+				textY += @fontHeight
+
+		# 
+		# устанавливаем реальную высоту шрифта в пикселях
+		# 
+		_getFontHeight: (font) ->
+
+			span = document.createElement "span"
+			span.appendChild document.createTextNode("height")
+			span.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;"
+			document.body.appendChild span
+			fontHeight = span.offsetHeight
+			document.body.removeChild span
+			fontHeight
+
+		# 
+		# определяем ширину текста
+		# используя для этого ссылку на контекст
+		#
+		_getTextWidth: (text) ->
+
+			@context.save()
+			@context.font = @font
+			textWidth = @context.measureText(text).width
+			@context.restore()
+			textWidth
+
+		# 
+		# получаем реальные размеры области текста
+		# 
+		_getRealSizes: (text) ->
+
+			# 
+			# начальное значение максимальной ширины строки
+			# 
+			maxWidth = 0
+
+			# 
+			# разбиваем текст на строки, это нужно для вывода многострочного текста
+			# 
+			lines = @text.split "\n"
+
+			# 
+			# проверяем ширину каждой строки,
+			# если нужно обновляем максимальное значение
+			# 
+			lines.forEach (line) =>
+
+				width = @_getTextWidth line
+				maxWidth = width if width > maxWidth
+
+			# 
+			# итоговый результат,
+			# максимальная ширина,
+			# высота равна количеству строк на высоту одной строки
+			# 
+			[maxWidth, lines.length * @fontHeight]
 
 	# 
 	# Изображение, которое замостит указанную область
