@@ -68,7 +68,7 @@ define () ->
 			dy = @_from[1] - @_to[1]
 			length = Math.sqrt(dx * dx + dy * dy)
 			newlength = length - @_blockSize + 2
-			newlength = 0.00001 if newlength == 0
+			length = 0.00001 if length == 0
 
 			# calc new line to point
 			@_to[0] = @_from[0] - newlength * dx / length
@@ -87,7 +87,7 @@ define () ->
 		setTo: (point) -> @setPoints @_from, point
 
 		# установить начальную точку
-		setFrom: (point) -> @setPoints point, @_to
+		setFrom: (point) -> @setPoints point, @_arrowTo
 
 		# обновления движения линии
 		update: () =>

@@ -41,8 +41,8 @@
         dy = this._from[1] - this._to[1];
         length = Math.sqrt(dx * dx + dy * dy);
         newlength = length - this._blockSize + 2;
-        if (newlength === 0) {
-          newlength = 0.00001;
+        if (length === 0) {
+          length = 0.00001;
         }
         this._to[0] = this._from[0] - newlength * dx / length;
         this._to[1] = this._from[1] - newlength * dy / length;
@@ -62,7 +62,7 @@
       };
 
       AnimatedArrow.prototype.setFrom = function(point) {
-        return this.setPoints(point, this._to);
+        return this.setPoints(point, this._arrowTo);
       };
 
       AnimatedArrow.prototype.update = function() {
