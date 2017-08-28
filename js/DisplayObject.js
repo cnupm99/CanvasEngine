@@ -203,6 +203,9 @@
       };
 
       DisplayObject.prototype.animate = function() {
+        if (!this.visible) {
+          return;
+        }
         this._deltaX = this.position[0];
         this._deltaY = this.position[1];
         if (this.shadow) {

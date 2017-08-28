@@ -98,6 +98,11 @@ define () ->
 
 			@_events.forEach (_event) ->
 
+				# 
+				# невозвомжно взаимодействовать с невидимыми объектами
+				# 
+				return unless _event.object.visible
+
 				_event.func e, _event.object if _event.mouseOn and _event.event == "mouseup"
 				# клик формируем сами, если нажали и отпустили над объектом
 				_event.func e, _event.object if _event.mouseOn and _event.mouseDown and _event.event == "click"
@@ -108,6 +113,11 @@ define () ->
 
 			@_events.forEach (_event) ->
 
+				# 
+				# невозвомжно взаимодействовать с невидимыми объектами
+				# 
+				return unless _event.object.visible
+
 				if _event.mouseOn 
 
 					_event.func e, _event.object if _event.event == "mousedown"
@@ -117,6 +127,11 @@ define () ->
 		_mouseMove: (e) =>
 
 			@_events.forEach (_event) ->
+
+				# 
+				# невозвомжно взаимодействовать с невидимыми объектами
+				# 
+				return unless _event.object.visible
 
 				# здесь мы проверяем, над объектом ли мышь, используя нужный метод объекта
 				mouseOn = false

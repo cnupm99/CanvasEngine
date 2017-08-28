@@ -41,6 +41,12 @@ define ["Image"], (Image) ->
 			return unless @loaded
 
 			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			return unless @visible
+
+			# 
 			# Начало отрисовки
 			# 
 			@context.beginPath()

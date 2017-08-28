@@ -24,6 +24,9 @@
         if (!this.loaded) {
           return;
         }
+        if (!this.visible) {
+          return;
+        }
         this.context.beginPath();
         this.context.fillStyle = this.context.createPattern(this.image, "repeat");
         this.context.rect(this.rect[0], this.rect[1], this.rect[2], this.rect[3]);

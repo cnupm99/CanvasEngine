@@ -82,6 +82,9 @@
 
       Mouse.prototype._mouseUp = function(e) {
         return this._events.forEach(function(_event) {
+          if (!_event.object.visible) {
+            return;
+          }
           if (_event.mouseOn && _event.event === "mouseup") {
             _event.func(e, _event.object);
           }
@@ -94,6 +97,9 @@
 
       Mouse.prototype._mouseDown = function(e) {
         return this._events.forEach(function(_event) {
+          if (!_event.object.visible) {
+            return;
+          }
           if (_event.mouseOn) {
             if (_event.event === "mousedown") {
               _event.func(e, _event.object);
@@ -106,6 +112,9 @@
       Mouse.prototype._mouseMove = function(e) {
         return this._events.forEach(function(_event) {
           var mouseOn;
+          if (!_event.object.visible) {
+            return;
+          }
           mouseOn = false;
           switch (_event.type) {
             case "rect":

@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 81
-# Sun Aug 27 2017
+# build 82
+# Mon Aug 28 2017
 #
 
 "use strict";
@@ -418,6 +418,12 @@ define () ->
 		# делать вручную это не нужно
 		# 
 		animate: () ->
+
+			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			return unless @visible
 
 			# смещение
 			@_deltaX = @position[0]
@@ -1435,6 +1441,12 @@ define () ->
 		animate: () ->
 
 			return unless @loaded
+
+			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			return unless @visible
 
 			# 
 			# Начало отрисовки
