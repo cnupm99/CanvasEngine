@@ -204,6 +204,7 @@
 
       DisplayObject.prototype.animate = function() {
         if (!this.visible) {
+          this.needAnimation = false;
           return;
         }
         this._deltaX = this.position[0];

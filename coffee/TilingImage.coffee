@@ -44,8 +44,11 @@ define ["Image"], (Image) ->
 			# если объект не видимый
 			# то рисовать его не нужно
 			# 
-			return unless @visible
+			if not @visible
 
+				@needAnimation = false
+				return
+				
 			# 
 			# Начало отрисовки
 			# 

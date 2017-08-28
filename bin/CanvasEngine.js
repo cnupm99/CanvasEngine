@@ -259,6 +259,7 @@
 
       DisplayObject.prototype.animate = function() {
         if (!this.visible) {
+          this.needAnimation = false;
           return;
         }
         this._deltaX = this.position[0];
@@ -797,6 +798,7 @@
           return;
         }
         if (!this.visible) {
+          this.needAnimation = false;
           return;
         }
         this.context.beginPath();
@@ -926,6 +928,7 @@
 
       Scene.prototype.animate = function() {
         if (!this.visible) {
+          this.needAnimation = false;
           return;
         }
         this.context.clearRect(0, 0, this.size[0], this.size[1]);

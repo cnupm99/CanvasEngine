@@ -239,7 +239,10 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 			# если объект не видимый
 			# то рисовать его не нужно
 			# 
-			return unless @visible
+			if not @visible
+
+				@needAnimation = false
+				return
 
 			# 
 			# очистка контекста

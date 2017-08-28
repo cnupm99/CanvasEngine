@@ -2,7 +2,7 @@
 # CanvasEngine
 #
 # version 1.10
-# build 82
+# build 83
 # Mon Aug 28 2017
 #
 
@@ -423,7 +423,10 @@ define () ->
 			# если объект не видимый
 			# то рисовать его не нужно
 			# 
-			return unless @visible
+			if not @visible
+
+				@needAnimation = false
+				return
 
 			# смещение
 			@_deltaX = @position[0]
@@ -1446,8 +1449,11 @@ define () ->
 			# если объект не видимый
 			# то рисовать его не нужно
 			# 
-			return unless @visible
+			if not @visible
 
+				@needAnimation = false
+				return
+				
 			# 
 			# Начало отрисовки
 			# 
@@ -1710,7 +1716,10 @@ define () ->
 			# если объект не видимый
 			# то рисовать его не нужно
 			# 
-			return unless @visible
+			if not @visible
+
+				@needAnimation = false
+				return
 
 			# 
 			# очистка контекста

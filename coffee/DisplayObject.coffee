@@ -322,7 +322,10 @@ define ["AbstractObject"], (AbstractObject) ->
 			# если объект не видимый
 			# то рисовать его не нужно
 			# 
-			return unless @visible
+			if not @visible
+
+				@needAnimation = false
+				return
 
 			# смещение
 			@_deltaX = @position[0]

@@ -25,6 +25,7 @@
           return;
         }
         if (!this.visible) {
+          this.needAnimation = false;
           return;
         }
         this.context.beginPath();
