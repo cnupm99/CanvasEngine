@@ -29,7 +29,8 @@ requirejs(["CanvasEngine.min", "../utils/AnimatedArrow/AnimatedArrow", "../utils
 
 		scene: scene,
 		from: [500, 400],
-		to: [100, 100]
+		to: [100, 100],
+		style: "rgba(255, 0, 0, 0.5)"
 
 	});
 

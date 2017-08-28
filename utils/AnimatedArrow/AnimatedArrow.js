@@ -33,19 +33,19 @@
       }
 
       AnimatedArrow.prototype.setPoints = function(point1, point2) {
-        var dx, dy, length, newlength;
+        var dx, dy, newlength;
         this._from = this._scene.pixel(point1);
         this._to = this._scene.pixel(point2);
         this._arrowTo = this._scene.pixel(point2);
         dx = this._from[0] - this._to[0];
         dy = this._from[1] - this._to[1];
-        length = Math.sqrt(dx * dx + dy * dy);
-        newlength = length - this._blockSize + 2;
-        if (length === 0) {
-          length = 0.00001;
+        this._length = Math.sqrt(dx * dx + dy * dy);
+        newlength = this._length - this._blockSize + 2;
+        if (this._length === 0) {
+          this._length = 0.00001;
         }
-        this._to[0] = this._from[0] - newlength * dx / length;
-        this._to[1] = this._from[1] - newlength * dy / length;
+        this._to[0] = this._from[0] - newlength * dx / this._length;
+        this._to[1] = this._from[1] - newlength * dy / this._length;
         if (dx === 0) {
           dx = 0.00001;
         }
@@ -75,6 +75,9 @@
 
       AnimatedArrow.prototype._redrawLine = function() {
         this._graph.clear();
+        if (this._length < this._blockSize + this._spaceSize) {
+          return;
+        }
         this._graph.strokeStyle(this._style);
         this._graph.lineWidth(this._width);
         this._graph.lineCap("butt");

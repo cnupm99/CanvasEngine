@@ -66,13 +66,13 @@ define () ->
 			# calc length of line and new length, that smaller
 			dx = @_from[0] - @_to[0]
 			dy = @_from[1] - @_to[1]
-			length = Math.sqrt(dx * dx + dy * dy)
-			newlength = length - @_blockSize + 2
-			length = 0.00001 if length == 0
+			@_length = Math.sqrt(dx * dx + dy * dy)
+			newlength = @_length - @_blockSize + 2
+			@_length = 0.00001 if @_length == 0
 
 			# calc new line to point
-			@_to[0] = @_from[0] - newlength * dx / length
-			@_to[1] = @_from[1] - newlength * dy / length
+			@_to[0] = @_from[0] - newlength * dx / @_length
+			@_to[1] = @_from[1] - newlength * dy / @_length
 
 			# calc arrow angle
 			dx = 0.00001 if dx == 0
@@ -101,6 +101,11 @@ define () ->
 		_redrawLine: () ->
 
 			@_graph.clear()
+
+			# 
+			# если длина стрелки мала, то рисовать линию не будем
+			# 
+			return if @_length < @_blockSize + @_spaceSize
 
 			@_graph.strokeStyle @_style
 			@_graph.lineWidth @_width
