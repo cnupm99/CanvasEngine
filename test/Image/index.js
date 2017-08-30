@@ -61,4 +61,14 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 	});
 
+	var image3 = CE.add({
+
+		type: "image",
+		src: "../flower.png",
+		rect: [0, 0, 100, 100],
+		position: [500, 500],
+		size: [100, 100]
+
+	});
+
 });

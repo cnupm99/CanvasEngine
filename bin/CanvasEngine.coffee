@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 83
-# Mon Aug 28 2017
+# build 84
+# Wed Aug 30 2017
 #
 
 "use strict";
@@ -997,11 +997,13 @@ define () ->
 		#  loaded:Boolean - загружена ли картинка
 		#  image:Image - объект картинки
 		#  loadedFrom:String - строка с адресом картинки
+		#  rect:Array - прямоугольник для отображения части картинки
 		#  
 		# методы:
 		# 
 		#  src(url:string): загрузка картинки с указанным адресом
 		#  from(image:Image, url:String) - создание из уже существующей и загруженной картинки
+		#  setRect(rect:Array):Array - установка области для отображения только части картинки
 		#  animate() - попытка нарисовать объект
 		# 
 		constructor: (options) ->
@@ -1047,6 +1049,11 @@ define () ->
 			@loadedFrom = ""
 
 			# 
+			# свойство для отображения только части картинки
+			# 
+			@setRect options.rect
+
+			# 
 			# нужно ли загружать картинку
 			# 
 			if options.src?
@@ -1059,6 +1066,15 @@ define () ->
 			else 
 
 				@from options.from
+
+		# 
+		# Установка области
+		# 
+		setRect: (value) ->
+
+			@rect = value or false
+			@needAnimation = true
+			@rect
 
 		# 
 		# Метод для загрузки картики
@@ -1122,18 +1138,30 @@ define () ->
 			super()
 
 			# 
-			# рисуем в реальном размере?
+			# если нужно рисовать определенную область изображения
 			# 
-			if @size[0] == @realSize[0] and @size[1] == @realSize[1]
+			if @rect
 
-				@context.drawImage @image, @_deltaX, @_deltaY
+				# 
+				# вырезаем и рисуем в нужном масштабе определенную область картинки
+				# 
+				@context.drawImage @image, @rect[0], @rect[1], @rect[2], @rect[3], @_deltaX, @_deltaY, @size[0], @size[1]
 
 			else
 
-				# 
-				# тут масштабируем картинку
-				# 
-				@context.drawImage @image, @_deltaX, @_deltaY, @size[0], @size[1]
+				#
+				# рисуем в реальном размере?
+				#
+				if @size[0] == @realSize[0] and @size[1] == @realSize[1]
+
+					@context.drawImage @image, @_deltaX, @_deltaY
+
+				else
+
+					# 
+					# тут просто масштабируем картинку
+					# 
+					@context.drawImage @image, @_deltaX, @_deltaY, @size[0], @size[1]
 
 		_imageOnLoad: (e) =>
 

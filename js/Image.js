@@ -19,12 +19,19 @@
         this.image = document.createElement("img");
         this.image.onload = this._imageOnLoad;
         this.loadedFrom = "";
+        this.setRect(options.rect);
         if (options.src != null) {
           this.src(options.src);
         } else {
           this.from(options.from);
         }
       }
+
+      Image.prototype.setRect = function(value) {
+        this.rect = value || false;
+        this.needAnimation = true;
+        return this.rect;
+      };
 
       Image.prototype.src = function(value) {
         this.loaded = false;
@@ -51,10 +58,14 @@
           return;
         }
         Image.__super__.animate.call(this);
-        if (this.size[0] === this.realSize[0] && this.size[1] === this.realSize[1]) {
-          return this.context.drawImage(this.image, this._deltaX, this._deltaY);
+        if (this.rect) {
+          return this.context.drawImage(this.image, this.rect[0], this.rect[1], this.rect[2], this.rect[3], this._deltaX, this._deltaY, this.size[0], this.size[1]);
         } else {
-          return this.context.drawImage(this.image, this._deltaX, this._deltaY, this.size[0], this.size[1]);
+          if (this.size[0] === this.realSize[0] && this.size[1] === this.realSize[1]) {
+            return this.context.drawImage(this.image, this._deltaX, this._deltaY);
+          } else {
+            return this.context.drawImage(this.image, this._deltaX, this._deltaY, this.size[0], this.size[1]);
+          }
         }
       };
 

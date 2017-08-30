@@ -198,8 +198,10 @@ Simple Canvas Engine for javascript / coffeescript
 - **loaded**:Boolean - загружена ли картинка
 - **image**:Image - объект картинки
 - **loadedFrom**:String - строка с адресом картинки
+- **rect**:Array - прямоугольник для отображения части картинки
 - **src**(url:string): загрузка картинки с указанным адресом
 - **from**(image:Image, url:String) - создание из уже существующей и загруженной картинки
+- **setRect**(rect:Array):Array - установка области для отображения только части картинки
 
 ### Graph
 
