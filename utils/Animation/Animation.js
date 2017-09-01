@@ -8,6 +8,7 @@
     return Animation = (function() {
       function Animation(CE, options) {
         this.update = bind(this.update, this);
+        var frameSet, i, j, ref;
         this.currentFrame = options.currentFrame || 0;
         this.loadedFrame = -1;
         this.maxFrame = options.maxFrame || 0;
@@ -30,16 +31,43 @@
           }
         }
         this.image = CE.add(options);
+        if (options.frameSet != null) {
+          this.setFrameSet(options.frameSet);
+        }
+        if ((options.frameWidth != null) || (options.frameCount != null)) {
+          this.frameWidth = options.frameWidth || this.image.realSize[0] / options.frameCount;
+          this.frameCount = options.frameCount || this.image.realSize[0] / options.frameWidth;
+          this.image.resize([this.frameWidth, this.image.realSize[1]]);
+          frameSet = [];
+          for (i = j = 0, ref = this.frameCount; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
+            frameSet.push([i * this.frameWidth, 0, this.frameWidth, this.image.realSize[1]]);
+          }
+          this.setFrameSet(frameSet);
+        }
+        this.intervals = options.intervals || false;
         CE.addEvent(this.update);
         if (this.autoPlay) {
           this.play();
         }
       }
 
+      Animation.prototype.setFrameSet = function(value) {
+        this.frameSet = value;
+        this.maxFrame = this.frameSet.length - 1;
+        if (this.currentFrame > this.maxFrame || this.currentFrame < 0) {
+          this.currentFrame = 0;
+        }
+        this.image.setRect(this.frameSet[this.currentFrame]);
+        return this.type = "set";
+      };
+
       Animation.prototype.play = function(frame) {
         this.currentFrame = frame || this.currentFrame;
         if (this.currentFrame > this.maxFrame || this.currentFrame < 0) {
           this.currentFrame = 0;
+        }
+        if (this.intervals) {
+          this.slowing = this.intervals[this.currentFrame];
         }
         return this.playing = true;
       };
@@ -57,12 +85,12 @@
         this.frames = frames;
         this.maxFrame = this.frames.length - 1;
         if (this.currentFrame > this.maxFrame || this.currentFrame < 0) {
-          return this.currentFrame = 0;
+          this.currentFrame = 0;
         }
+        return this.type = typeof this.frames[this.currentFrame] === "string" ? "src" : "from";
       };
 
       Animation.prototype.update = function() {
-        var img;
         if (this.playing) {
           this._counter++;
           if (this.slowing === 1 || this._counter % this.slowing === 0) {
@@ -76,12 +104,19 @@
                 this.playing = false;
               }
             }
+            if (this.intervals) {
+              this.slowing = this.intervals[this.currentFrame];
+            }
             if (this.playing && this.loadedFrame !== this.currentFrame) {
-              img = this.frames[this.currentFrame];
-              if (typeof img === "string") {
-                this.image.src(img);
-              } else {
-                this.image.from(img);
+              switch (this.type) {
+                case "src":
+                  this.image.src(this.frames[this.currentFrame]);
+                  break;
+                case "from":
+                  this.image.from(this.frames[this.currentFrame]);
+                  break;
+                case "set":
+                  this.image.setRect(this.frameSet[this.currentFrame]);
               }
               return this.loadedFrame = this.currentFrame;
             }
