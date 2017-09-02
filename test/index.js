@@ -36,9 +36,8 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 		}
 		if(e.which == 1) {
 
-			var scene = ce.get("scene1");
-			if(scene.visible) {scene.hide()}
-			else {scene.show()}
+			if(image.visible) {image.hide()}
+			else {image.show()}
 
 		}
 

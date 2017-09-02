@@ -30,7 +30,11 @@
             options.src = this.frames[this.currentFrame];
           }
         }
-        this.image = CE.add(options);
+        this.scene = options.scene;
+        if (this.scene == null) {
+          return;
+        }
+        this.image = this.scene.add(options);
         if (options.frameSet != null) {
           this.setFrameSet(options.frameSet);
         }

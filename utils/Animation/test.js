@@ -54,7 +54,8 @@ requirejs(["CanvasEngine.min", "../utils/Dust/ImagesLoader", "../utils/FPS/FPS",
 
 			from: [images.m1.image, images.m2.image],
 			position: [100, 100],
-			slowing: 30
+			slowing: 30,
+			scene: scene
 
 		});
 
@@ -66,7 +67,8 @@ requirejs(["CanvasEngine.min", "../utils/Dust/ImagesLoader", "../utils/FPS/FPS",
 
 			src: ["mouse_4.png", "mouse_5.png"],
 			position: [100, 200],
-			slowing: 60
+			slowing: 60,
+			scene: scene
 
 		});
 
@@ -82,7 +84,8 @@ requirejs(["CanvasEngine.min", "../utils/Dust/ImagesLoader", "../utils/FPS/FPS",
 				[0, 166, 517, 166]
 			],
 			size: [517, 166],
-			intervals: [60, 10]
+			intervals: [60, 10],
+			scene: scene
 
 		});
 
@@ -94,7 +97,8 @@ requirejs(["CanvasEngine.min", "../utils/Dust/ImagesLoader", "../utils/FPS/FPS",
 			from: images.cat.image,
 			position: [100, 500],
 			slowing: 5,
-			frameCount: 5
+			frameCount: 5,
+			scene: scene
 
 		});
 

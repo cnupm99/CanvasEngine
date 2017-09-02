@@ -82,9 +82,15 @@ define () ->
 					options.src = @frames[@currentFrame]
 
 			# 
+			# сцена для анимации
+			# 
+			@scene = options.scene
+			return unless @scene?
+
+			# 
 			# создаем картинку
 			# 
-			@image = CE.add options
+			@image = @scene.add options
 
 			# 
 			# работаем через наборы кадров
