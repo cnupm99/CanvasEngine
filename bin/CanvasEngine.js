@@ -258,10 +258,6 @@
       };
 
       DisplayObject.prototype.animate = function() {
-        if (!this.visible) {
-          this.needAnimation = false;
-          return;
-        }
         this._deltaX = this.position[0];
         this._deltaY = this.position[1];
         if (this.shadow) {
@@ -513,6 +509,10 @@
       };
 
       Graph.prototype.animate = function() {
+        if (!this.visible) {
+          this.needAnimation = false;
+          return;
+        }
         Graph.__super__.animate.call(this);
         this.context.lineCap = "round";
         return this._commands.forEach((function(_this) {
@@ -641,6 +641,10 @@
         if (!this.loaded) {
           return;
         }
+        if (!this.visible) {
+          this.needAnimation = false;
+          return;
+        }
         Image.__super__.animate.call(this);
         if (this.rect) {
           return this.context.drawImage(this.image, this.rect[0], this.rect[1], this.rect[2], this.rect[3], this._deltaX, this._deltaY, this.size[0], this.size[1]);
@@ -718,6 +722,10 @@
 
       Text.prototype.animate = function() {
         var gradient, lines, textY;
+        if (!this.visible) {
+          this.needAnimation = false;
+          return;
+        }
         Text.__super__.animate.call(this);
         this.context.font = this.font;
         this.context.textBaseline = "top";

@@ -154,6 +154,10 @@
       };
 
       Graph.prototype.animate = function() {
+        if (!this.visible) {
+          this.needAnimation = false;
+          return;
+        }
         Graph.__super__.animate.call(this);
         this.context.lineCap = "round";
         return this._commands.forEach((function(_this) {

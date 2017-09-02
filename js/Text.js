@@ -56,6 +56,10 @@
 
       Text.prototype.animate = function() {
         var gradient, lines, textY;
+        if (!this.visible) {
+          this.needAnimation = false;
+          return;
+        }
         Text.__super__.animate.call(this);
         this.context.font = this.font;
         this.context.textBaseline = "top";

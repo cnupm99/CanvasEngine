@@ -149,6 +149,15 @@ define ["DisplayObject"], (DisplayObject) ->
 			return unless @loaded
 
 			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			if not @visible
+
+				@needAnimation = false
+				return
+
+			# 
 			# действия по умолчанию для DisplayObject
 			# 
 			super()

@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 84
-# Wed Aug 30 2017
+# build 85
+# Sat Sep 02 2017
 #
 
 "use strict";
@@ -418,15 +418,6 @@ define () ->
 		# делать вручную это не нужно
 		# 
 		animate: () ->
-
-			# 
-			# если объект не видимый
-			# то рисовать его не нужно
-			# 
-			if not @visible
-
-				@needAnimation = false
-				return
 
 			# смещение
 			@_deltaX = @position[0]
@@ -889,6 +880,15 @@ define () ->
 
 		animate: () ->
 
+			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			if not @visible
+
+				@needAnimation = false
+				return
+			
 			super()
 
 			# 
@@ -1133,6 +1133,15 @@ define () ->
 			return unless @loaded
 
 			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			if not @visible
+
+				@needAnimation = false
+				return
+
+			# 
 			# действия по умолчанию для DisplayObject
 			# 
 			super()
@@ -1309,6 +1318,15 @@ define () ->
 			@text
 
 		animate: () ->
+
+			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			if not @visible
+
+				@needAnimation = false
+				return
 
 			super()
 

@@ -127,6 +127,15 @@ define ["DisplayObject"], (DisplayObject) ->
 
 		animate: () ->
 
+			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			if not @visible
+
+				@needAnimation = false
+				return
+
 			super()
 
 			# 

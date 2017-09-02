@@ -57,6 +57,10 @@
         if (!this.loaded) {
           return;
         }
+        if (!this.visible) {
+          this.needAnimation = false;
+          return;
+        }
         Image.__super__.animate.call(this);
         if (this.rect) {
           return this.context.drawImage(this.image, this.rect[0], this.rect[1], this.rect[2], this.rect[3], this._deltaX, this._deltaY, this.size[0], this.size[1]);
