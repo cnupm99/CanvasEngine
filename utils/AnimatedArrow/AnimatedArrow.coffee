@@ -123,10 +123,16 @@ define () ->
 
 			@_redrawLine()
 
+			@_arrow.clear()
+
+			# 
+			# не отображать стрелку, если расстояние мало
+			# 
+			return if @_length < @_arrowWidth
+
 			@_arrow.setCenter @_arrowTo
 			@_arrow.rotate @_angle
 
-			@_arrow.clear()
 			@_arrow.lineWidth 1
 			@_arrow.fillStyle @_style
 			

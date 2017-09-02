@@ -91,9 +91,12 @@
 
       AnimatedArrow.prototype._redraw = function() {
         this._redrawLine();
+        this._arrow.clear();
+        if (this._length < this._arrowWidth) {
+          return;
+        }
         this._arrow.setCenter(this._arrowTo);
         this._arrow.rotate(this._angle);
-        this._arrow.clear();
         this._arrow.lineWidth(1);
         this._arrow.fillStyle(this._style);
         this._arrow.beginPath();
