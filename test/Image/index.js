@@ -71,4 +71,24 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 	});
 
+	var image4 = CE.add({
+
+		type: "image",
+		src: "../square_1.png",
+		position: [10, 300]
+
+	});
+
+	var image5 = CE.add({
+
+		type: "image",
+		src: "../square_1.png",
+		position: [310, 300]
+
+	});
+
+	image5.setShadow({
+		blur:5
+	});
+
 });

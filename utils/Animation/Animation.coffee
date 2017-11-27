@@ -17,122 +17,34 @@ define () ->
 		constructor: (CE, options) ->
 
 			# 
-			# номер отображаемого кадра
+			# установка опций анимации
 			# 
-			@currentFrame = options.currentFrame or 0
+			@_setOptions options
 
 			# 
-			# номер последнего загруженного кадра
+			# работаем через from
 			# 
-			@loadedFrame = -1
+			options.from = @_setFrom options if options.from?
 
 			# 
-			# максимальное количество кадров в анимации
+			# работаем через src
 			# 
-			@maxFrame = options.maxFrame or 0
-
-			# 
-			# замедление анимации
-			# 
-			@slowing = options.slowing or 1
-
-			# 
-			# счетчик для замедления анимации
-			# 
-			@_counter = 0
-
-			# 
-			# нужно ли проигрывать анимацию по кругу
-			# 
-			@loop = if options.loop? then options.loop else true
-
-			# 
-			# начинать ли воспроизведение автоматически после загрузки
-			# 
-			@autoPlay = if options.autoPlay? then options.autoPlay else true
-
-			# 
-			# идет ли анимация в данный момент
-			# 
-			@playing = false
-
-			# 
-			# меняем тип в опциях для создания картинки
-			# 
-			options.type = "image"
-
-			# 
-			# загрузка картинки
-			# 
-			if options.from?
-
-				if Array.isArray options.from
-
-					@setFrames options.from
-					options.from = @frames[@currentFrame]
-
-			# 
-			# загрузка картинки
-			# 
-			if options.src?
-
-				if Array.isArray options.src
-
-					@setFrames options.src
-					options.src = @frames[@currentFrame]
-
-			# 
-			# сцена для анимации
-			# 
-			@scene = options.scene
-			return unless @scene?
+			options.src = @_setSrc options if options.src?
 
 			# 
 			# создаем картинку
 			# 
-			@image = @scene.add options
+			@_createImage options
 
 			# 
 			# работаем через наборы кадров
 			# 
-			if options.frameSet?
-
-				@setFrameSet options.frameSet
+			@setFrameSet options.frameSet if options.frameSet?
 
 			# 
 			# работаем через количество или ширину кадров
 			# 
-			if options.frameWidth? or options.frameCount?
-
-				# 
-				# вычисляем количество и ширину кадров
-				# 
-				@frameWidth = options.frameWidth or @image.realSize[0] / options.frameCount
-				@frameCount = options.frameCount or @image.realSize[0] / options.frameWidth
-
-				# 
-				# меняем размеры вывода картинки под размеры кадра
-				# 
-				@image.resize [@frameWidth, @image.realSize[1]]
-
-				# 
-				# а теперь получаем набор кадров
-				# 
-				frameSet = []
-				for i in [0 ... @frameCount]
-
-					frameSet.push [i * @frameWidth, 0, @frameWidth, @image.realSize[1]]
-
-				# 
-				# и работаем через набор кадров
-				# 
-				@setFrameSet frameSet
-
-			# 
-			# если нужно, используем массив интервалов,
-			# отдельный интервал для каждого кадра
-			# 
-			@intervals = options.intervals or false
+			@_setFrameCount options if options.frameWidth? or options.frameCount?
 
 			# 
 			# добавляем функцию обновления анимации
@@ -149,39 +61,89 @@ define () ->
 		# 
 		setFrameSet: (value) ->
 
+			# 
+			# массив координат для вырезания кадров
+			# 
 			@frameSet = value
+			# 
+			# количество кадров в анимации
+			# 
 			@maxFrame = @frameSet.length - 1
+			# 
+			# текущий кадр 
+			# 
 			@currentFrame = 0 if @currentFrame > @maxFrame or @currentFrame < 0
+			# 
+			# устновка кадра
+			# 
 			@image.setRect @frameSet[@currentFrame]
+			# 
+			# установка типа анимации
+			# 
 			@type = "set"
-
-		# 
-		# начало воспроизведения анимации
-		# 
-		play: (frame) ->
-
-			@currentFrame = frame or @currentFrame
-			@currentFrame = 0 if @currentFrame > @maxFrame or @currentFrame < 0
-			@slowing = @intervals[@currentFrame] if @intervals
-			@playing = true
-
-		pause: () -> @playing = false
-
-		stop: () ->
-
-			@playing = false
-			@currentFrame = 0
 
 		# 
 		# установка массива с картинками
 		# 
 		setFrames: (frames) ->
 
+			# 
+			# массив с картинками
+			# 
 			@frames = frames
+			# 
+			# количество кадров
+			# 
 			@maxFrame = @frames.length - 1
+			# 
+			# текущий кадр
+			# 
 			@currentFrame = 0 if @currentFrame > @maxFrame or @currentFrame < 0
+			# 
+			# выбор типа анимации взависимости от типа
+			# переданных параметров:
+			# картинки либо ссылки
+			# 
 			@type = if typeof(@frames[@currentFrame]) == "string" then "src" else "from"
 
+		# 
+		# начало воспроизведения анимации
+		# 
+		play: (frame) ->
+
+			# 
+			# установка текущего кадра
+			# 
+			@currentFrame = frame or @currentFrame
+			# 
+			# ограничение кадров
+			# 
+			@currentFrame = 0 if @currentFrame > @maxFrame or @currentFrame < 0
+			# 
+			# текущий интервал между кадрами
+			# 
+			@slowing = @intervals[@currentFrame] if @intervals
+			# 
+			# начинаем проигрывание
+			# 
+			@playing = true
+
+		# 
+		# пауза в анимации
+		# 
+		pause: () -> @playing = false
+
+		# 
+		# остановить анимацию
+		# 
+		stop: () ->
+
+			@playing = false
+			@currentFrame = 0
+
+		# 
+		# собственно обработка анимации
+		# 
 		update: () =>
 
 			# 
@@ -241,4 +203,144 @@ define () ->
 							when "from" then @image.from @frames[@currentFrame]
 							when "set" then @image.setRect @frameSet[@currentFrame]
 
+						# 
+						# теперь загруженный кадр равен текущему
+						# 
 						@loadedFrame = @currentFrame
+
+		_setOptions: (options) ->
+
+			# 
+			# номер отображаемого кадра
+			# 
+			@currentFrame = options.currentFrame or 0
+
+			# 
+			# номер последнего загруженного кадра
+			# 
+			@loadedFrame = -1
+
+			# 
+			# максимальное количество кадров в анимации
+			# 
+			@maxFrame = options.maxFrame or 0
+
+			# 
+			# замедление анимации
+			# 
+			@slowing = options.slowing or 1
+
+			# 
+			# счетчик для замедления анимации
+			# 
+			@_counter = 0
+
+			# 
+			# нужно ли проигрывать анимацию по кругу
+			# 
+			@loop = if options.loop? then options.loop else true
+
+			# 
+			# начинать ли воспроизведение автоматически после загрузки
+			# 
+			@autoPlay = if options.autoPlay? then options.autoPlay else true
+
+			# 
+			# идет ли анимация в данный момент
+			# 
+			@playing = false
+
+			# 
+			# если нужно, используем массив интервалов,
+			# отдельный интервал для каждого кадра
+			# 
+			@intervals = options.intervals or false
+
+		_createImage: (options) ->
+
+			# 
+			# меняем тип в опциях для создания картинки
+			# 
+			options.type = "image"
+
+			# 
+			# сцена для анимации
+			# 
+			scene = options.scene
+			return unless scene?
+
+			# 
+			# создаем картинку
+			# 
+			@image = scene.add options
+
+		# 
+		# если работаем через from
+		# 
+		_setFrom: (options) ->
+
+			if Array.isArray options.from
+
+				# 
+				# массив картинок
+				# 
+				@setFrames options.from
+				# 
+				# возвращаем новый from
+				# 
+				@frames[@currentFrame]
+
+			# 
+			# если не массив, то значение остается прежним
+			# 
+			else options.from
+
+		# 
+		# если работаем через src
+		# 
+		_setSrc: (options) ->
+
+			if Array.isArray options.src
+
+				# 
+				# массив ссылок
+				# 
+				@setFrames options.src
+				# 
+				# возвращаем новый src
+				# 
+				@frames[@currentFrame]
+
+			# 
+			# если не массив, то значение остается прежним
+			# 
+			else options.src
+
+		# 
+		# если работаем через количество или размер кадров
+		# 
+		_setFrameCount: (options) ->
+
+			# 
+			# вычисляем количество и ширину кадров
+			# 
+			frameWidth = options.frameWidth or @image.realSize[0] / options.frameCount
+			frameCount = options.frameCount or @image.realSize[0] / options.frameWidth
+
+			# 
+			# меняем размеры вывода картинки под размеры кадра
+			# 
+			@image.resize [frameWidth, @image.realSize[1]]
+
+			# 
+			# а теперь получаем набор кадров
+			# 
+			frameSet = []
+			for i in [0 ... frameCount]
+
+				frameSet.push [i * frameWidth, 0, frameWidth, @image.realSize[1]]
+
+			# 
+			# и работаем через набор кадров
+			# 
+			@setFrameSet frameSet
