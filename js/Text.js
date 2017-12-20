@@ -16,6 +16,7 @@
     //  fillStyle:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
     //  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
     //  strokeWidth:int - ширина обводки
+    //  underline:Boolean - подчеркнутый текст
     //  text:String - отображаемый текст
 
     // методы:
@@ -24,6 +25,7 @@
     //  setFillStyle(style:String/Array):String/Array - установка заливки текста
     //  setStrokeStyle(style:String):String - установка обводки
     //  setStrokeWidth(value:int):int - толщина обводки
+    //  setUnderline(value:Boolean):Boolean - установка подчеркивания текста
     //  write(text:String):String - установка текста
     //  animate() - попытка нарисовать объект
 
@@ -56,6 +58,10 @@
         // ширина обводки
 
         this.setStrokeWidth(options.strokeWidth);
+        
+        // установка подчеркнутого текста
+
+        this.setUnderline(options.underline);
         
         // текущий текст надписи
 
@@ -93,6 +99,12 @@
         return this.strokeWidth;
       }
 
+      setUnderline(value) {
+        this.underline = value || false;
+        this.needAnimation = true;
+        return this.underline;
+      }
+
       write(value) {
         
         // установка текста
@@ -114,7 +126,7 @@
       }
 
       animate() {
-        var gradient, lines, textY;
+        var fontSize, gradient, lines, textY, underlineStyle;
         
         // если объект не видимый
         // то рисовать его не нужно
@@ -177,15 +189,57 @@
 
         textY = this._deltaY;
         
+        // если нужно подчеркивание текста
+
+        if (this.underline) {
+          
+          // парсим шрифт в надежде найти размер шрифта
+          // используем его для рисования подчеркивание
+          // это ближе к истене чем использование fontHeight
+
+          fontSize = parseInt(this.font, 10);
+          
+          // стиль линии подчеркивания
+
+          underlineStyle = this.strokeStyle || this.fillStyle;
+        }
+        
         // выводим текст построчно
 
         return lines.forEach((line) => {
+          var lineWidth;
           if (this.fillStyle) {
+            
+            // вывод текста
+
             this.context.fillText(line, this._deltaX, textY);
           }
           if (this.strokeStyle) {
             this.context.strokeText(line, this._deltaX, textY);
           }
+          
+          // рисуем подчеркивание
+
+          if (this.underline) {
+            
+            // длина данной строки текста
+
+            lineWidth = this._getTextWidth(line);
+            
+            // стиль линии
+
+            this.context.strokeStyle = underlineStyle;
+            this.context.lineWidth = this.strokeWidth || 1;
+            
+            // линия
+
+            this.context.moveTo(this._deltaX, textY + fontSize);
+            this.context.lineTo(this._deltaX + lineWidth, textY + fontSize);
+            this.context.stroke();
+          }
+          
+          // смещение следующей строки
+
           return textY += this.fontHeight;
         });
       }

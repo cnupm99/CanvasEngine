@@ -15,6 +15,7 @@ define ["DisplayObject"], (DisplayObject) ->
 	#  fillStyle:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
 	#  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
 	#  strokeWidth:int - ширина обводки
+	#  underline:Boolean - подчеркнутый текст
 	#  text:String - отображаемый текст
 	#  
 	# методы:
@@ -23,6 +24,7 @@ define ["DisplayObject"], (DisplayObject) ->
 	#  setFillStyle(style:String/Array):String/Array - установка заливки текста
 	#  setStrokeStyle(style:String):String - установка обводки
 	#  setStrokeWidth(value:int):int - толщина обводки
+	#  setUnderline(value:Boolean):Boolean - установка подчеркивания текста
 	#  write(text:String):String - установка текста
 	#  animate() - попытка нарисовать объект
 	# 
@@ -65,6 +67,11 @@ define ["DisplayObject"], (DisplayObject) ->
 			@setStrokeWidth options.strokeWidth
 
 			# 
+			# установка подчеркнутого текста
+			# 
+			@setUnderline options.underline
+
+			# 
 			# текущий текст надписи
 			# 
 			@write options.text
@@ -101,6 +108,12 @@ define ["DisplayObject"], (DisplayObject) ->
 			@strokeWidth = if value? then @int value else 1
 			@needAnimation = true
 			@strokeWidth
+
+		setUnderline: (value) ->
+
+			@underline = value or false
+			@needAnimation = true
+			@underline
 
 		write: (value) ->
 
@@ -197,12 +210,56 @@ define ["DisplayObject"], (DisplayObject) ->
 			textY = @_deltaY
 
 			# 
+			# если нужно подчеркивание текста
+			# 
+			if @underline
+
+				# 
+				# парсим шрифт в надежде найти размер шрифта
+				# используем его для рисования подчеркивание
+				# это ближе к истене чем использование fontHeight
+				# 
+				fontSize = parseInt @font, 10
+				# 
+				# стиль линии подчеркивания
+				# 
+				underlineStyle = @strokeStyle or @fillStyle
+
+			# 
 			# выводим текст построчно
 			# 
 			lines.forEach (line) =>
 				
+				# 
+				# вывод текста
+				# 
 				@context.fillText line, @_deltaX, textY if @fillStyle
 				@context.strokeText line, @_deltaX, textY if @strokeStyle
+
+				# 
+				# рисуем подчеркивание
+				# 
+				if @underline
+
+					# 
+					# длина данной строки текста
+					# 
+					lineWidth = @_getTextWidth line
+					# 
+					# стиль линии
+					# 
+					@context.strokeStyle = underlineStyle
+					@context.lineWidth = @strokeWidth or 1
+					# 
+					# линия
+					# 
+					@context.moveTo @_deltaX, textY + fontSize
+					@context.lineTo @_deltaX + lineWidth, textY + fontSize
+					@context.stroke()
+
+				# 
+				# смещение следующей строки
+				# 
 				textY += @fontHeight
 
 		# 

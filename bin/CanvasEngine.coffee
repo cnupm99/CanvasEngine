@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 85
-# Sat Sep 02 2017
+# build 99
+# Wed Dec 20 2017
 #
 
 "use strict";
@@ -171,19 +171,38 @@ define () ->
 
 			# 
 			# канвас для рисования
-			# в случае сцены, создается до вызова этого конструктора,
+			# в случае сцены, создается новый канвас
 			# в остальных случаях получаем из опций от родителя (сцены)
 			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			@canvas = options.canvas unless @canvas
+			if options.canvas?
+			
+				@canvas = options.canvas
+
+			else
+
+				# 
+				# элемент для добавления канваса
+				# всегда должен быть
+				# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+				# 
+				stage = options.parent or document.body
+
+				# 
+				# создаем канвас
+				# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+				# 
+				@canvas = document.createElement "canvas"
+				@canvas.style.position = "absolute"
+				stage.appendChild @canvas
 
 			# 
 			# контекст для рисования
-			# в случае сцены, создается до вызова этого конструктора,
+			# в случае сцены, берется из канваса,
 			# в остальных случаях получаем из опций от родителя (сцены)
 			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			@context = options.context unless @context
+			@context = options.context or @canvas.getContext "2d"
 
 			# 
 			# установка свойств
@@ -1207,6 +1226,7 @@ define () ->
 	#  fillStyle:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
 	#  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
 	#  strokeWidth:int - ширина обводки
+	#  underline:Boolean - подчеркнутый текст
 	#  text:String - отображаемый текст
 	#  
 	# методы:
@@ -1215,6 +1235,7 @@ define () ->
 	#  setFillStyle(style:String/Array):String/Array - установка заливки текста
 	#  setStrokeStyle(style:String):String - установка обводки
 	#  setStrokeWidth(value:int):int - толщина обводки
+	#  setUnderline(value:Boolean):Boolean - установка подчеркивания текста
 	#  write(text:String):String - установка текста
 	#  animate() - попытка нарисовать объект
 	# 
@@ -1257,6 +1278,11 @@ define () ->
 			@setStrokeWidth options.strokeWidth
 
 			# 
+			# установка подчеркнутого текста
+			# 
+			@setUnderline options.underline
+
+			# 
 			# текущий текст надписи
 			# 
 			@write options.text
@@ -1293,6 +1319,12 @@ define () ->
 			@strokeWidth = if value? then @int value else 1
 			@needAnimation = true
 			@strokeWidth
+
+		setUnderline: (value) ->
+
+			@underline = value or false
+			@needAnimation = true
+			@underline
 
 		write: (value) ->
 
@@ -1389,12 +1421,56 @@ define () ->
 			textY = @_deltaY
 
 			# 
+			# если нужно подчеркивание текста
+			# 
+			if @underline
+
+				# 
+				# парсим шрифт в надежде найти размер шрифта
+				# используем его для рисования подчеркивание
+				# это ближе к истене чем использование fontHeight
+				# 
+				fontSize = parseInt @font, 10
+				# 
+				# стиль линии подчеркивания
+				# 
+				underlineStyle = @strokeStyle or @fillStyle
+
+			# 
 			# выводим текст построчно
 			# 
 			lines.forEach (line) =>
 				
+				# 
+				# вывод текста
+				# 
 				@context.fillText line, @_deltaX, textY if @fillStyle
 				@context.strokeText line, @_deltaX, textY if @strokeStyle
+
+				# 
+				# рисуем подчеркивание
+				# 
+				if @underline
+
+					# 
+					# длина данной строки текста
+					# 
+					lineWidth = @_getTextWidth line
+					# 
+					# стиль линии
+					# 
+					@context.strokeStyle = underlineStyle
+					@context.lineWidth = @strokeWidth or 1
+					# 
+					# линия
+					# 
+					@context.moveTo @_deltaX, textY + fontSize
+					@context.lineTo @_deltaX + lineWidth, textY + fontSize
+					@context.stroke()
+
+				# 
+				# смещение следующей строки
+				# 
 				textY += @fontHeight
 
 		# 
@@ -1558,27 +1634,6 @@ define () ->
 		#  setAlpha(value:Number):Number - установить прозрачность канваса
 		# 
 		constructor: (options) ->
-
-			# 
-			# элемент для добавления канваса
-			# всегда должен быть
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			stage = options.parent or document.body
-			
-			# 
-			# создаем канвас
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			@canvas = document.createElement "canvas"
-			@canvas.style.position = "absolute"
-			stage.appendChild @canvas
-
-			# 
-			# контекст
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			@context = @canvas.getContext "2d"
 
 			# 
 			# создаем DisplayObject
@@ -1825,17 +1880,17 @@ define () ->
 		constructor: (options) ->
 
 			# 
+			# базовые свойства и методы
+			# 
+			super options
+
+			# 
 			# проверка поддержки канвас и контекст
 			# 
 			unless @canvasSupport()
 
 				console.log "your browser not support canvas and/or context"
 				return false
-
-			# 
-			# базовые свойства и методы
-			# 
-			super options
 
 			# 
 			# элемент для отрисовки движка
@@ -1966,7 +2021,7 @@ define () ->
 		# 
 		getActive: () ->
 
-			result = @get @_scene
+			result = @get(@_scene)
 			result = @childrens[0] unless result
 			result = false unless result
 			result

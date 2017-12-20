@@ -234,11 +234,13 @@ Simple Canvas Engine for javascript / coffeescript
 - **fillStyle**:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
 - **strokeStyle**:String/Boolean - обводка шрифта или false, если обводка не нужна
 - **strokeWidth**:int - ширина обводки
+- **underline**:Boolean - подчеркнутый текст
 - **text**:String - отображаемый текст
 - **setFont**(font:String):String - установка шрифта
 - **setFillStyle**(style:String/Array):String/Array - установка заливки текста
 - **setStrokeStyle**(style:String):String - установка обводки
 - **setStrokeWidth**(value:int):int - толщина обводки
+- **setUnderLine**(value:Boolean):Boolean - установка подчеркивания текста
 - **write**(text:String):String - установка текста
 
 ### Tile

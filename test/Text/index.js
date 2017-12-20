@@ -46,4 +46,15 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 	console.log(text2.realSize);
 	console.log(text2.fontHeight, text2.textWidth, text2.textHeight);
 
+	var text3 = CE.add({
+
+		type: "text",
+		text: "More then one\nline text with\nUNDERLINE",
+		font: "20px Helvetica",
+		fillStyle: "#000",
+		underline: true,
+		position: [50, 200]
+
+	});
+
 });
