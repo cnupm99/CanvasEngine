@@ -32,17 +32,17 @@ define ["ContainerObject", "Scene"], (ContainerObject, Scene) ->
 		constructor: (options) ->
 
 			# 
+			# базовые свойства и методы
+			# 
+			super options
+
+			# 
 			# проверка поддержки канвас и контекст
 			# 
 			unless @canvasSupport()
 
 				console.log "your browser not support canvas and/or context"
 				return false
-
-			# 
-			# базовые свойства и методы
-			# 
-			super options
 
 			# 
 			# элемент для отрисовки движка
@@ -173,7 +173,7 @@ define ["ContainerObject", "Scene"], (ContainerObject, Scene) ->
 		# 
 		getActive: () ->
 
-			result = @get @_scene
+			result = @get(@_scene)
 			result = @childrens[0] unless result
 			result = false unless result
 			result

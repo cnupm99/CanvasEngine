@@ -70,19 +70,38 @@ define ["AbstractObject"], (AbstractObject) ->
 
 			# 
 			# канвас для рисования
-			# в случае сцены, создается до вызова этого конструктора,
+			# в случае сцены, создается новый канвас
 			# в остальных случаях получаем из опций от родителя (сцены)
 			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			@canvas = options.canvas unless @canvas
+			if options.canvas?
+			
+				@canvas = options.canvas
+
+			else
+
+				# 
+				# элемент для добавления канваса
+				# всегда должен быть
+				# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+				# 
+				stage = options.parent or document.body
+
+				# 
+				# создаем канвас
+				# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+				# 
+				@canvas = document.createElement "canvas"
+				@canvas.style.position = "absolute"
+				stage.appendChild @canvas
 
 			# 
 			# контекст для рисования
-			# в случае сцены, создается до вызова этого конструктора,
+			# в случае сцены, берется из канваса,
 			# в остальных случаях получаем из опций от родителя (сцены)
 			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			@context = options.context unless @context
+			@context = options.context or @canvas.getContext "2d"
 
 			# 
 			# установка свойств

@@ -37,27 +37,6 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 		constructor: (options) ->
 
 			# 
-			# элемент для добавления канваса
-			# всегда должен быть
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			stage = options.parent or document.body
-			
-			# 
-			# создаем канвас
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			@canvas = document.createElement "canvas"
-			@canvas.style.position = "absolute"
-			stage.appendChild @canvas
-
-			# 
-			# контекст
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			@context = @canvas.getContext "2d"
-
-			# 
 			# создаем DisplayObject
 			# 
 			super options
