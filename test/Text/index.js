@@ -57,4 +57,16 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 	});
 
+	var text4 = CE.add({
+
+		type: "text",
+		text: "Зачеркнутый текст",
+		font: "20px Helvetica",
+		fillStyle: "#000",
+		underline: true,
+		underlineOffset: -8,
+		position: [50, 300]
+
+	});
+
 });

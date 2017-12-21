@@ -17,6 +17,7 @@
     //  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
     //  strokeWidth:int - ширина обводки
     //  underline:Boolean - подчеркнутый текст
+    //  underlineOffset:int - смещение линии подчеркивания
     //  text:String - отображаемый текст
 
     // методы:
@@ -25,7 +26,7 @@
     //  setFillStyle(style:String/Array):String/Array - установка заливки текста
     //  setStrokeStyle(style:String):String - установка обводки
     //  setStrokeWidth(value:int):int - толщина обводки
-    //  setUnderline(value:Boolean):Boolean - установка подчеркивания текста
+    //  setUnderline(value:Boolean, offset:int):Boolean - установка подчеркивания текста
     //  write(text:String):String - установка текста
     //  animate() - попытка нарисовать объект
 
@@ -61,7 +62,7 @@
         
         // установка подчеркнутого текста
 
-        this.setUnderline(options.underline);
+        this.setUnderline(options.underline, options.underlineOffset);
         
         // текущий текст надписи
 
@@ -99,8 +100,9 @@
         return this.strokeWidth;
       }
 
-      setUnderline(value) {
+      setUnderline(value, offset) {
         this.underline = value || false;
+        this.underlineOffset = offset || 0;
         this.needAnimation = true;
         return this.underline;
       }
@@ -233,8 +235,8 @@
             
             // линия
 
-            this.context.moveTo(this._deltaX, textY + fontSize);
-            this.context.lineTo(this._deltaX + lineWidth, textY + fontSize);
+            this.context.moveTo(this._deltaX, textY + fontSize + this.underlineOffset);
+            this.context.lineTo(this._deltaX + lineWidth, textY + fontSize + this.underlineOffset);
             this.context.stroke();
           }
           

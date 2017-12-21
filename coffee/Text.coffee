@@ -16,6 +16,7 @@ define ["DisplayObject"], (DisplayObject) ->
 	#  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
 	#  strokeWidth:int - ширина обводки
 	#  underline:Boolean - подчеркнутый текст
+	#  underlineOffset:int - смещение линии подчеркивания
 	#  text:String - отображаемый текст
 	#  
 	# методы:
@@ -24,7 +25,7 @@ define ["DisplayObject"], (DisplayObject) ->
 	#  setFillStyle(style:String/Array):String/Array - установка заливки текста
 	#  setStrokeStyle(style:String):String - установка обводки
 	#  setStrokeWidth(value:int):int - толщина обводки
-	#  setUnderline(value:Boolean):Boolean - установка подчеркивания текста
+	#  setUnderline(value:Boolean, offset:int):Boolean - установка подчеркивания текста
 	#  write(text:String):String - установка текста
 	#  animate() - попытка нарисовать объект
 	# 
@@ -69,7 +70,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# установка подчеркнутого текста
 			# 
-			@setUnderline options.underline
+			@setUnderline options.underline, options.underlineOffset
 
 			# 
 			# текущий текст надписи
@@ -109,9 +110,10 @@ define ["DisplayObject"], (DisplayObject) ->
 			@needAnimation = true
 			@strokeWidth
 
-		setUnderline: (value) ->
+		setUnderline: (value, offset) ->
 
 			@underline = value or false
+			@underlineOffset = offset or 0
 			@needAnimation = true
 			@underline
 
@@ -253,8 +255,8 @@ define ["DisplayObject"], (DisplayObject) ->
 					# 
 					# линия
 					# 
-					@context.moveTo @_deltaX, textY + fontSize
-					@context.lineTo @_deltaX + lineWidth, textY + fontSize
+					@context.moveTo @_deltaX, textY + fontSize + @underlineOffset
+					@context.lineTo @_deltaX + lineWidth, textY + fontSize + @underlineOffset
 					@context.stroke()
 
 				# 
