@@ -35,6 +35,9 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 	]);
 	graph.line(0, 0, 200, 200);
 	graph.log();
+	graph.fillStyle("#F00");
+	graph.circle(0, 0, 20);
+	graph.fill()
 
 	var graph2 = CE.add({
 

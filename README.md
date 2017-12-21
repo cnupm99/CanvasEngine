@@ -218,6 +218,7 @@ Simple Canvas Engine for javascript / coffeescript
 - **lineTo**(x, y:int) - линия в указанную точку
 - **line**(x1, y1, x2, y2:int) - рисуем линию по двум точкам
 - **rect**(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
+- **circle**(x, y, radius:int) - рисуем круг
 - **polyline**(points:Array, needDraw:Boolean) - полилиния
 - **polygon**(points:Array) - полигон
 - **fill**() - заливка фигуры

@@ -19,6 +19,10 @@
       constructor(options) {
         super(options);
         
+        // тип объекта
+
+        this.type = "tile";
+        
         // область замостивания по умолчанию равна размеру контекста
 
         // массив вида [int, int, int, int]

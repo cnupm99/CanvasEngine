@@ -21,6 +21,7 @@
     //  lineTo(x, y:int) - линия в указанную точку
     //  line(x1, y1, x2, y2:int) - рисуем линию по двум точкам
     //  rect(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
+    //  circle(x, y, radius:int) - рисуем круг
     //  polyline(points:Array, needDraw:Boolean) - полилиния
     //  polygon(points:Array) - полигон
     //  fill() - заливка фигуры
@@ -31,6 +32,10 @@
     return Graph = class Graph extends DisplayObject {
       constructor(options) {
         super(options);
+        
+        // тип объекта
+
+        this.type = "graph";
         // массив команд для рисования
         this._commands = [];
       }
@@ -177,6 +182,18 @@
       }
 
       
+      // рисуем круг
+
+      circle(centerX, centerY, radius) {
+        this._commands.push({
+          "command": "circle",
+          "center": this.pixel(centerX, centerY),
+          "radius": this.int(radius)
+        });
+        return this.needAnimation = true;
+      }
+
+      
       // линия из множества точек
       // второй параметр говорит, нужно ли ее рисовать,
       // он нужен, чтобы рисовать многоугольники без границы
@@ -285,6 +302,9 @@
                 return this._drawRoundedRect(this.context, command.point[0] + this._deltaX, command.point[1] + this._deltaY, command.size[0], command.size[1], command.radius);
               }
               break;
+            case "circle":
+              this.context.beginPath();
+              return this.context.arc(command.center[0] + this._deltaX, command.center[1] + this._deltaY, command.radius, 0, 2 * Math.PI, false);
             case "gradient":
               // создаем градиент по нужным точкам
               gradient = this.context.createLinearGradient(command.point1[0] + this._deltaX, command.point1[1] + this._deltaY, command.point2[0] + this._deltaX, command.point2[1] + this._deltaY);

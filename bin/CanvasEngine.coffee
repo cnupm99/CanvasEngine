@@ -2,7 +2,7 @@
 # CanvasEngine
 #
 # version 1.10
-# build 100
+# build 101
 # Thu Dec 21 2017
 #
 
@@ -653,6 +653,7 @@ define () ->
 	#  lineTo(x, y:int) - линия в указанную точку
 	#  line(x1, y1, x2, y2:int) - рисуем линию по двум точкам
 	#  rect(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
+	#  circle(x, y, radius:int) - рисуем круг
 	#  polyline(points:Array, needDraw:Boolean) - полилиния
 	#  polygon(points:Array) - полигон
 	#  fill() - заливка фигуры
@@ -665,6 +666,11 @@ define () ->
 		constructor: (options) ->
 
 			super options
+
+			# 
+			# тип объекта
+			# 
+			@type = "graph"
 
 			# массив команд для рисования
 			@_commands = []
@@ -840,6 +846,21 @@ define () ->
 			@needAnimation = true
 
 		# 
+		# рисуем круг
+		# 
+		circle: (centerX, centerY, radius) ->
+
+			@_commands.push {
+
+				"command": "circle"
+				"center": @pixel centerX, centerY
+				"radius": @int radius
+
+			}
+
+			@needAnimation = true
+
+		# 
 		# линия из множества точек
 		# второй параметр говорит, нужно ли ее рисовать,
 		# он нужен, чтобы рисовать многоугольники без границы
@@ -964,6 +985,12 @@ define () ->
 
 						# прямоугольник со скругленными углами
 						else @_drawRoundedRect @context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1], command.radius
+
+					when "circle"
+
+						@context.beginPath()
+
+						@context.arc command.center[0] + @_deltaX, command.center[1] + @_deltaY, command.radius, 0, 2 * Math.PI, false						
 
 					when "gradient"
 
@@ -1245,6 +1272,11 @@ define () ->
 		constructor: (options) ->
 
 			super options
+
+			# 
+			# тип объекта
+			# 
+			@type = "text"
 
 			# 
 			# высота текста с текущим шрифтом,
@@ -1548,6 +1580,11 @@ define () ->
 		constructor: (options) ->
 
 			super options
+
+			# 
+			# тип объекта
+			# 
+			@type = "tile"
 
 			# 
 			# область замостивания по умолчанию равна размеру контекста
