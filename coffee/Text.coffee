@@ -260,6 +260,7 @@ define ["DisplayObject"], (DisplayObject) ->
 					# 
 					# линия
 					# 
+					@context.beginPath()
 					@context.moveTo @_deltaX, textY + fontSize + @underlineOffset
 					@context.lineTo @_deltaX + lineWidth, textY + fontSize + @underlineOffset
 					@context.stroke()

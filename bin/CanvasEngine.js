@@ -3,8 +3,8 @@
     // CanvasEngine
 
   // version 1.10
-  // build 101
-  // Thu Dec 21 2017
+  // build 102
+  // Sun Dec 24 2017
 
   "use strict";
   var boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
@@ -1457,6 +1457,7 @@
             
             // линия
 
+            this.context.beginPath();
             this.context.moveTo(this._deltaX, textY + fontSize + this.underlineOffset);
             this.context.lineTo(this._deltaX + lineWidth, textY + fontSize + this.underlineOffset);
             this.context.stroke();

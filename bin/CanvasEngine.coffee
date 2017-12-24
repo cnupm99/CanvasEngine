@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 101
-# Thu Dec 21 2017
+# build 102
+# Sun Dec 24 2017
 #
 
 "use strict";
@@ -1498,6 +1498,7 @@ define () ->
 					# 
 					# линия
 					# 
+					@context.beginPath()
 					@context.moveTo @_deltaX, textY + fontSize + @underlineOffset
 					@context.lineTo @_deltaX + lineWidth, textY + fontSize + @underlineOffset
 					@context.stroke()
