@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 102
-# Sun Dec 24 2017
+# build 103
+# Thu Dec 28 2017
 #
 
 "use strict";
@@ -861,6 +861,24 @@ define () ->
 			@needAnimation = true
 
 		# 
+		# рисуем дугу
+		# 
+		arc: (centerX, centerY, radius, beginAngle, endAngle, antiClockWise) ->
+
+			@_commands.push {
+
+				"command": "arc"
+				"center": @pixel centerX, centerY
+				"radius": @int radius
+				"beginAngle": @deg2rad beginAngle
+				"endAngle": @deg2rad endAngle
+				"antiClockWise": antiClockWise or false
+
+			}
+
+			@needAnimation = true
+
+		# 
 		# линия из множества точек
 		# второй параметр говорит, нужно ли ее рисовать,
 		# он нужен, чтобы рисовать многоугольники без границы
@@ -990,7 +1008,13 @@ define () ->
 
 						@context.beginPath()
 
-						@context.arc command.center[0] + @_deltaX, command.center[1] + @_deltaY, command.radius, 0, 2 * Math.PI, false						
+						@context.arc command.center[0] + @_deltaX, command.center[1] + @_deltaY, command.radius, 0, 2 * Math.PI, false
+
+					when "arc"
+
+						@context.beginPath()
+
+						@context.arc command.center[0] + @_deltaX, command.center[1] + @_deltaY, command.radius, command.beginAngle, command.endAngle, command.antiClockWise
 
 					when "gradient"
 

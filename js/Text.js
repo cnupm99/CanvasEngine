@@ -239,6 +239,7 @@
             
             // линия
 
+            this.context.beginPath();
             this.context.moveTo(this._deltaX, textY + fontSize + this.underlineOffset);
             this.context.lineTo(this._deltaX + lineWidth, textY + fontSize + this.underlineOffset);
             this.context.stroke();

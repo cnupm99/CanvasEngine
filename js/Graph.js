@@ -194,6 +194,21 @@
       }
 
       
+      // рисуем дугу
+
+      arc(centerX, centerY, radius, beginAngle, endAngle, antiClockWise) {
+        this._commands.push({
+          "command": "arc",
+          "center": this.pixel(centerX, centerY),
+          "radius": this.int(radius),
+          "beginAngle": this.deg2rad(beginAngle),
+          "endAngle": this.deg2rad(endAngle),
+          "antiClockWise": antiClockWise || false
+        });
+        return this.needAnimation = true;
+      }
+
+      
       // линия из множества точек
       // второй параметр говорит, нужно ли ее рисовать,
       // он нужен, чтобы рисовать многоугольники без границы
@@ -305,6 +320,9 @@
             case "circle":
               this.context.beginPath();
               return this.context.arc(command.center[0] + this._deltaX, command.center[1] + this._deltaY, command.radius, 0, 2 * Math.PI, false);
+            case "arc":
+              this.context.beginPath();
+              return this.context.arc(command.center[0] + this._deltaX, command.center[1] + this._deltaY, command.radius, command.beginAngle, command.endAngle, command.antiClockWise);
             case "gradient":
               // создаем градиент по нужным точкам
               gradient = this.context.createLinearGradient(command.point1[0] + this._deltaX, command.point1[1] + this._deltaY, command.point2[0] + this._deltaX, command.point2[1] + this._deltaY);

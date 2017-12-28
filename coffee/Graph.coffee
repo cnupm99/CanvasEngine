@@ -21,6 +21,7 @@ define ["DisplayObject"], (DisplayObject) ->
 	#  line(x1, y1, x2, y2:int) - рисуем линию по двум точкам
 	#  rect(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
 	#  circle(x, y, radius:int) - рисуем круг
+	#  arc(x, y, radius:int, beginAngle, endAngle:number, antiClockWise:Boolean) - нарисовать дугу
 	#  polyline(points:Array, needDraw:Boolean) - полилиния
 	#  polygon(points:Array) - полигон
 	#  fill() - заливка фигуры
@@ -228,6 +229,24 @@ define ["DisplayObject"], (DisplayObject) ->
 			@needAnimation = true
 
 		# 
+		# рисуем дугу
+		# 
+		arc: (centerX, centerY, radius, beginAngle, endAngle, antiClockWise) ->
+
+			@_commands.push {
+
+				"command": "arc"
+				"center": @pixel centerX, centerY
+				"radius": @int radius
+				"beginAngle": @deg2rad beginAngle
+				"endAngle": @deg2rad endAngle
+				"antiClockWise": antiClockWise or false
+
+			}
+
+			@needAnimation = true
+
+		# 
 		# линия из множества точек
 		# второй параметр говорит, нужно ли ее рисовать,
 		# он нужен, чтобы рисовать многоугольники без границы
@@ -357,7 +376,13 @@ define ["DisplayObject"], (DisplayObject) ->
 
 						@context.beginPath()
 
-						@context.arc command.center[0] + @_deltaX, command.center[1] + @_deltaY, command.radius, 0, 2 * Math.PI, false						
+						@context.arc command.center[0] + @_deltaX, command.center[1] + @_deltaY, command.radius, 0, 2 * Math.PI, false
+
+					when "arc"
+
+						@context.beginPath()
+
+						@context.arc command.center[0] + @_deltaX, command.center[1] + @_deltaY, command.radius, command.beginAngle, command.endAngle, command.antiClockWise
 
 					when "gradient"
 
