@@ -184,6 +184,7 @@ Simple Canvas Engine for javascript / coffeescript
 - **zIndex**:int - индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
 - **mask**:Array - маска объекта
 - **add**(data:Object):DisplayObject - добавление дочернего объекта
+- **clear**() - полная очистка сцены
 - **get**(childName:String):Object/false - поиск среди дочерних элементов по имени элемента
 - **remove**(childName:String):Boolean - удаление дочернего элемента по его имени
 - **rename**(oldName, newName:String):Boolean - переименование дочернего элемента

@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 103
-# Thu Dec 28 2017
+# build 104
+# Sun Dec 31 2017
 #
 
 "use strict";
@@ -608,6 +608,7 @@ define () ->
 			index = @index childName
 			if index == -1 then return false
 			@childrens.splice index, 1
+			@needAnimation = true
 			return true
 
 		# 
@@ -654,6 +655,7 @@ define () ->
 	#  line(x1, y1, x2, y2:int) - рисуем линию по двум точкам
 	#  rect(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
 	#  circle(x, y, radius:int) - рисуем круг
+	#  arc(x, y, radius:int, beginAngle, endAngle:number, antiClockWise:Boolean) - нарисовать дугу
 	#  polyline(points:Array, needDraw:Boolean) - полилиния
 	#  polygon(points:Array) - полигон
 	#  fill() - заливка фигуры
@@ -1682,6 +1684,7 @@ define () ->
 		# методы:
 		# 
 		#  add(data:Object):DisplayObject - добавление дочернего объекта
+		#  clear() - полная очистка сцены
 		#  animate() - попытка нарисовать объект
 		#  
 		# установка свойств:
@@ -1776,6 +1779,20 @@ define () ->
 			# возвращаем результат
 			# 
 			return result
+
+		# 
+		# очистка сцены
+		# 
+		clear: () ->
+
+			# 
+			# удаляем все дочерние элементы
+			# 
+			@childrens = []
+			# 
+			# перерисовка
+			# 
+			@needAnimation = true
 
 		# 
 		# Установка прямоугольной маски для рисования

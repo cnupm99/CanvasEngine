@@ -22,6 +22,7 @@
     //  line(x1, y1, x2, y2:int) - рисуем линию по двум точкам
     //  rect(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
     //  circle(x, y, radius:int) - рисуем круг
+    //  arc(x, y, radius:int, beginAngle, endAngle:number, antiClockWise:Boolean) - нарисовать дугу
     //  polyline(points:Array, needDraw:Boolean) - полилиния
     //  polygon(points:Array) - полигон
     //  fill() - заливка фигуры

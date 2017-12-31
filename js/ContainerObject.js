@@ -50,6 +50,7 @@
           return false;
         }
         this.childrens.splice(index, 1);
+        this.needAnimation = true;
         return true;
       }
 

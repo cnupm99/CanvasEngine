@@ -19,6 +19,7 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 		# методы:
 		# 
 		#  add(data:Object):DisplayObject - добавление дочернего объекта
+		#  clear() - полная очистка сцены
 		#  animate() - попытка нарисовать объект
 		#  
 		# установка свойств:
@@ -113,6 +114,20 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 			# возвращаем результат
 			# 
 			return result
+
+		# 
+		# очистка сцены
+		# 
+		clear: () ->
+
+			# 
+			# удаляем все дочерние элементы
+			# 
+			@childrens = []
+			# 
+			# перерисовка
+			# 
+			@needAnimation = true
 
 		# 
 		# Установка прямоугольной маски для рисования

@@ -3,8 +3,8 @@
     // CanvasEngine
 
   // version 1.10
-  // build 103
-  // Thu Dec 28 2017
+  // build 104
+  // Sun Dec 31 2017
 
   "use strict";
   var boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
@@ -647,6 +647,7 @@
           return false;
         }
         this.childrens.splice(index, 1);
+        this.needAnimation = true;
         return true;
       }
 
@@ -700,6 +701,7 @@
     //  line(x1, y1, x2, y2:int) - рисуем линию по двум точкам
     //  rect(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
     //  circle(x, y, radius:int) - рисуем круг
+    //  arc(x, y, radius:int, beginAngle, endAngle:number, antiClockWise:Boolean) - нарисовать дугу
     //  polyline(points:Array, needDraw:Boolean) - полилиния
     //  polygon(points:Array) - полигон
     //  fill() - заливка фигуры
@@ -1634,6 +1636,7 @@
       // методы:
 
       //  add(data:Object):DisplayObject - добавление дочернего объекта
+      //  clear() - полная очистка сцены
       //  animate() - попытка нарисовать объект
 
       // установка свойств:
@@ -1732,6 +1735,20 @@
         // возвращаем результат
 
         return result;
+      }
+
+      
+      // очистка сцены
+
+      clear() {
+        
+        // удаляем все дочерние элементы
+
+        this.childrens = [];
+        
+        // перерисовка
+
+        return this.needAnimation = true;
       }
 
       
