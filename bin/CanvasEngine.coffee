@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 104
-# Sun Dec 31 2017
+# build 105
+# Thu Jan 25 2018
 #
 
 "use strict";
@@ -2142,15 +2142,21 @@ define () ->
 
 		# 
 		# установить / снять полноэкранный режим
-		# для элемента parent
+		# для элемента
 		# 
-		fullscreen: (value = true) ->
+		fullscreen: (value, element) ->
+
+			# 
+			# установка значений по умолчанию
+			# 
+			value = true unless value?
+			element = @parent unless element
 
 			if value
 
-				if @parent.requestFullScreen? then @parent.requestFullScreen()
-				else if @parent.webkitRequestFullScreen? then @parent.webkitRequestFullScreen()
-				else if @parent.mozRequestFullScreen? then @parent.mozRequestFullScreen()
+				if element.requestFullScreen? then element.requestFullScreen()
+				else if element.webkitRequestFullScreen? then element.webkitRequestFullScreen()
+				else if element.mozRequestFullScreen? then element.mozRequestFullScreen()
 				else return false
 
 			else

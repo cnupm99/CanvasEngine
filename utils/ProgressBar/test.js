@@ -70,6 +70,23 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 
 	});
 
+	// кастомный бар с картинкой для фона
+	// и отображением общего числа
+	var pb4 = new ProgressBar({
+
+		scene: scene,
+		position: [100, 400],
+		size: [560, 79],
+		padding: [33, 17],
+		radius: 5,
+		value: 0,
+		showCaption: false,
+		maxValue: 1000,
+		backgroundImage: "progressbar.png",
+		font: "20px Arial",
+
+	});
+
 	var counter = 0;
 
 	ce.addEvent(function(){
@@ -97,6 +114,11 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 		value++;
 		if (value > 10000) value = 0;
 		pb3.value(value);
+
+		var value = pb4.getValue();
+		value++;
+		if (value > 1000) value = 0;
+		pb4.value(value);
 
 	});
 

@@ -3,8 +3,8 @@
     // CanvasEngine
 
   // version 1.10
-  // build 104
-  // Sun Dec 31 2017
+  // build 105
+  // Thu Jan 25 2018
 
   "use strict";
   var boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
@@ -2104,16 +2104,25 @@
 
       
       // установить / снять полноэкранный режим
-      // для элемента parent
+      // для элемента
 
-      fullscreen(value = true) {
+      fullscreen(value, element) {
+        if (value == null) {
+          
+          // установка значений по умолчанию
+
+          value = true;
+        }
+        if (!element) {
+          element = this.parent;
+        }
         if (value) {
-          if (this.parent.requestFullScreen != null) {
-            this.parent.requestFullScreen();
-          } else if (this.parent.webkitRequestFullScreen != null) {
-            this.parent.webkitRequestFullScreen();
-          } else if (this.parent.mozRequestFullScreen != null) {
-            this.parent.mozRequestFullScreen();
+          if (element.requestFullScreen != null) {
+            element.requestFullScreen();
+          } else if (element.webkitRequestFullScreen != null) {
+            element.webkitRequestFullScreen();
+          } else if (element.mozRequestFullScreen != null) {
+            element.mozRequestFullScreen();
           } else {
             return false;
           }

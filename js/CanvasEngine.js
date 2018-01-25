@@ -226,16 +226,25 @@
 
       
       // установить / снять полноэкранный режим
-      // для элемента parent
+      // для элемента
 
-      fullscreen(value = true) {
+      fullscreen(value, element) {
+        if (value == null) {
+          
+          // установка значений по умолчанию
+
+          value = true;
+        }
+        if (!element) {
+          element = this.parent;
+        }
         if (value) {
-          if (this.parent.requestFullScreen != null) {
-            this.parent.requestFullScreen();
-          } else if (this.parent.webkitRequestFullScreen != null) {
-            this.parent.webkitRequestFullScreen();
-          } else if (this.parent.mozRequestFullScreen != null) {
-            this.parent.mozRequestFullScreen();
+          if (element.requestFullScreen != null) {
+            element.requestFullScreen();
+          } else if (element.webkitRequestFullScreen != null) {
+            element.webkitRequestFullScreen();
+          } else if (element.mozRequestFullScreen != null) {
+            element.mozRequestFullScreen();
           } else {
             return false;
           }
