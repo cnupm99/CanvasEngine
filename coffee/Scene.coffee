@@ -19,6 +19,8 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 		# методы:
 		# 
 		#  add(data:Object):DisplayObject - добавление дочернего объекта
+		#  clone(anotherObject:DisplayObject):DisplayObject - клонирование графического объекта
+		#  clear() - полная очистка сцены
 		#  animate() - попытка нарисовать объект
 		#  
 		# установка свойств:
@@ -27,6 +29,7 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 		#  setZIndex(value:int):int - установка зед индекса канваса
 		#  hide() - скрыть сцену
 		#  move(value1, value2:int):Array - изменить позицию канваса
+		#  shiftAll(value1, value2:int) - сдвигаем все дочерные объекты
 		#  resize(value1, value2:int):Array - изменить размер канваса
 		#  setCenter(value1, value2:int):Array - установить новый центр канваса
 		#  setAnchor(value1, value2:int):Array - установить якорь канваса
@@ -34,27 +37,6 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 		#  setAlpha(value:Number):Number - установить прозрачность канваса
 		# 
 		constructor: (options) ->
-
-			# 
-			# элемент для добавления канваса
-			# всегда должен быть
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			stage = options.parent or document.body
-			
-			# 
-			# создаем канвас
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			@canvas = document.createElement "canvas"
-			@canvas.style.position = "absolute"
-			stage.appendChild @canvas
-
-			# 
-			# контекст
-			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
-			# 
-			@context = @canvas.getContext "2d"
 
 			# 
 			# создаем DisplayObject
@@ -135,6 +117,25 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 			return result
 
 		# 
+		# клонирование графического объекта
+		# 
+		clone: (anotherObject) -> @add anotherObject.getOptions()
+
+		# 
+		# очистка сцены
+		# 
+		clear: () ->
+
+			# 
+			# удаляем все дочерние элементы
+			# 
+			@childrens = []
+			# 
+			# перерисовка
+			# 
+			@needAnimation = true
+
+		# 
 		# Установка прямоугольной маски для рисования
 		# 
 		setMask: (value) ->
@@ -173,6 +174,13 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 			@canvas.style.left = @position[0] + "px"
 			@canvas.style.top = @position[1] + "px"
 			@position
+
+		# 
+		# сдвигаем все дочерние объекты
+		# 
+		shiftAll: (value1, value2 = 0) ->
+
+			@childrens.forEach (child) -> child.shift value1, value2
 
 		resize: (value1, value2) ->
 
@@ -231,7 +239,10 @@ define ["ContainerObject", "Image", "Text", "Graph", "TilingImage"], (ContainerO
 			# если объект не видимый
 			# то рисовать его не нужно
 			# 
-			return unless @visible
+			if not @visible
+
+				@needAnimation = false
+				return
 
 			# 
 			# очистка контекста

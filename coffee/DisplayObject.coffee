@@ -21,7 +21,7 @@ define ["AbstractObject"], (AbstractObject) ->
 		#  size:Array - размер объекта
 		#  realSize:Array - реальный размер объкта
 		#  center:Array - относительные координаты точки центра объекта, вокруг которой происходит вращение
-		#  anchor:Array - дробное число, показывающее, где должен находиться цент относительно размеров объекта
+		#  anchor:Array - дробное число, показывающее, где должен находиться центр относительно размеров объекта
 		#  scale:Array - коэффициенты для масштабирования объектов
 		#  rotation:int - число в градусах, на которое объект повернут вокруг центра по часовой стрелке
 		#  alpha:Number - прозрачность объекта
@@ -49,6 +49,8 @@ define ["AbstractObject"], (AbstractObject) ->
 		#  testPoint(pointX, pointY:int):Boolean - проверка, пуста ли данная точка
 		#  testRect(pointX, pointY:int):Boolean - проверка, входит ли точка в прямоугольник объекта
 		#  animate() - попытка нарисовать объект
+		#  
+		#  getOptions() - возвращаем объект с текущими опциями фигуры
 		# 
 		constructor: (options) ->
 
@@ -70,19 +72,38 @@ define ["AbstractObject"], (AbstractObject) ->
 
 			# 
 			# канвас для рисования
-			# в случае сцены, создается до вызова этого конструктора,
+			# в случае сцены, создается новый канвас
 			# в остальных случаях получаем из опций от родителя (сцены)
 			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			@canvas = options.canvas unless @canvas
+			if options.canvas?
+			
+				@canvas = options.canvas
+
+			else
+
+				# 
+				# элемент для добавления канваса
+				# всегда должен быть
+				# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+				# 
+				stage = options.parent or document.body
+
+				# 
+				# создаем канвас
+				# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
+				# 
+				@canvas = document.createElement "canvas"
+				@canvas.style.position = "absolute"
+				stage.appendChild @canvas
 
 			# 
 			# контекст для рисования
-			# в случае сцены, создается до вызова этого конструктора,
+			# в случае сцены, берется из канваса,
 			# в остальных случаях получаем из опций от родителя (сцены)
 			# свойство ТОЛЬКО ДЛЯ ЧТЕНИЯ
 			# 
-			@context = options.context unless @context
+			@context = options.context or @canvas.getContext "2d"
 
 			# 
 			# установка свойств
@@ -139,7 +160,7 @@ define ["AbstractObject"], (AbstractObject) ->
 		# 
 		# сдвигаем объект на нужную величину по осям
 		# 
-		shift: (value1, value2) -> @move [value1 + @position[0], value2 + @position[1]]
+		shift: (value1, value2 = 0) -> @move [value1 + @position[0], value2 + @position[1]]
 
 		# 
 		# изменить размер объекта
@@ -443,3 +464,33 @@ define ["AbstractObject"], (AbstractObject) ->
 			# считаем, что надо нарисовать объект, если не указано иного
 			# 
 			@needAnimation = true
+
+		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			options = {
+
+				name: @name
+				type: @type
+				visible: @visible
+				position: [@position[0], @position[1]]
+				size: [@size[0], @size[1]]
+				realSize: [@realSize[0], @realSize[1]]
+				center: [@center[0], @center[1]]
+				anchor: [@anchor[0], @anchor[1]]
+				scale: [@scale[0], @scale[1]]
+				rotation: @rotation
+				alpha: @alpha
+				shadow: if @shadow then {
+					
+					blur: @shadow.blur
+					color: @shadow.color
+					offset: @shadow.offset
+					offsetX: @shadow.offsetX
+					offsetY: @shadow.offsetY
+
+				} else false
+
+			}

@@ -13,6 +13,7 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 	// создаем движок
 	var ce = new CanvasEngine({
 
+		parent: document.getElementById("main"),
 		size: [1000, 800]
 
 	});
@@ -25,20 +26,27 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 			if(ce.isFullscreen()) {
 
-				ce.fullscreen(false);
+				ce.fullscreen(false, document.body);
+				var div = document.getElementById("main");
+				div.style.position = "absolute";
+				div.style.left = "0px";
+				div.style.top = "0px";
 
 			} else {
 
-				ce.fullscreen(true);
+				ce.fullscreen(true, document.body);
+				var div = document.getElementById("main");
+				div.style.position = "absolute";
+				div.style.left = ((screen.width - ce.size[0]) / 2) + "px";
+				div.style.top = ((screen.height - ce.size[1]) / 2) + "px";
 
 			}
 
 		}
 		if(e.which == 1) {
 
-			var scene = ce.get("scene1");
-			if(scene.visible) {scene.hide()}
-			else {scene.show()}
+			if(image.visible) {image.hide()}
+			else {image.show()}
 
 		}
 

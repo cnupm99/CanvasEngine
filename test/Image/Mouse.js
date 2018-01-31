@@ -138,7 +138,9 @@
       // style: String, одно из pointer, default и т.п.
 
       setCursor(style) {
-        return this._parent.style.cursor = style;
+        if (this._parent.style.cursor !== style) {
+          return this._parent.style.cursor = style;
+        }
       }
 
       
@@ -209,6 +211,7 @@
           // проверем где мышь
 
           _event.mouseOn = this._getMouseOn(e.pageX, e.pageY, _event.object, _event.type);
+          // _event.mouseOn = @_getMouseOn e.clientX, e.clientY, _event.object, _event.type
           if (_event.mouseOn) {
             if (_event.event === "mousedown") {
               
@@ -244,7 +247,8 @@
 
           mouseOn = this._getMouseOn(e.pageX, e.pageY, _event.object, _event.type);
           if (mouseOn && _event.event === "mousemove") {
-            
+            // mouseOn = @_getMouseOn e.clientX, e.clientY, _event.object, _event.type
+
             // формируем событие mousemove
 
             _event.func(e, _event.object);

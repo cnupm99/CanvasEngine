@@ -2,11 +2,12 @@ var fs = require("fs");
 
 var code = fs.readFileSync("CanvasEngine.js", "utf8");
 
-var request = require("d:/Дистрибутивы/nodejs/node_modules/request/");
-request.post({url:"http://closure-compiler.appspot.com/compile", form:{
+var request = require("c:/Users/Tom/node_modules/request");
+request.post({url:"https://closure-compiler.appspot.com/compile", form:{
 
 	"js_code":code,
 	"compilation_level":"SIMPLE_OPTIMIZATIONS",
+	// "compilation_level":"WHITESPACE_ONLY",
 	"output_format":"text",
 	"output_info": "compiled_code"
 
@@ -14,6 +15,7 @@ request.post({url:"http://closure-compiler.appspot.com/compile", form:{
 	
 	console.log('error:', error);
 	console.log('statusCode:', response && response.statusCode);
+	console.log(body);
 
 	var versionFile = fs.readFileSync("version.txt", "utf8"),
 		// получаем номер билда

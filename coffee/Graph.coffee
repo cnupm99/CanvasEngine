@@ -20,6 +20,8 @@ define ["DisplayObject"], (DisplayObject) ->
 	#  lineTo(x, y:int) - линия в указанную точку
 	#  line(x1, y1, x2, y2:int) - рисуем линию по двум точкам
 	#  rect(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
+	#  circle(x, y, radius:int) - рисуем круг
+	#  arc(x, y, radius:int, beginAngle, endAngle:number, antiClockWise:Boolean) - нарисовать дугу
 	#  polyline(points:Array, needDraw:Boolean) - полилиния
 	#  polygon(points:Array) - полигон
 	#  fill() - заливка фигуры
@@ -33,8 +35,13 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			super options
 
+			# 
+			# тип объекта
+			# 
+			@type = "graph"
+
 			# массив команд для рисования
-			@_commands = []
+			@_commands = options.commands or []
 
 		# 
 		# Далее идут функции для рисования графических примитивов
@@ -207,6 +214,39 @@ define ["DisplayObject"], (DisplayObject) ->
 			@needAnimation = true
 
 		# 
+		# рисуем круг
+		# 
+		circle: (centerX, centerY, radius) ->
+
+			@_commands.push {
+
+				"command": "circle"
+				"center": @pixel centerX, centerY
+				"radius": @int radius
+
+			}
+
+			@needAnimation = true
+
+		# 
+		# рисуем дугу
+		# 
+		arc: (centerX, centerY, radius, beginAngle, endAngle, antiClockWise) ->
+
+			@_commands.push {
+
+				"command": "arc"
+				"center": @pixel centerX, centerY
+				"radius": @int radius
+				"beginAngle": @deg2rad beginAngle
+				"endAngle": @deg2rad endAngle
+				"antiClockWise": antiClockWise or false
+
+			}
+
+			@needAnimation = true
+
+		# 
 		# линия из множества точек
 		# второй параметр говорит, нужно ли ее рисовать,
 		# он нужен, чтобы рисовать многоугольники без границы
@@ -266,6 +306,15 @@ define ["DisplayObject"], (DisplayObject) ->
 
 		animate: () ->
 
+			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			if not @visible
+
+				@needAnimation = false
+				return
+			
 			super()
 
 			# 
@@ -323,6 +372,18 @@ define ["DisplayObject"], (DisplayObject) ->
 						# прямоугольник со скругленными углами
 						else @_drawRoundedRect @context, command.point[0] + @_deltaX, command.point[1] + @_deltaY, command.size[0], command.size[1], command.radius
 
+					when "circle"
+
+						@context.beginPath()
+
+						@context.arc command.center[0] + @_deltaX, command.center[1] + @_deltaY, command.radius, 0, 2 * Math.PI, false
+
+					when "arc"
+
+						@context.beginPath()
+
+						@context.arc command.center[0] + @_deltaX, command.center[1] + @_deltaY, command.radius, command.beginAngle, command.endAngle, command.antiClockWise
+
 					when "gradient"
 
 						# создаем градиент по нужным точкам
@@ -339,6 +400,26 @@ define ["DisplayObject"], (DisplayObject) ->
 		# выводим массив комманд в консоль
 		# 
 		log: () -> console.log @_commands
+
+		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			# 
+			# базовое
+			# 
+			options = super()
+
+			# 
+			# переписываем команды
+			# 
+			options.commands = JSON.parse(JSON.stringify(@_commands));
+
+			# 
+			# результат возвращаем
+			# 
+			options
 
 		# 
 		# рисуем пряоугольник со скругленными углами

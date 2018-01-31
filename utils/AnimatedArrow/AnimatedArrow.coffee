@@ -66,13 +66,13 @@ define () ->
 			# calc length of line and new length, that smaller
 			dx = @_from[0] - @_to[0]
 			dy = @_from[1] - @_to[1]
-			length = Math.sqrt(dx * dx + dy * dy)
-			newlength = length - @_blockSize + 2
-			newlength = 0.00001 if newlength == 0
+			@_length = Math.sqrt(dx * dx + dy * dy)
+			newlength = @_length - @_blockSize + 2
+			@_length = 0.00001 if @_length == 0
 
 			# calc new line to point
-			@_to[0] = @_from[0] - newlength * dx / length
-			@_to[1] = @_from[1] - newlength * dy / length
+			@_to[0] = @_from[0] - newlength * dx / @_length
+			@_to[1] = @_from[1] - newlength * dy / @_length
 
 			# calc arrow angle
 			dx = 0.00001 if dx == 0
@@ -87,7 +87,7 @@ define () ->
 		setTo: (point) -> @setPoints @_from, point
 
 		# установить начальную точку
-		setFrom: (point) -> @setPoints point, @_to
+		setFrom: (point) -> @setPoints point, @_arrowTo
 
 		# обновления движения линии
 		update: () =>
@@ -101,6 +101,11 @@ define () ->
 		_redrawLine: () ->
 
 			@_graph.clear()
+
+			# 
+			# если длина стрелки мала, то рисовать линию не будем
+			# 
+			return if @_length < @_blockSize + @_spaceSize
 
 			@_graph.strokeStyle @_style
 			@_graph.lineWidth @_width
@@ -118,10 +123,16 @@ define () ->
 
 			@_redrawLine()
 
+			@_arrow.clear()
+
+			# 
+			# не отображать стрелку, если расстояние мало
+			# 
+			return if @_length < @_arrowWidth
+
 			@_arrow.setCenter @_arrowTo
 			@_arrow.rotate @_angle
 
-			@_arrow.clear()
 			@_arrow.lineWidth 1
 			@_arrow.fillStyle @_style
 			

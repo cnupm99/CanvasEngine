@@ -39,7 +39,7 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 
 		scene: scene,
 		position: [100, 200],
-		sizes: [250, 20],
+		size: [250, 20],
 		progress: 0,
 		showCaption: false,
 		showProgress: false,
@@ -53,7 +53,7 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 
 		scene: scene,
 		position: [100, 300],
-		sizes: [189, 36],
+		size: [189, 36],
 		padding: 7,
 		radius: 0,
 		value: 0,
@@ -66,6 +66,29 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 			progress: ["#05E0F3", "#023064"],
 			caption: "#FFF",
 			captionStroke: "#000"
+		}
+
+	});
+
+	// кастомный бар с картинкой для фона
+	// и отображением общего числа
+	var pb4 = new ProgressBar({
+
+		scene: scene,
+		position: [100, 400],
+		size: [570, 100],
+		padding: [37, 27],
+		radius: 2,
+		value: 0,
+		showCaption: true,
+		showTotal: true,
+		maxValue: 1000,
+		backgroundImage: "progressbar.png",
+		font: "20px Arial",
+		colors: {
+
+			progress25: ["#a90329", "#8f0222"]
+
 		}
 
 	});
@@ -97,6 +120,11 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 		value++;
 		if (value > 10000) value = 0;
 		pb3.value(value);
+
+		var value = pb4.getValue();
+		value++;
+		if (value > 1000) value = 0;
+		pb4.value(value);
 
 	});
 

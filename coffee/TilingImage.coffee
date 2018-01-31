@@ -21,6 +21,11 @@ define ["Image"], (Image) ->
 			super options
 
 			# 
+			# тип объекта
+			# 
+			@type = "tile"
+
+			# 
 			# область замостивания по умолчанию равна размеру контекста
 			# 
 			# массив вида [int, int, int, int]
@@ -40,6 +45,15 @@ define ["Image"], (Image) ->
 
 			return unless @loaded
 
+			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			if not @visible
+
+				@needAnimation = false
+				return
+				
 			# 
 			# Начало отрисовки
 			# 

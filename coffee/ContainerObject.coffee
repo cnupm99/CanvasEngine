@@ -46,6 +46,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			index = @index childName
 			if index == -1 then return false
 			@childrens.splice index, 1
+			@needAnimation = true
 			return true
 
 		# 

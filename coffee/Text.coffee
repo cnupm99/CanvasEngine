@@ -7,12 +7,16 @@ define ["DisplayObject"], (DisplayObject) ->
 	# 
 	# свойства:
 	# 
-	#  fontHeight:int - высота текста с текущим шрифтом
+	#  fontHeight:int - высота шрифта
 	#  textWidth:int - ширина текущего текста
+	#  textHeight:int - высота текущего текста
+	#  realSize:Array - размеры области текущего текста с учетом шрифта и многострочности
 	#  font:String - текущий шрифт
 	#  fillStyle:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
 	#  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
 	#  strokeWidth:int - ширина обводки
+	#  underline:Boolean - подчеркнутый текст
+	#  underlineOffset:int - смещение линии подчеркивания
 	#  text:String - отображаемый текст
 	#  
 	# методы:
@@ -21,6 +25,7 @@ define ["DisplayObject"], (DisplayObject) ->
 	#  setFillStyle(style:String/Array):String/Array - установка заливки текста
 	#  setStrokeStyle(style:String):String - установка обводки
 	#  setStrokeWidth(value:int):int - толщина обводки
+	#  setUnderline(value:Boolean, offset:int):Boolean - установка подчеркивания текста
 	#  write(text:String):String - установка текста
 	#  animate() - попытка нарисовать объект
 	# 
@@ -29,6 +34,11 @@ define ["DisplayObject"], (DisplayObject) ->
 		constructor: (options) ->
 
 			super options
+
+			# 
+			# тип объекта
+			# 
+			@type = "text"
 
 			# 
 			# высота текста с текущим шрифтом,
@@ -55,12 +65,17 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			# обводка шрифта или false, если обводка не нужна
 			# 
-			@setStrokeStyle = options.strokeStyle or false
+			@setStrokeStyle options.strokeStyle
 
 			# 
 			# ширина обводки
 			# 
 			@setStrokeWidth options.strokeWidth
+
+			# 
+			# установка подчеркнутого текста
+			# 
+			@setUnderline options.underline, options.underlineOffset
 
 			# 
 			# текущий текст надписи
@@ -69,17 +84,15 @@ define ["DisplayObject"], (DisplayObject) ->
 
 		setFont: (value) ->
 
+			# 
+			# установка шрифта
+			# 
 			@font = value or "12px Arial"
 
 			# 
-			# устанавливаем реальную высоту шрифта в пикселях
+			# получаем высоту шрифта
 			# 
-			span = document.createElement "span"
-			span.appendChild document.createTextNode("height")
-			span.style.cssText = "font: " + @font + "; white-space: nowrap; display: inline;"
-			document.body.appendChild span
-			@fontHeight = span.offsetHeight
-			document.body.removeChild span
+			@fontHeight = @_getFontHeight @font
 
 			@needAnimation = true
 			@font
@@ -102,23 +115,46 @@ define ["DisplayObject"], (DisplayObject) ->
 			@needAnimation = true
 			@strokeWidth
 
+		setUnderline: (value, offset) ->
+
+			@underline = value or false
+			@underlineOffset = offset or 0
+			@needAnimation = true
+			@underline
+
 		write: (value) ->
 
+			# 
+			# установка текста
+			# 
 			@text = value or ""
 
 			# 
-			# определяем ширину текста
-			# используя для этого ссылку на контекст
+			# получаем реальные размеры области с текстом
+			# с учетом многострочности и установленного шрифта
 			# 
-			@context.save()
-			@context.font = @font
-			@textWidth = @context.measureText(@text).width
-			@context.restore()
+			@upsize @_getRealSizes(@text)
+
+			# 
+			# вспомогательные свойства, нужны для удобства
+			# и обратной совместимости
+			# 
+			@textWidth = @realSize[0]
+			@textHeight = @realSize[1]
 
 			@needAnimation = true
 			@text
 
 		animate: () ->
+
+			# 
+			# если объект не видимый
+			# то рисовать его не нужно
+			# 
+			if not @visible
+
+				@needAnimation = false
+				return
 
 			super()
 
@@ -131,7 +167,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			# по умолчанию позиционируем текст по верхнему краю
 			# 
 			@context.textBaseline = "top"
-			
+
 			# 
 			# нужна ли заливка
 			# 
@@ -163,11 +199,6 @@ define ["DisplayObject"], (DisplayObject) ->
 				# 
 				else @context.fillStyle = @fillStyle
 
-				# 
-				# выводим залитый текст
-				# 
-				@context.fillText @text, @_deltaX, @_deltaY
-
 			# 
 			# что насчет обводки?
 			# 
@@ -175,4 +206,151 @@ define ["DisplayObject"], (DisplayObject) ->
 
 				@context.strokeStyle = @strokeStyle
 				@context.lineWidth = @strokeWidth
-				@context.strokeText @text, @_deltaX, @_deltaY
+
+			# 
+			# разбиваем текст на строки, это нужно для вывода многострочного текста
+			# 
+			lines = @text.split "\n"
+			# 
+			# координата для смещения текста по вертикали
+			# 
+			textY = @_deltaY
+
+			# 
+			# если нужно подчеркивание текста
+			# 
+			if @underline
+
+				# 
+				# парсим шрифт в надежде найти размер шрифта
+				# используем его для рисования подчеркивания
+				# это ближе к истене чем использование fontHeight
+				# 
+				fontSize = parseInt @font, 10
+				# 
+				# стиль линии подчеркивания
+				# 
+				underlineStyle = @strokeStyle or @fillStyle
+
+			# 
+			# выводим текст построчно
+			# 
+			lines.forEach (line) =>
+				
+				# 
+				# вывод текста
+				# 
+				@context.fillText line, @_deltaX, textY if @fillStyle
+				@context.strokeText line, @_deltaX, textY if @strokeStyle
+
+				# 
+				# рисуем подчеркивание
+				# 
+				if @underline
+
+					# 
+					# длина данной строки текста
+					# 
+					lineWidth = @_getTextWidth line
+					# 
+					# стиль линии
+					# 
+					@context.strokeStyle = underlineStyle
+					@context.lineWidth = @strokeWidth or 1
+					# 
+					# линия
+					# 
+					@context.beginPath()
+					@context.moveTo @_deltaX, textY + fontSize + @underlineOffset
+					@context.lineTo @_deltaX + lineWidth, textY + fontSize + @underlineOffset
+					@context.stroke()
+
+				# 
+				# смещение следующей строки
+				# 
+				textY += @fontHeight
+
+		# 
+		# устанавливаем реальную высоту шрифта в пикселях
+		# 
+		_getFontHeight: (font) ->
+
+			span = document.createElement "span"
+			span.appendChild document.createTextNode("height")
+			span.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;"
+			document.body.appendChild span
+			fontHeight = span.offsetHeight
+			document.body.removeChild span
+			fontHeight
+
+		# 
+		# определяем ширину текста
+		# используя для этого ссылку на контекст
+		#
+		_getTextWidth: (text) ->
+
+			@context.save()
+			@context.font = @font
+			textWidth = @context.measureText(text).width
+			@context.restore()
+			textWidth
+
+		# 
+		# получаем реальные размеры области текста
+		# 
+		_getRealSizes: (text) ->
+
+			# 
+			# начальное значение максимальной ширины строки
+			# 
+			maxWidth = 0
+
+			# 
+			# разбиваем текст на строки, это нужно для вывода многострочного текста
+			# 
+			lines = @text.split "\n"
+
+			# 
+			# проверяем ширину каждой строки,
+			# если нужно обновляем максимальное значение
+			# 
+			lines.forEach (line) =>
+
+				width = @_getTextWidth line
+				maxWidth = width if width > maxWidth
+
+			# 
+			# итоговый результат,
+			# максимальная ширина,
+			# высота равна количеству строк на высоту одной строки
+			# 
+			[maxWidth, lines.length * @fontHeight]
+
+		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			# 
+			# базовое
+			# 
+			options = super()
+
+			# 
+			# опции текста
+			# 
+			options.fontHeight = @fontHeight
+			options.textWidth = @textWidth
+			options.textHeight = @textHeight
+			options.font = @font
+			options.fillStyle = @fillStyle
+			options.strokeStyle = @strokeStyle
+			options.strokeWidth = @strokeWidth
+			options.underline = @underline
+			options.underlineOffset = @underlineOffset
+			options.text = @text
+
+			# 
+			# результат возвращаем
+			# 
+			options

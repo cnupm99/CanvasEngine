@@ -178,18 +178,22 @@ Simple Canvas Engine for javascript / coffeescript
 - **testPoint**(pointX, pointY:int):Boolean - проверка, пуста ли данная точка
 - **testRect**(pointX, pointY:int):Boolean - проверка, входит ли точка в прямоугольник объекта
 - **needAnimation**:Boolean - нужно ли анимировать данный объект с точки зрения движка
+- **getOptions**() - возвращаем объект с текущими опциями фигуры
 
 ### Scene:
 
 - **zIndex**:int - индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
 - **mask**:Array - маска объекта
 - **add**(data:Object):DisplayObject - добавление дочернего объекта
+- **clone**(anotherObject:DisplayObject):DisplayObject - клонирование графического объекта
+- **clear**() - полная очистка сцены
 - **get**(childName:String):Object/false - поиск среди дочерних элементов по имени элемента
 - **remove**(childName:String):Boolean - удаление дочернего элемента по его имени
 - **rename**(oldName, newName:String):Boolean - переименование дочернего элемента
 - **index**(childName:String):int - возвращает индекс элемента в массиве дочерних по его имени
 - **setMask**(value:Object):Object - установка маски
 - **setZIndex**(value:int):int - установка зед индекса канваса
+- **shiftAll**(value1, value2:int) - сдвигаем все дочерные объекты
 
 ### Image
 
@@ -197,8 +201,10 @@ Simple Canvas Engine for javascript / coffeescript
 - **loaded**:Boolean - загружена ли картинка
 - **image**:Image - объект картинки
 - **loadedFrom**:String - строка с адресом картинки
+- **rect**:Array - прямоугольник для отображения части картинки
 - **src**(url:string): загрузка картинки с указанным адресом
 - **from**(image:Image, url:String) - создание из уже существующей и загруженной картинки
+- **setRect**(rect:Array):Array - установка области для отображения только части картинки
 
 ### Graph
 
@@ -215,6 +221,8 @@ Simple Canvas Engine for javascript / coffeescript
 - **lineTo**(x, y:int) - линия в указанную точку
 - **line**(x1, y1, x2, y2:int) - рисуем линию по двум точкам
 - **rect**(x, y, width, height, radius:int) - рисуем прямоугольник (опционально скругленный)
+- **circle**(x, y, radius:int) - рисуем круг
+- **arc**(x, y, radius:int, beginAngle, endAngle:number, antiClockWise:Boolean) - нарисовать дугу
 - **polyline**(points:Array, needDraw:Boolean) - полилиния
 - **polygon**(points:Array) - полигон
 - **fill**() - заливка фигуры
@@ -223,17 +231,22 @@ Simple Canvas Engine for javascript / coffeescript
 
 ### Text
 
-- **fontHeight**:int - высота текста с текущим шрифтом
+- **fontHeight**:int - высота шрифта
 - **textWidth**:int - ширина текущего текста
+- **textHeight**:int - высота текущего текста
+- **realSize**:Array - размеры области текущего текста с учетом шрифта и многострочности
 - **font**:String - текущий шрифт
 - **fillStyle**:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
 - **strokeStyle**:String/Boolean - обводка шрифта или false, если обводка не нужна
 - **strokeWidth**:int - ширина обводки
+- **underline**:Boolean - подчеркнутый текст
+- **underlineOffset**:int - смещение линии подчеркивания
 - **text**:String - отображаемый текст
 - **setFont**(font:String):String - установка шрифта
 - **setFillStyle**(style:String/Array):String/Array - установка заливки текста
 - **setStrokeStyle**(style:String):String - установка обводки
 - **setStrokeWidth**(value:int):int - толщина обводки
+- **setUnderline**(value:Boolean, offset:int):Boolean - установка подчеркивания текста
 - **write**(text:String):String - установка текста
 
 ### Tile

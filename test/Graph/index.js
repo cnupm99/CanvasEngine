@@ -35,6 +35,9 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 	]);
 	graph.line(0, 0, 200, 200);
 	graph.log();
+	graph.fillStyle("#F00");
+	graph.circle(0, 0, 20);
+	graph.fill()
 
 	var graph2 = CE.add({
 
@@ -61,6 +64,13 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 	});
 
+	var graph4 = CE.add({
+
+		type: "graph",
+		position: [350, 350]
+
+	});
+
 	var counter = 0;
 
 	CE.addEvent(function(){
@@ -81,6 +91,12 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 			], true);
 
 		}
+
+		graph4.clear();
+		graph4.fillStyle("#000");
+		graph4.arc(0, 0, 100, 0, counter);
+		graph4.lineTo(0, 0);
+		graph4.fill();
 
 		if (counter > 360) {
 
