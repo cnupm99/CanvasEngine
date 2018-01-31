@@ -2,8 +2,8 @@
 (function() {
     // CanvasEngine
 
-  // version 1.10
-  // build 108
+  // version 1.11
+  // build 1
   // Wed Jan 31 2018
 
   "use strict";
