@@ -402,6 +402,26 @@ define ["DisplayObject"], (DisplayObject) ->
 		log: () -> console.log @_commands
 
 		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			# 
+			# базовое
+			# 
+			options = super()
+
+			# 
+			# переписываем команды
+			# 
+			options.commands = JSON.parse(JSON.stringify(@_commands));
+
+			# 
+			# результат возвращаем
+			# 
+			options
+
+		# 
 		# рисуем пряоугольник со скругленными углами
 		# 
 		_drawRoundedRect: (context, x, y, width, height, radius) ->

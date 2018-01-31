@@ -178,12 +178,14 @@ Simple Canvas Engine for javascript / coffeescript
 - **testPoint**(pointX, pointY:int):Boolean - проверка, пуста ли данная точка
 - **testRect**(pointX, pointY:int):Boolean - проверка, входит ли точка в прямоугольник объекта
 - **needAnimation**:Boolean - нужно ли анимировать данный объект с точки зрения движка
+- **getOptions**() - возвращаем объект с текущими опциями фигуры
 
 ### Scene:
 
 - **zIndex**:int - индекс, определяющий порядок сцен, чем выше индекс, тем выше сцена над остальными
 - **mask**:Array - маска объекта
 - **add**(data:Object):DisplayObject - добавление дочернего объекта
+- **clone**(anotherObject:DisplayObject):DisplayObject - клонирование графического объекта
 - **clear**() - полная очистка сцены
 - **get**(childName:String):Object/false - поиск среди дочерних элементов по имени элемента
 - **remove**(childName:String):Boolean - удаление дочернего элемента по его имени

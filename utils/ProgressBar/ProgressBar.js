@@ -3,28 +3,102 @@
   "use strict";
   define(function() {
     var ProgressBar;
+    
+    // Доступные опции
+
+    //  Общее:
+
+    //  options = {
+
+    //    scene: сцена для рисования
+    //    minValue: минимальное значение
+    //    maxValue: максимальное значение
+    //    progress: прогресс или false
+    //    value: текущее значение
+    //    backgroundImage: картинка на фон, если нужна
+
+    //  }
+
+    //  Положение / размер:
+
+    //  options = {
+
+    //    position: позиция
+    //    size: размер
+    //    padding: расстояние от внешней границы до линии прогресса
+    //    radius: радиус закругления углов или false
+
+    //  }
+
+    //  Опции цвета:
+
+    //  options = {
+
+    //    singleColor: нужно ли использовать разные цвета для отрисовки
+    //      линии прогресса
+
+    //    colors: {
+
+    //		backgroundColor: цвет фона
+    //		backgroundShadowColor: цвет тени фона
+    //		strokeColor: цвет обводки фона
+    //		progress: цвет линии прогресса
+    //		  в случае, если singleColor == true
+    //		progress25: цвет линии прогресса для прогресса меньше 25
+    //		progress50: цвет линии прогресса для прогресса меньше 50
+    //		progress75: цвет линии прогресса для прогресса меньше 75
+    //		progress100: цвет линии прогресса для прогресса меньше 100
+    //		progressShadowColor: цвет тени линии прогресса
+    //		caption: цвет надписи
+    //		captionStroke: цвет обводки надписи
+
+    //    }
+
+    //  }
+
+    //  Опции надписи:
+
+    //  options = {
+
+    //    showCaption: нужно ли вообще выводить надпись
+    //    showProgress: нужно ли показывать прогресс
+    //    showTotal: нужно ли показывать общее количество, используется
+    //      только при показе value
+    //    caption: статичная надпись
+    //    strokeCaption: нужна ли обводка надписи
+
+    //  }
+
     return ProgressBar = class ProgressBar {
       constructor(options) {
-        var scene;
-        // сцена для рисования,
-        // если ее нет, рисовать негде
-        scene = options.scene;
-        if (!scene) {
+        if (options.scene == null) {
+          
+          // сцена для рисования,
+          // если ее нет, рисовать негде
+
           return false;
         }
+        
         // опции размера, позиции и рисования
+
         this._sizeOptions(options);
+        
         // установка цветовых опций
+
         this._colorOptions(options);
+        
         // установка опций текста
+
         this._textOptions(options);
         
         // установка значений
+
         this._minValue = options.minValue || 0;
         this._maxValue = options.maxValue || 100;
         this._progress = options.progress != null ? options.progress : false;
         
         // начальное отображение
+
         if (this._progress) {
           this.progress(this._progress);
         } else {
@@ -33,12 +107,70 @@
         }
       }
 
+      
+      // устанавливаем новые значения
+
+      setValues(min = 0, max = 100) {
+        if (min >= max) {
+          return false;
+        }
+        this._minValue = min;
+        this._maxValue = max;
+        return this._animate();
+      }
+
+      
+      // установка прогресса
+      // или получение текущего прогресса
+
+      progress(progress) {
+        if (progress != null) {
+          this._progress = progress;
+          this._value = progress * this._maxValue / 100;
+          this._drawProgress = true;
+          this._animate();
+        }
+        return this._progress;
+      }
+
+      
+      // установка значения
+      // или получение текущего значения
+
+      value(value) {
+        if (value != null) {
+          this._value = value;
+          this._progress = Math.floor(value * 100 / this._maxValue);
+          this._drawProgress = false;
+          this._animate();
+        }
+        return this._value;
+      }
+
+      
+      // текущий прогресс
+      // оставим для обратной совместимости
+
+      getProgress() {
+        return this._progress;
+      }
+
+      
+      // текущее значение
+      // оставим для обратной совместимости
+
+      getValue() {
+        return this._value;
+      }
+
+      
+      // Установка всяческих настроек из объекта options
+
       _sizeOptions(options) {
         // позиция
         this._position = options.position || [0, 0];
         // размеры
         this._size = options.size || [300, 50];
-        
         // расстояние между внешней рамкой и линией прогресса
         if (!options.padding) {
           this._padding = [3, 3];
@@ -56,37 +188,19 @@
             position: this._position
           });
         }
+        // или так
+        if (options.from) {
+          this._image = options.scene.add({
+            type: "image",
+            from: options.from,
+            position: this._position
+          });
+        }
         // создаем класс для рисования
         return this._graph = options.scene.add({
           type: "graph",
           position: this._position
         });
-      }
-
-      _textOptions(options) {
-        var strokeCaption;
-        // нужно ли выводить подпись
-        this._showCaption = options.showCaption != null ? options.showCaption : false;
-        // нужно ли выводить значение прогресса
-        this._showProgress = options.showProgress != null ? options.showProgress : true;
-        // нужно ли показывать максимальное значение после текущего,
-        // например так: 123 / 500
-        // используется только при установке value
-        this._showTotal = options.showTotal != null ? options.showTotal : true;
-        // подпись
-        this._caption = options.caption || "Progress: ";
-        // нужна ли обводка текста
-        strokeCaption = options.strokeCaption != null ? options.strokeCaption : true;
-        // если выводить текст нужно, создаем класс для этого
-        if (this._showCaption || this._showProgress) {
-          return this._text = options.scene.add({
-            type: "text",
-            font: options.font || "24px Arial",
-            fillStyle: this._colors.caption,
-            strokeStyle: strokeCaption ? this._colors.captionStroke : false,
-            position: this._position
-          });
-        }
       }
 
       _colorOptions(options) {
@@ -116,51 +230,51 @@
         };
       }
 
-      // устанавливаем новые значения
-      setValues(min, max) {
-        if (min >= max) {
-          return false;
+      _textOptions(options) {
+        var strokeCaption;
+        // нужно ли выводить подпись
+        this._showCaption = options.showCaption != null ? options.showCaption : false;
+        // нужно ли выводить значение прогресса
+        this._showProgress = options.showProgress != null ? options.showProgress : true;
+        // нужно ли показывать максимальное значение после текущего,
+        // например так: 123 / 500
+        // используется только при установке value
+        this._showTotal = options.showTotal != null ? options.showTotal : true;
+        // подпись
+        this._caption = options.caption || "Progress: ";
+        // нужна ли обводка текста
+        strokeCaption = options.strokeCaption != null ? options.strokeCaption : true;
+        // если выводить текст нужно, создаем класс для этого
+        if (this._showCaption || this._showProgress) {
+          return this._text = options.scene.add({
+            type: "text",
+            font: options.font || "24px Arial",
+            fillStyle: this._colors.caption,
+            strokeStyle: strokeCaption ? this._colors.captionStroke : false,
+            position: this._position
+          });
         }
-        this._minValue = min;
-        this._maxValue = max;
-        return this._animate();
       }
 
-      // установка прогресса
-      progress(progress) {
-        this._progress = progress;
-        this._value = progress * this._maxValue / 100;
-        this._drawProgress = true;
-        return this._animate();
-      }
-
-      // установка значения
-      value(value) {
-        this._value = value;
-        this._progress = Math.floor(value * 100 / this._maxValue);
-        this._drawProgress = false;
-        return this._animate();
-      }
-
-      // текущий прогресс
-      getProgress() {
-        return this._progress;
-      }
-
-      // текущее значение
-      getValue() {
-        return this._value;
-      }
-
+      
       // прорисовка
+
       _animate() {
+        
         // очистка графики
+
         this._graph.clear();
+        
         // рисуем фон
+
         this._animateBackground();
+        
         // рисуем линию прогесса
+
         this._animateProgress();
+        
         // обновляем текст
+
         return this._animateText();
       }
 

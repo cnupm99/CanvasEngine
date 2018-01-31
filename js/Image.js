@@ -195,6 +195,46 @@
         }
       }
 
+      
+      // возвращаем объект с текущими опциями фигуры
+
+      getOptions() {
+        var options;
+        
+        // базовое
+
+        options = super.getOptions();
+        
+        // область рисования
+
+        options.rect = this.rect ? [this.rect[0], this.rect[1], this.rect[2], this.rect[3]] : false;
+        
+        // если загружено
+
+        if (this.loaded) {
+          
+          // передаем изображение
+
+          options.from = this.image;
+          options.loadedFrom = this.loadedFrom;
+        } else {
+          if (this.loadedFrom.length > 0) {
+            
+            // пытаемся передать ссылку
+
+            options.src = this.loadedFrom;
+          }
+        }
+        
+        // загружено
+
+        options.loaded = this.loaded;
+        
+        // результат возвращаем
+
+        return options;
+      }
+
     };
   });
 

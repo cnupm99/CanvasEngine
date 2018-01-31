@@ -137,7 +137,7 @@ define ["DisplayObject"], (DisplayObject) ->
 
 			# 
 			# вспомогательные свойства, нужны для удобства
-			# и обратной совметсимости
+			# и обратной совместимости
 			# 
 			@textWidth = @realSize[0]
 			@textHeight = @realSize[1]
@@ -223,7 +223,7 @@ define ["DisplayObject"], (DisplayObject) ->
 
 				# 
 				# парсим шрифт в надежде найти размер шрифта
-				# используем его для рисования подчеркивание
+				# используем его для рисования подчеркивания
 				# это ближе к истене чем использование fontHeight
 				# 
 				fontSize = parseInt @font, 10
@@ -325,3 +325,32 @@ define ["DisplayObject"], (DisplayObject) ->
 			# высота равна количеству строк на высоту одной строки
 			# 
 			[maxWidth, lines.length * @fontHeight]
+
+		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			# 
+			# базовое
+			# 
+			options = super()
+
+			# 
+			# опции текста
+			# 
+			options.fontHeight = @fontHeight
+			options.textWidth = @textWidth
+			options.textHeight = @textHeight
+			options.font = @font
+			options.fillStyle = @fillStyle
+			options.strokeStyle = @strokeStyle
+			options.strokeWidth = strokeWidth
+			options.underline = @underline
+			options.underlineOffset = @underlineOffset
+			options.text = @text
+
+			# 
+			# результат возвращаем
+			# 
+			options

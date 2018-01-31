@@ -123,7 +123,7 @@
         this.upsize(this._getRealSizes(this.text));
         
         // вспомогательные свойства, нужны для удобства
-        // и обратной совметсимости
+        // и обратной совместимости
 
         this.textWidth = this.realSize[0];
         this.textHeight = this.realSize[1];
@@ -200,7 +200,7 @@
         if (this.underline) {
           
           // парсим шрифт в надежде найти размер шрифта
-          // используем его для рисования подчеркивание
+          // используем его для рисования подчеркивания
           // это ближе к истене чем использование fontHeight
 
           fontSize = parseInt(this.font, 10);
@@ -308,6 +308,34 @@
         // высота равна количеству строк на высоту одной строки
 
         return [maxWidth, lines.length * this.fontHeight];
+      }
+
+      
+      // возвращаем объект с текущими опциями фигуры
+
+      getOptions() {
+        var options;
+        
+        // базовое
+
+        options = super.getOptions();
+        
+        // опции текста
+
+        options.fontHeight = this.fontHeight;
+        options.textWidth = this.textWidth;
+        options.textHeight = this.textHeight;
+        options.font = this.font;
+        options.fillStyle = this.fillStyle;
+        options.strokeStyle = this.strokeStyle;
+        options.strokeWidth = strokeWidth;
+        options.underline = this.underline;
+        options.underlineOffset = this.underlineOffset;
+        options.text = this.text;
+        
+        // результат возвращаем
+
+        return options;
       }
 
     };

@@ -21,7 +21,7 @@ define ["AbstractObject"], (AbstractObject) ->
 		#  size:Array - размер объекта
 		#  realSize:Array - реальный размер объкта
 		#  center:Array - относительные координаты точки центра объекта, вокруг которой происходит вращение
-		#  anchor:Array - дробное число, показывающее, где должен находиться цент относительно размеров объекта
+		#  anchor:Array - дробное число, показывающее, где должен находиться центр относительно размеров объекта
 		#  scale:Array - коэффициенты для масштабирования объектов
 		#  rotation:int - число в градусах, на которое объект повернут вокруг центра по часовой стрелке
 		#  alpha:Number - прозрачность объекта
@@ -49,6 +49,8 @@ define ["AbstractObject"], (AbstractObject) ->
 		#  testPoint(pointX, pointY:int):Boolean - проверка, пуста ли данная точка
 		#  testRect(pointX, pointY:int):Boolean - проверка, входит ли точка в прямоугольник объекта
 		#  animate() - попытка нарисовать объект
+		#  
+		#  getOptions() - возвращаем объект с текущими опциями фигуры
 		# 
 		constructor: (options) ->
 
@@ -462,3 +464,33 @@ define ["AbstractObject"], (AbstractObject) ->
 			# считаем, что надо нарисовать объект, если не указано иного
 			# 
 			@needAnimation = true
+
+		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			options = {
+
+				name: @name
+				type: @type
+				visible: @visible
+				position: [@position[0], @position[1]]
+				size: [@size[0], @size[1]]
+				realSize: [@realSize[0], @realSize[1]]
+				center: [@center[0], @center[1]]
+				anchor: [@anchor[0], @anchor[1]]
+				scale: [@scale[0], @scale[1]]
+				rotation: @rotation
+				alpha: @alpha
+				shadow: if @shadow then {
+					
+					blur: @shadow.blur
+					color: @shadow.color
+					offset: @shadow.offset
+					offsetX: @shadow.offsetX
+					offsetY: @shadow.offsetY
+
+				} else false
+
+			}

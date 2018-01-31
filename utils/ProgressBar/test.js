@@ -76,14 +76,20 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 
 		scene: scene,
 		position: [100, 400],
-		size: [560, 79],
-		padding: [33, 17],
-		radius: 5,
+		size: [570, 100],
+		padding: [37, 27],
+		radius: 2,
 		value: 0,
-		showCaption: false,
+		showCaption: true,
+		showTotal: true,
 		maxValue: 1000,
 		backgroundImage: "progressbar.png",
 		font: "20px Arial",
+		colors: {
+
+			progress25: ["#a90329", "#8f0222"]
+
+		}
 
 	});
 

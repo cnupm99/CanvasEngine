@@ -209,3 +209,46 @@ define ["DisplayObject"], (DisplayObject) ->
 			# сообщаем реальные размеры картинки
 			# 
 			@onload @realSize if @onload?
+
+		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			# 
+			# базовое
+			# 
+			options = super()
+
+			# 
+			# область рисования
+			# 
+			options.rect = if @rect then [@rect[0], @rect[1], @rect[2], @rect[3]] else false
+
+			# 
+			# если загружено
+			# 
+			if @loaded
+
+				# 
+				# передаем изображение
+				# 
+				options.from = @image
+				options.loadedFrom = @loadedFrom
+
+			else
+
+				# 
+				# пытаемся передать ссылку
+				# 
+				options.src = @loadedFrom if @loadedFrom.length > 0
+
+			# 
+			# загружено
+			# 
+			options.loaded = @loaded
+
+			# 
+			# результат возвращаем
+			# 
+			options

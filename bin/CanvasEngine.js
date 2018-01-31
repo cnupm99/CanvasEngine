@@ -3,8 +3,8 @@
     // CanvasEngine
 
   // version 1.10
-  // build 105
-  // Thu Jan 25 2018
+  // build 106
+  // Wed Jan 31 2018
 
   "use strict";
   var boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
@@ -143,7 +143,7 @@
       //  size:Array - размер объекта
       //  realSize:Array - реальный размер объкта
       //  center:Array - относительные координаты точки центра объекта, вокруг которой происходит вращение
-      //  anchor:Array - дробное число, показывающее, где должен находиться цент относительно размеров объекта
+      //  anchor:Array - дробное число, показывающее, где должен находиться центр относительно размеров объекта
       //  scale:Array - коэффициенты для масштабирования объектов
       //  rotation:int - число в градусах, на которое объект повернут вокруг центра по часовой стрелке
       //  alpha:Number - прозрачность объекта
@@ -171,6 +171,8 @@
       //  testPoint(pointX, pointY:int):Boolean - проверка, пуста ли данная точка
       //  testRect(pointX, pointY:int):Boolean - проверка, входит ли точка в прямоугольник объекта
       //  animate() - попытка нарисовать объект
+
+      //  getOptions() - возвращаем объект с текущими опциями фигуры
 
       constructor(options) {
         var stage;
@@ -597,6 +599,33 @@
         // считаем, что надо нарисовать объект, если не указано иного
 
         return this.needAnimation = true;
+      }
+
+      
+      // возвращаем объект с текущими опциями фигуры
+
+      getOptions() {
+        var options;
+        return options = {
+          name: this.name,
+          type: this.type,
+          visible: this.visible,
+          position: [this.position[0], this.position[1]],
+          size: [this.size[0], this.size[1]],
+          realSize: [this.realSize[0], this.realSize[1]],
+          center: [this.center[0], this.center[1]],
+          anchor: [this.anchor[0], this.anchor[1]],
+          scale: [this.scale[0], this.scale[1]],
+          rotation: this.rotation,
+          alpha: this.alpha,
+          shadow: this.shadow ? {
+            blur: this.shadow.blur,
+            color: this.shadow.color,
+            offset: this.shadow.offset,
+            offsetX: this.shadow.offsetX,
+            offsetY: this.shadow.offsetY
+          } : false
+        };
       }
 
     };
@@ -1026,6 +1055,22 @@
       }
 
       
+      // возвращаем объект с текущими опциями фигуры
+
+      getOptions() {
+        var options;
+        
+        // базовое
+
+        options = super.getOptions();
+        
+        // переписываем команды
+
+        options.commands = JSON.parse(JSON.stringify(this._commands));
+        return options;
+      }
+
+      
       // рисуем пряоугольник со скругленными углами
 
       _drawRoundedRect(context, x, y, width, height, radius) {
@@ -1240,6 +1285,46 @@
         }
       }
 
+      
+      // возвращаем объект с текущими опциями фигуры
+
+      getOptions() {
+        var options;
+        
+        // базовое
+
+        options = super.getOptions();
+        
+        // область рисования
+
+        options.rect = this.rect ? [this.rect[0], this.rect[1], this.rect[2], this.rect[3]] : false;
+        
+        // если загружено
+
+        if (this.loaded) {
+          
+          // передаем изображение
+
+          options.from = this.image;
+          options.loadedFrom = this.loadedFrom;
+        } else {
+          if (this.loadedFrom.length > 0) {
+            
+            // пытаемся передать ссылку
+
+            options.src = this.loadedFrom;
+          }
+        }
+        
+        // загружено
+
+        options.loaded = this.loaded;
+        
+        // результат возвращаем
+
+        return options;
+      }
+
     };
     
     // Класс для вывода текстовой информации
@@ -1361,7 +1446,7 @@
         this.upsize(this._getRealSizes(this.text));
         
         // вспомогательные свойства, нужны для удобства
-        // и обратной совметсимости
+        // и обратной совместимости
 
         this.textWidth = this.realSize[0];
         this.textHeight = this.realSize[1];
@@ -1438,7 +1523,7 @@
         if (this.underline) {
           
           // парсим шрифт в надежде найти размер шрифта
-          // используем его для рисования подчеркивание
+          // используем его для рисования подчеркивания
           // это ближе к истене чем использование fontHeight
 
           fontSize = parseInt(this.font, 10);
@@ -1548,6 +1633,34 @@
         return [maxWidth, lines.length * this.fontHeight];
       }
 
+      
+      // возвращаем объект с текущими опциями фигуры
+
+      getOptions() {
+        var options;
+        
+        // базовое
+
+        options = super.getOptions();
+        
+        // опции текста
+
+        options.fontHeight = this.fontHeight;
+        options.textWidth = this.textWidth;
+        options.textHeight = this.textHeight;
+        options.font = this.font;
+        options.fillStyle = this.fillStyle;
+        options.strokeStyle = this.strokeStyle;
+        options.strokeWidth = strokeWidth;
+        options.underline = this.underline;
+        options.underlineOffset = this.underlineOffset;
+        options.text = this.text;
+        
+        // результат возвращаем
+
+        return options;
+      }
+
     };
     
     // Изображение, которое замостит указанную область
@@ -1636,6 +1749,7 @@
       // методы:
 
       //  add(data:Object):DisplayObject - добавление дочернего объекта
+      //  clone(anotherObject:DisplayObject):DisplayObject - клонирование графического объекта
       //  clear() - полная очистка сцены
       //  animate() - попытка нарисовать объект
 
@@ -1735,6 +1849,13 @@
         // возвращаем результат
 
         return result;
+      }
+
+      
+      // клонирование графического объекта
+
+      clone(anotherObject) {
+        return this.add(anotherObject.getOptions());
       }
 
       

@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.10
-# build 105
-# Thu Jan 25 2018
+# build 106
+# Wed Jan 31 2018
 #
 
 "use strict";
@@ -122,7 +122,7 @@ define () ->
 		#  size:Array - размер объекта
 		#  realSize:Array - реальный размер объкта
 		#  center:Array - относительные координаты точки центра объекта, вокруг которой происходит вращение
-		#  anchor:Array - дробное число, показывающее, где должен находиться цент относительно размеров объекта
+		#  anchor:Array - дробное число, показывающее, где должен находиться центр относительно размеров объекта
 		#  scale:Array - коэффициенты для масштабирования объектов
 		#  rotation:int - число в градусах, на которое объект повернут вокруг центра по часовой стрелке
 		#  alpha:Number - прозрачность объекта
@@ -150,6 +150,8 @@ define () ->
 		#  testPoint(pointX, pointY:int):Boolean - проверка, пуста ли данная точка
 		#  testRect(pointX, pointY:int):Boolean - проверка, входит ли точка в прямоугольник объекта
 		#  animate() - попытка нарисовать объект
+		#  
+		#  getOptions() - возвращаем объект с текущими опциями фигуры
 		# 
 		constructor: (options) ->
 
@@ -563,6 +565,36 @@ define () ->
 			# считаем, что надо нарисовать объект, если не указано иного
 			# 
 			@needAnimation = true
+
+		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			options = {
+
+				name: @name
+				type: @type
+				visible: @visible
+				position: [@position[0], @position[1]]
+				size: [@size[0], @size[1]]
+				realSize: [@realSize[0], @realSize[1]]
+				center: [@center[0], @center[1]]
+				anchor: [@anchor[0], @anchor[1]]
+				scale: [@scale[0], @scale[1]]
+				rotation: @rotation
+				alpha: @alpha
+				shadow: if @shadow then {
+					
+					blur: @shadow.blur
+					color: @shadow.color
+					offset: @shadow.offset
+					offsetX: @shadow.offsetX
+					offsetY: @shadow.offsetY
+
+				} else false
+
+			}
 
 	class ContainerObject extends DisplayObject
 
@@ -1036,6 +1068,26 @@ define () ->
 		log: () -> console.log @_commands
 
 		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			# 
+			# базовое
+			# 
+			options = super()
+
+			# 
+			# переписываем команды
+			# 
+			options.commands = JSON.parse(JSON.stringify(@_commands));
+
+			# 
+			# результат возвращаем
+			# 
+			options
+
+		# 
 		# рисуем пряоугольник со скругленными углами
 		# 
 		_drawRoundedRect: (context, x, y, width, height, radius) ->
@@ -1266,6 +1318,49 @@ define () ->
 			# 
 			@onload @realSize if @onload?
 
+		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			# 
+			# базовое
+			# 
+			options = super()
+
+			# 
+			# область рисования
+			# 
+			options.rect = if @rect then [@rect[0], @rect[1], @rect[2], @rect[3]] else false
+
+			# 
+			# если загружено
+			# 
+			if @loaded
+
+				# 
+				# передаем изображение
+				# 
+				options.from = @image
+				options.loadedFrom = @loadedFrom
+
+			else
+
+				# 
+				# пытаемся передать ссылку
+				# 
+				options.src = @loadedFrom if @loadedFrom.length > 0
+
+			# 
+			# загружено
+			# 
+			options.loaded = @loaded
+
+			# 
+			# результат возвращаем
+			# 
+			options
+
 	# 
 	# Класс для вывода текстовой информации
 	# 
@@ -1401,7 +1496,7 @@ define () ->
 
 			# 
 			# вспомогательные свойства, нужны для удобства
-			# и обратной совметсимости
+			# и обратной совместимости
 			# 
 			@textWidth = @realSize[0]
 			@textHeight = @realSize[1]
@@ -1487,7 +1582,7 @@ define () ->
 
 				# 
 				# парсим шрифт в надежде найти размер шрифта
-				# используем его для рисования подчеркивание
+				# используем его для рисования подчеркивания
 				# это ближе к истене чем использование fontHeight
 				# 
 				fontSize = parseInt @font, 10
@@ -1590,6 +1685,35 @@ define () ->
 			# 
 			[maxWidth, lines.length * @fontHeight]
 
+		# 
+		# возвращаем объект с текущими опциями фигуры
+		# 
+		getOptions: () ->
+
+			# 
+			# базовое
+			# 
+			options = super()
+
+			# 
+			# опции текста
+			# 
+			options.fontHeight = @fontHeight
+			options.textWidth = @textWidth
+			options.textHeight = @textHeight
+			options.font = @font
+			options.fillStyle = @fillStyle
+			options.strokeStyle = @strokeStyle
+			options.strokeWidth = strokeWidth
+			options.underline = @underline
+			options.underlineOffset = @underlineOffset
+			options.text = @text
+
+			# 
+			# результат возвращаем
+			# 
+			options
+
 	# 
 	# Изображение, которое замостит указанную область
 	# 
@@ -1684,6 +1808,7 @@ define () ->
 		# методы:
 		# 
 		#  add(data:Object):DisplayObject - добавление дочернего объекта
+		#  clone(anotherObject:DisplayObject):DisplayObject - клонирование графического объекта
 		#  clear() - полная очистка сцены
 		#  animate() - попытка нарисовать объект
 		#  
@@ -1779,6 +1904,11 @@ define () ->
 			# возвращаем результат
 			# 
 			return result
+
+		# 
+		# клонирование графического объекта
+		# 
+		clone: (anotherObject) -> @add anotherObject.getOptions()
 
 		# 
 		# очистка сцены

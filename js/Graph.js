@@ -347,6 +347,22 @@
       }
 
       
+      // возвращаем объект с текущими опциями фигуры
+
+      getOptions() {
+        var options;
+        
+        // базовое
+
+        options = super.getOptions();
+        
+        // переписываем команды
+
+        options.commands = JSON.parse(JSON.stringify(this._commands));
+        return options;
+      }
+
+      
       // рисуем пряоугольник со скругленными углами
 
       _drawRoundedRect(context, x, y, width, height, radius) {

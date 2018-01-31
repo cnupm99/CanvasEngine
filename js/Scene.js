@@ -19,6 +19,7 @@
       // методы:
 
       //  add(data:Object):DisplayObject - добавление дочернего объекта
+      //  clone(anotherObject:DisplayObject):DisplayObject - клонирование графического объекта
       //  clear() - полная очистка сцены
       //  animate() - попытка нарисовать объект
 
@@ -118,6 +119,13 @@
         // возвращаем результат
 
         return result;
+      }
+
+      
+      // клонирование графического объекта
+
+      clone(anotherObject) {
+        return this.add(anotherObject.getOptions());
       }
 
       
