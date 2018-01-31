@@ -345,7 +345,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			options.font = @font
 			options.fillStyle = @fillStyle
 			options.strokeStyle = @strokeStyle
-			options.strokeWidth = strokeWidth
+			options.strokeWidth = @strokeWidth
 			options.underline = @underline
 			options.underlineOffset = @underlineOffset
 			options.text = @text

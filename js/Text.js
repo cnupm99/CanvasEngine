@@ -328,7 +328,7 @@
         options.font = this.font;
         options.fillStyle = this.fillStyle;
         options.strokeStyle = this.strokeStyle;
-        options.strokeWidth = strokeWidth;
+        options.strokeWidth = this.strokeWidth;
         options.underline = this.underline;
         options.underlineOffset = this.underlineOffset;
         options.text = this.text;

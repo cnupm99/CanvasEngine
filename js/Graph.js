@@ -38,7 +38,7 @@
 
         this.type = "graph";
         // массив команд для рисования
-        this._commands = [];
+        this._commands = options.commands || [];
       }
 
       

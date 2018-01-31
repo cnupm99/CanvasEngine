@@ -41,7 +41,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			@type = "graph"
 
 			# массив команд для рисования
-			@_commands = []
+			@_commands = options.commands or []
 
 		# 
 		# Далее идут функции для рисования графических примитивов

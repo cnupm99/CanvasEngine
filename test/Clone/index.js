@@ -25,6 +25,11 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	});
 
+	var graph = CE.add({type:"graph"});
+	graph.fillStyle("rgba(0,0,0,0.7)");
+	graph.rect(300, 50, 100, 70);
+	graph.fill();
+
 	var counter = 1;
 	
 	document.body.addEventListener("click", function(e){
@@ -38,11 +43,13 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 		});
 
 		scene.clone(image);
+		scene.clone(graph);
 
 		counter++;
 
 		CE.get("default").clear();
 		image = null;
+		graph = null;
 
 		console.log(CE.childrens);
 

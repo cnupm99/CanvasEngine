@@ -2,7 +2,7 @@
 # CanvasEngine
 #
 # version 1.10
-# build 106
+# build 108
 # Wed Jan 31 2018
 #
 
@@ -707,7 +707,7 @@ define () ->
 			@type = "graph"
 
 			# массив команд для рисования
-			@_commands = []
+			@_commands = options.commands or []
 
 		# 
 		# Далее идут функции для рисования графических примитивов
@@ -1704,7 +1704,7 @@ define () ->
 			options.font = @font
 			options.fillStyle = @fillStyle
 			options.strokeStyle = @strokeStyle
-			options.strokeWidth = strokeWidth
+			options.strokeWidth = @strokeWidth
 			options.underline = @underline
 			options.underlineOffset = @underlineOffset
 			options.text = @text

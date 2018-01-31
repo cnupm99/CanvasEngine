@@ -3,7 +3,7 @@
     // CanvasEngine
 
   // version 1.10
-  // build 106
+  // build 108
   // Wed Jan 31 2018
 
   "use strict";
@@ -746,7 +746,7 @@
 
         this.type = "graph";
         // массив команд для рисования
-        this._commands = [];
+        this._commands = options.commands || [];
       }
 
       
@@ -1651,7 +1651,7 @@
         options.font = this.font;
         options.fillStyle = this.fillStyle;
         options.strokeStyle = this.strokeStyle;
-        options.strokeWidth = strokeWidth;
+        options.strokeWidth = this.strokeWidth;
         options.underline = this.underline;
         options.underlineOffset = this.underlineOffset;
         options.text = this.text;
