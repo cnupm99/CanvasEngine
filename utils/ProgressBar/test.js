@@ -82,12 +82,16 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 		value: 0,
 		showCaption: true,
 		showTotal: true,
-		maxValue: 1000,
+		maxValue: 59,
 		backgroundImage: "progressbar.png",
 		font: "20px Arial",
 		colors: {
 
-			progress25: ["#a90329", "#8f0222"]
+			progress25: ["#FF0000", "#800000"],
+			progress100: ["#00FF00", "#008000"],
+			// progress50: ["#EFE683", "#feb645"],
+			progress50: ["#FF0000", "#800000"],
+			progress75: ["#f2d31b", "#E3C40C"]
 
 		}
 
@@ -123,7 +127,7 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 
 		var value = pb4.getValue();
 		value++;
-		if (value > 1000) value = 0;
+		if (value > 59) value = 0;
 		pb4.value(value);
 
 	});
