@@ -3,8 +3,8 @@
     // CanvasEngine
 
   // version 1.11
-  // build 1
-  // Wed Jan 31 2018
+  // build 2
+  // Sun Feb 04 2018
 
   "use strict";
   var boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
@@ -1336,6 +1336,7 @@
     //  textHeight:int - высота текущего текста
     //  realSize:Array - размеры области текущего текста с учетом шрифта и многострочности
     //  font:String - текущий шрифт
+    //  baseline:String - метод вывода текста, может быть top, middle, bottom
     //  fillStyle:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
     //  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
     //  strokeWidth:int - ширина обводки
@@ -1346,6 +1347,7 @@
     // методы:
 
     //  setFont(font:String):String - установка шрифта
+    //  setBaseline(baseline:String):String - метод вывода текста
     //  setFillStyle(style:String/Array):String/Array - установка заливки текста
     //  setStrokeStyle(style:String):String - установка обводки
     //  setStrokeWidth(value:int):int - толщина обводки
@@ -1371,10 +1373,6 @@
 
         this.textWidth = 0;
         
-        // шрифт надписи, строка
-
-        this.setFont(options.font);
-        
         // текущая заливка, градиент или false, если заливка не нужна
 
         this.setFillStyle(options.fillStyle);
@@ -1382,6 +1380,14 @@
         // обводка шрифта или false, если обводка не нужна
 
         this.setStrokeStyle(options.strokeStyle);
+        
+        // шрифт надписи, строка
+
+        this.setFont(options.font);
+        
+        // тип вывода текста, может быть top, middle, bottom
+
+        this.setBaseline(options.baseline);
         
         // ширина обводки
 
@@ -1409,6 +1415,15 @@
         return this.font;
       }
 
+      setBaseline(value) {
+        if ((value !== "top") && (value !== "middle") && (value !== "bottom")) {
+          value = "top";
+        }
+        this.baseline = value;
+        this.needAnimation = true;
+        return this.baseline;
+      }
+
       setFillStyle(value) {
         this.fillStyle = value || false;
         this.needAnimation = true;
@@ -1429,7 +1444,7 @@
 
       setUnderline(value, offset) {
         this.underline = value || false;
-        this.underlineOffset = offset || 0;
+        this.underlineOffset = offset || this._rect0.bottom;
         this.needAnimation = true;
         return this.underline;
       }
@@ -1455,7 +1470,7 @@
       }
 
       animate() {
-        var fontSize, gradient, lines, textY, underlineStyle;
+        var isGradient, lines, textY, underlineStyle;
         
         // если объект не видимый
         // то рисовать его не нужно
@@ -1473,34 +1488,12 @@
         // по умолчанию позиционируем текст по верхнему краю
 
         this.context.textBaseline = "top";
-        
-        // нужна ли заливка
+        isGradient = Array.isArray(this.fillStyle);
+        if (this.fillStyle && !isGradient) {
+          
+          // нужна ли заливка
 
-        if (this.fillStyle) {
-          // а может зальем текст градиентом?
-          if (Array.isArray(this.fillStyle)) {
-            
-            // создаем градиент по нужным точкам
-
-            gradient = this.context.createLinearGradient(this._deltaX, this._deltaY, this._deltaX, this._deltaY + this.fontHeight);
-            
-            // добавляем цвета
-
-            this.fillStyle.forEach(function(color) {
-              
-              // сначала размер, потом цвет
-              return gradient.addColorStop(color[0], color[1]);
-            });
-            
-            // заливка градиентом
-
-            this.context.fillStyle = gradient;
-          } else {
-            
-            // ну или просто цветом
-
-            this.context.fillStyle = this.fillStyle;
-          }
+          this.context.fillStyle = this.fillStyle;
         }
         
         // что насчет обводки?
@@ -1522,12 +1515,6 @@
 
         if (this.underline) {
           
-          // парсим шрифт в надежде найти размер шрифта
-          // используем его для рисования подчеркивания
-          // это ближе к истене чем использование fontHeight
-
-          fontSize = parseInt(this.font, 10);
-          
           // стиль линии подчеркивания
 
           underlineStyle = this.strokeStyle || this.fillStyle;
@@ -1536,15 +1523,49 @@
         // выводим текст построчно
 
         return lines.forEach((line) => {
-          var lineWidth;
+          var dy, gradient, lineWidth;
+          
+          // а может зальем текст градиентом?
+
+          if (isGradient) {
+            
+            // создаем градиент по нужным точкам
+
+            gradient = this.context.createLinearGradient(this._deltaX, textY, this._deltaX, textY + this.fontHeight);
+            
+            // добавляем цвета
+
+            this.fillStyle.forEach(function(color) {
+              
+              // сначала размер, потом цвет
+              return gradient.addColorStop(color[0], color[1]);
+            });
+            
+            // заливка градиентом
+
+            this.context.fillStyle = gradient;
+          }
+          
+          // смещение текста
+
+          switch (this.baseline) {
+            case "top":
+              dy = -this._rect0.top;
+              break;
+            case "middle":
+              dy = -this._rect0.top - Math.round(this._rect0.height / 2);
+              break;
+            case "bottom":
+              dy = -this._rect0.top - this._rect0.height;
+          }
           if (this.fillStyle) {
             
             // вывод текста
 
-            this.context.fillText(line, this._deltaX, textY);
+            this.context.fillText(line, this._deltaX, textY + dy);
           }
           if (this.strokeStyle) {
-            this.context.strokeText(line, this._deltaX, textY);
+            this.context.strokeText(line, this._deltaX, textY + dy);
           }
           
           // рисуем подчеркивание
@@ -1560,17 +1581,30 @@
             this.context.strokeStyle = underlineStyle;
             this.context.lineWidth = this.strokeWidth || 1;
             
+            // смещение линии
+
+            switch (this.baseline) {
+              case "top":
+                dy = this._rect0.height;
+                break;
+              case "middle":
+                dy = Math.round(this._rect0.height / 2);
+                break;
+              case "bottom":
+                dy = 0;
+            }
+            
             // линия
 
             this.context.beginPath();
-            this.context.moveTo(this._deltaX, textY + fontSize + this.underlineOffset);
-            this.context.lineTo(this._deltaX + lineWidth, textY + fontSize + this.underlineOffset);
+            this.context.moveTo(this._deltaX, textY + dy + this.underlineOffset);
+            this.context.lineTo(this._deltaX + lineWidth, textY + dy + this.underlineOffset);
             this.context.stroke();
           }
           
           // смещение следующей строки
 
-          return textY += this.fontHeight;
+          return textY += this._rect0.fontHeight;
         });
       }
 
@@ -1578,14 +1612,73 @@
       // устанавливаем реальную высоту шрифта в пикселях
 
       _getFontHeight(font) {
-        var fontHeight, span;
+        var bottomPoint, canvas, context, dy, flag, fontHeight, halfWidth, imageData, pixelData, span, topPoint, width0;
+        this._rect0 = {};
+        
+        // рассчитываем значение размера шрифта так, как его видит браузер
+
         span = document.createElement("span");
         span.appendChild(document.createTextNode("height"));
         span.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;";
         document.body.appendChild(span);
         fontHeight = span.offsetHeight;
         document.body.removeChild(span);
-        return fontHeight;
+        this._rect0.fontHeight = fontHeight;
+        
+        // рассчитываем размеры шрифта попиксельно
+
+        canvas = document.createElement("canvas");
+        width0 = this._getTextWidth("0");
+        canvas.width = width0;
+        canvas.height = fontHeight;
+        context = canvas.getContext("2d");
+        context.textBaseline = "top";
+        context.font = font;
+        context.fillStyle = "#000";
+        context.fillText("0", 0, 0);
+        if (this.strokeStyle) {
+          context.strokeStyle = "#000";
+          context.lineWidth = this.strokeWidth;
+          context.strokeText("0", 0, 0);
+        }
+        topPoint = -1;
+        bottomPoint = fontHeight + 1;
+        flag = true;
+        halfWidth = Math.round(width0 / 2);
+        
+        // верхняя точка
+
+        while (flag) {
+          topPoint++;
+          imageData = context.getImageData(halfWidth, topPoint, 1, 1);
+          pixelData = imageData.data;
+          flag = pixelData.every(function(value) {
+            return value === 0;
+          });
+        }
+        
+        // нижняя точка
+
+        flag = true;
+        while (flag) {
+          bottomPoint--;
+          imageData = context.getImageData(halfWidth, bottomPoint, 1, 1);
+          pixelData = imageData.data;
+          flag = pixelData.every(function(value) {
+            return value === 0;
+          });
+        }
+        
+        // затираем
+
+        context = null;
+        canvas = null;
+        dy = this.strokeStyle ? this.strokeWidth || 1 : 0;
+        console.log(dy);
+        this._rect0.top = topPoint - dy;
+        this._rect0.bottom = this._rect0.fontHeight - bottomPoint + 2 * dy;
+        this._rect0.height = bottomPoint - topPoint + 1;
+        return this._rect0.height;
       }
 
       
@@ -1630,7 +1723,7 @@
         // максимальная ширина,
         // высота равна количеству строк на высоту одной строки
 
-        return [maxWidth, lines.length * this.fontHeight];
+        return [maxWidth, lines.length * this._rect0.height + (lines.length - 1) * (this._rect0.top + this._rect0.bottom)];
       }
 
       

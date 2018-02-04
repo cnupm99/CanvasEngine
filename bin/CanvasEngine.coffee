@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.11
-# build 1
-# Wed Jan 31 2018
+# build 2
+# Sun Feb 04 2018
 #
 
 "use strict";
@@ -1371,6 +1371,7 @@ define () ->
 	#  textHeight:int - высота текущего текста
 	#  realSize:Array - размеры области текущего текста с учетом шрифта и многострочности
 	#  font:String - текущий шрифт
+	#  baseline:String - метод вывода текста, может быть top, middle, bottom
 	#  fillStyle:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
 	#  strokeStyle:String/Boolean - обводка шрифта или false, если обводка не нужна
 	#  strokeWidth:int - ширина обводки
@@ -1381,6 +1382,7 @@ define () ->
 	# методы:
 	# 
 	#  setFont(font:String):String - установка шрифта
+	#  setBaseline(baseline:String):String - метод вывода текста
 	#  setFillStyle(style:String/Array):String/Array - установка заливки текста
 	#  setStrokeStyle(style:String):String - установка обводки
 	#  setStrokeWidth(value:int):int - толщина обводки
@@ -1412,11 +1414,6 @@ define () ->
 			@textWidth = 0
 
 			# 
-			# шрифт надписи, строка
-			# 
-			@setFont options.font
-
-			# 
 			# текущая заливка, градиент или false, если заливка не нужна
 			# 
 			@setFillStyle options.fillStyle
@@ -1425,6 +1422,16 @@ define () ->
 			# обводка шрифта или false, если обводка не нужна
 			# 
 			@setStrokeStyle options.strokeStyle
+
+			# 
+			# шрифт надписи, строка
+			# 
+			@setFont options.font
+
+			# 
+			# тип вывода текста, может быть top, middle, bottom
+			# 
+			@setBaseline options.baseline
 
 			# 
 			# ширина обводки
@@ -1456,6 +1463,14 @@ define () ->
 			@needAnimation = true
 			@font
 
+		setBaseline: (value) ->
+
+			value = "top" if (value != "top") and (value != "middle") and (value != "bottom")
+			@baseline = value
+
+			@needAnimation = true
+			@baseline
+
 		setFillStyle: (value) ->
 
 			@fillStyle = value or false
@@ -1477,7 +1492,7 @@ define () ->
 		setUnderline: (value, offset) ->
 
 			@underline = value or false
-			@underlineOffset = offset or 0
+			@underlineOffset = offset or @_rect0.bottom
 			@needAnimation = true
 			@underline
 
@@ -1527,36 +1542,12 @@ define () ->
 			# 
 			@context.textBaseline = "top"
 
+			isGradient = Array.isArray @fillStyle
+
 			# 
 			# нужна ли заливка
 			# 
-			if @fillStyle
-
-				# а может зальем текст градиентом?
-				if Array.isArray @fillStyle
-
-					# 
-					# создаем градиент по нужным точкам
-					# 
-					gradient = @context.createLinearGradient @_deltaX, @_deltaY, @_deltaX, @_deltaY + @fontHeight
-
-					# 
-					# добавляем цвета
-					# 
-					@fillStyle.forEach (color) ->
-						
-						# сначала размер, потом цвет
-						gradient.addColorStop color[0], color[1]
-
-					# 
-					# заливка градиентом
-					# 
-					@context.fillStyle = gradient
-
-				# 
-				# ну или просто цветом
-				# 
-				else @context.fillStyle = @fillStyle
+			@context.fillStyle = @fillStyle if @fillStyle and not isGradient
 
 			# 
 			# что насчет обводки?
@@ -1581,12 +1572,6 @@ define () ->
 			if @underline
 
 				# 
-				# парсим шрифт в надежде найти размер шрифта
-				# используем его для рисования подчеркивания
-				# это ближе к истене чем использование fontHeight
-				# 
-				fontSize = parseInt @font, 10
-				# 
 				# стиль линии подчеркивания
 				# 
 				underlineStyle = @strokeStyle or @fillStyle
@@ -1597,10 +1582,41 @@ define () ->
 			lines.forEach (line) =>
 				
 				# 
+				# а может зальем текст градиентом?
+				# 
+				if isGradient
+
+					# 
+					# создаем градиент по нужным точкам
+					# 
+					gradient = @context.createLinearGradient @_deltaX, textY, @_deltaX, textY + @fontHeight
+
+					# 
+					# добавляем цвета
+					# 
+					@fillStyle.forEach (color) ->
+						
+						# сначала размер, потом цвет
+						gradient.addColorStop color[0], color[1]
+
+					# 
+					# заливка градиентом
+					# 
+					@context.fillStyle = gradient
+
+				# 
+				# смещение текста
+				# 
+				switch @baseline
+					when "top" then dy = -@_rect0.top
+					when "middle" then dy = -@_rect0.top - Math.round(@_rect0.height / 2)
+					when "bottom" then dy = -@_rect0.top - @_rect0.height
+
+				# 
 				# вывод текста
 				# 
-				@context.fillText line, @_deltaX, textY if @fillStyle
-				@context.strokeText line, @_deltaX, textY if @strokeStyle
+				@context.fillText line, @_deltaX, textY + dy if @fillStyle
+				@context.strokeText line, @_deltaX, textY + dy if @strokeStyle
 
 				# 
 				# рисуем подчеркивание
@@ -1616,31 +1632,106 @@ define () ->
 					# 
 					@context.strokeStyle = underlineStyle
 					@context.lineWidth = @strokeWidth or 1
+
+					# 
+					# смещение линии
+					# 
+					switch @baseline
+						when "top" then dy = @_rect0.height
+						when "middle" then dy = Math.round(@_rect0.height / 2)
+						when "bottom" then dy = 0
 					# 
 					# линия
 					# 
 					@context.beginPath()
-					@context.moveTo @_deltaX, textY + fontSize + @underlineOffset
-					@context.lineTo @_deltaX + lineWidth, textY + fontSize + @underlineOffset
+					@context.moveTo @_deltaX, textY + dy + @underlineOffset
+					@context.lineTo @_deltaX + lineWidth, textY + dy + @underlineOffset
 					@context.stroke()
 
 				# 
 				# смещение следующей строки
 				# 
-				textY += @fontHeight
+				textY += @_rect0.fontHeight
 
 		# 
 		# устанавливаем реальную высоту шрифта в пикселях
 		# 
 		_getFontHeight: (font) ->
 
+			@_rect0 = {}
+
+			# 
+			# рассчитываем значение размера шрифта так, как его видит браузер
+			# 
 			span = document.createElement "span"
 			span.appendChild document.createTextNode("height")
 			span.style.cssText = "font: " + font + "; white-space: nowrap; display: inline;"
 			document.body.appendChild span
 			fontHeight = span.offsetHeight
 			document.body.removeChild span
-			fontHeight
+
+			@_rect0.fontHeight = fontHeight
+
+			# 
+			# рассчитываем размеры шрифта попиксельно
+			# 
+			canvas = document.createElement "canvas"
+			width0 = @_getTextWidth "0"
+			canvas.width = width0
+			canvas.height = fontHeight
+			context = canvas.getContext "2d"
+			context.textBaseline = "top"
+			context.font = font
+			context.fillStyle = "#000"
+			context.fillText "0", 0, 0
+			if @strokeStyle
+				context.strokeStyle = "#000"
+				context.lineWidth = @strokeWidth
+				context.strokeText "0", 0, 0
+
+			topPoint = -1
+			bottomPoint = fontHeight + 1
+			flag = true
+			halfWidth = Math.round(width0 / 2)
+
+			# 
+			# верхняя точка
+			# 
+			while flag
+
+				topPoint++
+				imageData = context.getImageData(halfWidth, topPoint, 1, 1)
+				pixelData = imageData.data
+				flag = pixelData.every (value) -> value == 0
+
+			# 
+			# нижняя точка
+			# 
+			flag = true
+			while flag
+
+				bottomPoint--
+				imageData = context.getImageData(halfWidth, bottomPoint, 1, 1)
+				pixelData = imageData.data
+				flag = pixelData.every (value) -> value == 0
+
+			# 
+			# затираем
+			# 
+			context = null
+			canvas = null
+
+			
+			dy = if @strokeStyle then @strokeWidth or 1 else 0
+			console.log(dy);
+			# 
+			# рассчет значений
+			# 
+			@_rect0.top = topPoint - dy
+			@_rect0.bottom = @_rect0.fontHeight - bottomPoint + 2 * dy
+			@_rect0.height = bottomPoint - topPoint + 1
+
+			@_rect0.height
 
 		# 
 		# определяем ширину текста
@@ -1683,7 +1774,7 @@ define () ->
 			# максимальная ширина,
 			# высота равна количеству строк на высоту одной строки
 			# 
-			[maxWidth, lines.length * @fontHeight]
+			[maxWidth, lines.length * @_rect0.height + (lines.length - 1) * (@_rect0.top + @_rect0.bottom)]
 
 		# 
 		# возвращаем объект с текущими опциями фигуры

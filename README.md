@@ -236,6 +236,7 @@ Simple Canvas Engine for javascript / coffeescript
 - **textHeight**:int - высота текущего текста
 - **realSize**:Array - размеры области текущего текста с учетом шрифта и многострочности
 - **font**:String - текущий шрифт
+- **baseline**:String - метод вывода текста, может быть top, middle, bottom
 - **fillStyle**:String/Array/Boolean - текущая заливка, градиент или false, если заливка не нужна
 - **strokeStyle**:String/Boolean - обводка шрифта или false, если обводка не нужна
 - **strokeWidth**:int - ширина обводки
@@ -243,6 +244,7 @@ Simple Canvas Engine for javascript / coffeescript
 - **underlineOffset**:int - смещение линии подчеркивания
 - **text**:String - отображаемый текст
 - **setFont**(font:String):String - установка шрифта
+- **setBaseline**(baseline:String):String - метод вывода текста
 - **setFillStyle**(style:String/Array):String/Array - установка заливки текста
 - **setStrokeStyle**(style:String):String - установка обводки
 - **setStrokeWidth**(value:int):int - толщина обводки

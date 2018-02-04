@@ -2,13 +2,13 @@
 
 requirejs.config({
 	
-	// baseUrl: "../../js"
-	baseUrl: "../../bin"
+	baseUrl: "../../js"
+	// baseUrl: "../../bin"
 
 });
 
-// requirejs(["CanvasEngine"], function(CanvasEngine){
-requirejs(["CanvasEngine.min"], function(CanvasEngine){
+requirejs(["CanvasEngine"], function(CanvasEngine){
+// requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 	var CE = new CanvasEngine({
 
@@ -20,11 +20,11 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 	var text = CE.add({
 
 		type: "text",
-		text: "Hello, World!",
+		text: "Hello,\nWorld!",
 		font: "80px Helvetica",
 		fillStyle: [[0, "#F00"], [1, "#000"]],
 		strokeStyle: "#0000FF",
-		strokeWidth: 3
+		strokeWidth: 5
 
 	});
 
@@ -53,7 +53,9 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 		font: "20px Helvetica",
 		fillStyle: "#000",
 		underline: true,
-		position: [50, 200]
+		underlineOffset: 5,
+		position: [50, 200],
+		baseline: "middle"
 
 	});
 
@@ -64,9 +66,45 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 		font: "20px Helvetica",
 		fillStyle: "#000",
 		underline: true,
-		underlineOffset: -8,
-		position: [50, 300]
+		underlineOffset: -5,
+		position: [50, 300],
+		baseline: "bottom"
 
 	});
+
+	var scene2 = CE.add({
+
+		type: "scene",
+		name: "scene2"
+
+	});
+
+	var graph = scene2.add({
+
+		type: "graph"
+
+	});
+
+	graph.strokeStyle("#F00");
+	graph.line(500, 50, 800, 50);
+	graph.line(500, 100, 800, 100);
+
+	var centered = scene2.add({
+
+		type: "text",
+		font: "20px Arial",
+		text: "Centered\nTEXT",
+		fillStyle: "#000",
+		baseline: "top",
+		position: [500, 50]
+
+	});
+
+	console.log(centered.textHeight, centered.fontHeight);
+
+	centered.move([500 + (300 - centered.textWidth) / 2, 50 + (50 - centered.textHeight) / 2]);
+
+	graph.rect(text.position[0], text.position[1], text.textWidth, text.textHeight);
+	graph.stroke();
 
 });
