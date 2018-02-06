@@ -392,5 +392,7 @@ define () ->
 
 				# установка текста
 				@_text.write text
+				# корректировка для gecko
+				dy = if FIREFIX then 4 else 0
 				# установка позиции
-				@_text.move [@_position[0] + (@_size[0] - @_text.textWidth) / 2, @_position[1] + (@_size[1] - @_text.fontHeight) / 2]
+				@_text.move [@_position[0] + (@_size[0] - @_text.textWidth) / 2, @_position[1] + dy + (@_size[1] - @_text.fontHeight) / 2]

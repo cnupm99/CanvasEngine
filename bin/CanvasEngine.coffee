@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.11
-# build 1
-# Wed Jan 31 2018
+# build 4
+# Tue Feb 06 2018
 #
 
 "use strict";
@@ -2287,6 +2287,7 @@ define () ->
 				if element.requestFullScreen? then element.requestFullScreen()
 				else if element.webkitRequestFullScreen? then element.webkitRequestFullScreen()
 				else if element.mozRequestFullScreen? then element.mozRequestFullScreen()
+				else if element.msRequestFullscreen? then element.msRequestFullscreen()
 				else return false
 
 			else
@@ -2295,6 +2296,7 @@ define () ->
 				else if document.webkitCancelFullScreen? then document.webkitCancelFullScreen()
 				else if document.mozCancelFullScreen? then document.mozCancelFullScreen()
 				else if document.exitFullScreen? then document.exitFullScreen()
+				else if document.msExitFullscreen? then document.msExitFullscreen()
 				else return false
 
 			return true
@@ -2302,7 +2304,7 @@ define () ->
 		# проверка, находится ли документ в полноэкранном режиме
 		isFullscreen: () -> 
 
-			element = document.fullscreenElement or document.webkitFullscreenElement or document.mozFullscreenElement
+			element = document.fullscreenElement or document.webkitFullscreenElement or document.mozFullscreenElement or document.msFullscreenElement
 			element?
 
 		# 

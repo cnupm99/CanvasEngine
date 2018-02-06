@@ -228,6 +228,7 @@ define ["ContainerObject", "Scene"], (ContainerObject, Scene) ->
 				if element.requestFullScreen? then element.requestFullScreen()
 				else if element.webkitRequestFullScreen? then element.webkitRequestFullScreen()
 				else if element.mozRequestFullScreen? then element.mozRequestFullScreen()
+				else if element.msRequestFullscreen? then element.msRequestFullscreen()
 				else return false
 
 			else
@@ -236,6 +237,7 @@ define ["ContainerObject", "Scene"], (ContainerObject, Scene) ->
 				else if document.webkitCancelFullScreen? then document.webkitCancelFullScreen()
 				else if document.mozCancelFullScreen? then document.mozCancelFullScreen()
 				else if document.exitFullScreen? then document.exitFullScreen()
+				else if document.msExitFullscreen? then document.msExitFullscreen()
 				else return false
 
 			return true
@@ -243,7 +245,7 @@ define ["ContainerObject", "Scene"], (ContainerObject, Scene) ->
 		# проверка, находится ли документ в полноэкранном режиме
 		isFullscreen: () -> 
 
-			element = document.fullscreenElement or document.webkitFullscreenElement or document.mozFullscreenElement
+			element = document.fullscreenElement or document.webkitFullscreenElement or document.mozFullscreenElement or document.msFullscreenElement
 			element?
 
 		# 

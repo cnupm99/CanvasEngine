@@ -8,6 +8,13 @@ requirejs.config({
 
 requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(CanvasEngine, ProgressBar) {
 
+	var isFirefox, isGecko, isOpera, ua;
+	ua = typeof navigator !== "undefined" ? navigator.userAgent || '' : '';
+	isFirefox = /firefox|iceweasel|fxios/i.test(ua);
+	isOpera = (/opera/i.test(ua)) || (/opr\/|opios/i.test(ua));
+	isGecko = (/gecko\//i.test(ua)) && !isOpera;
+	window["FIREFIX"] = isFirefox || isGecko;
+
 	// создаем движок
 	var ce = new CanvasEngine({
 
@@ -90,7 +97,8 @@ requirejs(["CanvasEngine.min", "../utils/ProgressBar/ProgressBar"], function(Can
 			progress25: ["#FF0000", "#800000"],
 			progress100: ["#00FF00", "#008000"],
 			// progress50: ["#EFE683", "#feb645"],
-			progress50: ["#FF0000", "#800000"],
+			// progress50: ["#FF0000", "#800000"],
+			progress50: ["#f2d31b", "#E3C40C"],
 			progress75: ["#f2d31b", "#E3C40C"]
 
 		}
