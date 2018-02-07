@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.11
-# build 4
-# Tue Feb 06 2018
+# build 5
+# Wed Feb 07 2018
 #
 
 "use strict";
@@ -2084,8 +2084,6 @@ define () ->
 		#  stop() - останавливаем цикл анимации
 		#  addEvent(func) - добавить функцию, выполняемую каждый раз перед анимацией
 		#  removeEvent(func) - удалить функцию из цикла анимации
-		#  fullscreen(Boolean):Boolean - включить/выключить полноэкранный режим
-		#  isFullscreen():Boolean - определяет, включен ли полноэкранный режим
 		#  canvasSupport():Boolean - проверка, поддерживает ли браузер canvas и context
 		# 
 		constructor: (options) ->
@@ -2270,43 +2268,7 @@ define () ->
 
 			@_beforeAnimate.forEach (item, i) => @_beforeAnimate.splice i, 1 if item == func
 
-		# 
-		# установить / снять полноэкранный режим
-		# для элемента
-		# 
-		fullscreen: (value, element) ->
-
-			# 
-			# установка значений по умолчанию
-			# 
-			value = true unless value?
-			element = @parent unless element
-
-			if value
-
-				if element.requestFullScreen? then element.requestFullScreen()
-				else if element.webkitRequestFullScreen? then element.webkitRequestFullScreen()
-				else if element.mozRequestFullScreen? then element.mozRequestFullScreen()
-				else if element.msRequestFullscreen? then element.msRequestFullscreen()
-				else return false
-
-			else
-
-				if document.cancelFullScreen? then document.cancelFullScreen()
-				else if document.webkitCancelFullScreen? then document.webkitCancelFullScreen()
-				else if document.mozCancelFullScreen? then document.mozCancelFullScreen()
-				else if document.exitFullScreen? then document.exitFullScreen()
-				else if document.msExitFullscreen? then document.msExitFullscreen()
-				else return false
-
-			return true
-
-		# проверка, находится ли документ в полноэкранном режиме
-		isFullscreen: () -> 
-
-			element = document.fullscreenElement or document.webkitFullscreenElement or document.mozFullscreenElement or document.msFullscreenElement
-			element?
-
+		
 		# 
 		# проверка, поддерживает ли браузер canvas и context
 		# 

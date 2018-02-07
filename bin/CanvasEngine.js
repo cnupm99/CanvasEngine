@@ -1206,49 +1206,6 @@
         })(this));
       };
 
-      CanvasEngine.prototype.fullscreen = function(value, element) {
-        if (value == null) {
-          value = true;
-        }
-        if (!element) {
-          element = this.parent;
-        }
-        if (value) {
-          if (element.requestFullScreen != null) {
-            element.requestFullScreen();
-          } else if (element.webkitRequestFullScreen != null) {
-            element.webkitRequestFullScreen();
-          } else if (element.mozRequestFullScreen != null) {
-            element.mozRequestFullScreen();
-          } else if (element.msRequestFullscreen != null) {
-            element.msRequestFullscreen();
-          } else {
-            return false;
-          }
-        } else {
-          if (document.cancelFullScreen != null) {
-            document.cancelFullScreen();
-          } else if (document.webkitCancelFullScreen != null) {
-            document.webkitCancelFullScreen();
-          } else if (document.mozCancelFullScreen != null) {
-            document.mozCancelFullScreen();
-          } else if (document.exitFullScreen != null) {
-            document.exitFullScreen();
-          } else if (document.msExitFullscreen != null) {
-            document.msExitFullscreen();
-          } else {
-            return false;
-          }
-        }
-        return true;
-      };
-
-      CanvasEngine.prototype.isFullscreen = function() {
-        var element;
-        element = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullscreenElement || document.msFullscreenElement;
-        return element != null;
-      };
-
       CanvasEngine.prototype.canvasSupport = function() {
         return document.createElement("canvas").getContext != null;
       };

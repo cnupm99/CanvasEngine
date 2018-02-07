@@ -18,31 +18,8 @@ requirejs(["CanvasEngine.min"], function(CanvasEngine){
 
 	});
 
-	// добавим переход / выход из поноэкранного режима
-	// по нажатию колеса мыши
 	document.addEventListener("mouseup", function(e){
 
-		if(e.which == 2) {
-
-			if(ce.isFullscreen()) {
-
-				ce.fullscreen(false, document.body);
-				var div = document.getElementById("main");
-				div.style.position = "absolute";
-				div.style.left = "0px";
-				div.style.top = "0px";
-
-			} else {
-
-				ce.fullscreen(true, document.body);
-				var div = document.getElementById("main");
-				div.style.position = "absolute";
-				div.style.left = ((screen.width - ce.size[0]) / 2) + "px";
-				div.style.top = ((screen.height - ce.size[1]) / 2) + "px";
-
-			}
-
-		}
 		if(e.which == 1) {
 
 			if(image.visible) {image.hide()}
