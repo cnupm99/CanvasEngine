@@ -629,7 +629,7 @@
       Graph.prototype.getOptions = function() {
         var options;
         options = Graph.__super__.getOptions.call(this);
-        options.commands = JSON.parse(JSON.stringify(this._commands));
+        options.commands = this._commands;
         return options;
       };
 

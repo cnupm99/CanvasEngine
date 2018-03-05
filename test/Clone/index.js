@@ -16,19 +16,24 @@ requirejs(["CanvasEngine"], function(CanvasEngine){
 
 	});
 
+	var graph = CE.add({type:"graph"});
+
 	var image = CE.add({
 
 		type: "image",
 		src: "../flower.png",
 		position: [0, 0],
-		size: [50, 50]
+		size: [50, 50],
+		onload: function() {
+
+			var p = graph.context.createPattern(image.image, "repeat");
+			graph.fillStyle(p);
+			graph.rect(300, 50, 100, 70);
+			graph.fill();
+
+		}
 
 	});
-
-	var graph = CE.add({type:"graph"});
-	graph.fillStyle("rgba(0,0,0,0.7)");
-	graph.rect(300, 50, 100, 70);
-	graph.fill();
 
 	var counter = 1;
 	

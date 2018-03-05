@@ -411,10 +411,7 @@ define ["DisplayObject"], (DisplayObject) ->
 			# 
 			options = super()
 
-			# 
-			# переписываем команды
-			# 
-			options.commands = JSON.parse(JSON.stringify(@_commands));
+			options.commands = @_commands
 
 			# 
 			# результат возвращаем

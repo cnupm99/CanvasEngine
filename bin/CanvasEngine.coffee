@@ -2,8 +2,8 @@
 # CanvasEngine
 #
 # version 1.11
-# build 5
-# Wed Feb 07 2018
+# build 6
+# Mon Mar 05 2018
 #
 
 "use strict";
@@ -1077,10 +1077,7 @@ define () ->
 			# 
 			options = super()
 
-			# 
-			# переписываем команды
-			# 
-			options.commands = JSON.parse(JSON.stringify(@_commands));
+			options.commands = @_commands
 
 			# 
 			# результат возвращаем
